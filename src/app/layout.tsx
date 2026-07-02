@@ -1,28 +1,24 @@
 import type { Metadata } from 'next';
-import '@/styles/globals.css';
+import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'CINARAI',
-  description:
-    'CINARAI - Critical Numeracy with AR & AI. Platform pembelajaran numerasi berbasis etnomatematika untuk siswa Sekolah Dasar Indonesia.',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
+  title: 'CINARAI - Critical Numeracy with AR & AI',
+  description: 'Platform pembelajaran numerasi berbasis etnomatematika',
 };
-
-interface RootLayoutProps {
-  children: React.ReactNode;
-}
 
 export default function RootLayout({
   children,
-}: RootLayoutProps): React.ReactNode {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }
