@@ -36,3 +36,24 @@ export default function DashboardPage() {
     </ProtectedRoute>
   );
 }
+  return (
+    <ProtectedRoute>
+      <main className="min-h-screen bg-neutral-50 px-4 py-5 text-neutral-900 sm:px-6 lg:px-8">
+
+        {/* Header */}
+        {/* gunakan layout LearningJourney */}
+
+        {/* tampilkan nama user */}
+        {user?.displayName}
+
+        {/* tombol Logout */}
+        <button onClick={handleLogout}>
+          Logout
+        </button>
+
+        <LearningJourney />
+
+      </main>
+    </ProtectedRoute>
+  );
+}
