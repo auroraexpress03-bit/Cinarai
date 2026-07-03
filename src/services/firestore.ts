@@ -199,7 +199,8 @@ export const subscribeToFirestoreCollection = <
 >(
   collectionName: TCollectionName,
   callback: (data: Array<FirestoreCollectionMap[TCollectionName]>) => void,
-  options: FirestoreQueryOptions<TCollectionName> = {}
+  options: FirestoreQueryOptions<TCollectionName> = {},
+  onError?: (error: Error) => void
 ): Unsubscribe => {
   const queryConstraints: QueryConstraint[] = [];
 
@@ -223,6 +224,7 @@ export const subscribeToFirestoreCollection = <
       callback(
         snapshot.docs.map((documentSnapshot) => documentSnapshot.data())
       );
-    }
+    },
+    onError
   );
 };

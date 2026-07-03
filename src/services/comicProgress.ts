@@ -101,13 +101,15 @@ export function subscribeToComicProgress(
 /** Subscribe to all comics' progress for a user in realtime. */
 export function subscribeToAllComicProgress(
   userId: string,
-  callback: (states: ComicProgressState[]) => void
+  callback: (states: ComicProgressState[]) => void,
+  onError?: (error: Error) => void
 ): Unsubscribe {
   return subscribeToFirestoreCollection(
     'comic_progress',
     (docs) => {
       callback(docs.map((d) => fromDocument(d.comicId, d)));
     },
-    { filters: [{ field: 'userId', operator: '==', value: userId }] }
+    { filters: [{ field: 'userId', operator: '==', value: userId }] },
+    onError
   );
 }

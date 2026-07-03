@@ -15,10 +15,16 @@ export function useAllComicProgress() {
       setIsLoading(false);
       return;
     }
-    const unsub = subscribeToAllComicProgress(user.uid, (s) => {
-      setStates(s);
-      setIsLoading(false);
-    });
+    const unsub = subscribeToAllComicProgress(
+      user.uid,
+      (s) => {
+        setStates(s);
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(false);
+      },
+    );
     return () => unsub();
   }, [user]);
 
