@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Stage } from '../types';
 import { useLearningEngine } from '../hooks/useLearningEngine';
 import CoverStage from './stages/CoverStage';
@@ -12,11 +13,9 @@ import ApplicationStage from './stages/ApplicationStage';
 import IntrospectionStage from './stages/IntrospectionStage';
 import FinishStage from './stages/FinishStage';
 
-export default function StageRouter() {
+function StageContent() {
   const { currentStage, isLoading } = useLearningEngine();
-
   if (isLoading) return null;
-
   switch (currentStage) {
     case Stage.Cover:             return <CoverStage />;
     case Stage.Contextualization: return <ContextualizationStage />;
@@ -29,4 +28,40 @@ export default function StageRouter() {
     case Stage.Finish:            return <FinishStage />;
     default:                      return null;
   }
+}
+
+export default function StageRouter() {
+  const { currentStage, isLoading, isFinished } = useLearningEngine();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to top of the scrollable content area on every stage change
+  useEffect(() => {
+    if (isLoading) return;
+    // Walk up the DOM to find the nearest overflow-y-auto ancestor
+    let el: HTMLElement | null = wrapperRef.current?.parentElement ?? null;
+    while (el) {
+      const overflow = window.getComputedStyle(el).overflowY;
+      if (overflow === 'auto' || overflow === 'scroll') {
+        el.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      el = el.parentElement;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStage, isLoading]);
+
+  // FinishStage renders full-screen without layout wrapper
+  if (isFinished) {
+    return <FinishStage />;
+  }
+
+  return (
+    <div
+      ref={wrapperRef}
+      key={currentStage}
+      className="animate-stage-in"
+    >
+      <StageContent />
+    </div>
+  );
 }

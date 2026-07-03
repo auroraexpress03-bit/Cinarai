@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { fetchComicById } from '@/services/comicFirestoreService';
 import LearningEngine from './LearningEngine';
+import { LearningPageSkeleton } from './LearningEngine';
 import type { Comic } from '@/types/comic';
 
 interface LearningEngineRootProps {
@@ -39,11 +40,7 @@ export default function LearningEngineRoot({ comicId }: LearningEngineRootProps)
   }, [comicId]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-neutral-50">
-        <div className="h-10 w-10 rounded-full border-4 border-primary-200 border-t-primary-500 animate-spin" />
-      </div>
-    );
+    return <LearningPageSkeleton />;
   }
 
   if (error || !comic) {

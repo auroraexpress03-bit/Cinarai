@@ -1,14 +1,60 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useCallback, useRef, type ReactNode } from 'react';
+import { useLearningEngine } from '../../hooks/useLearningEngine';
+
+const SWIPE_THRESHOLD = 48;   // min horizontal px to count as swipe
+const SWIPE_VERT_LIMIT = 72;  // max vertical drift before cancelling
 
 interface LearningContentProps {
   children: ReactNode;
 }
 
 export default function LearningContent({ children }: LearningContentProps) {
+  const { nextStage, previousStage, canAdvance, isSaving, stageIndex } = useLearningEngine();
+
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length > 1) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+    }
+  }, []);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    if (e.changedTouches.length !== 1) return;
+
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    if (Math.abs(dy) > SWIPE_VERT_LIMIT) return;
+    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+
+    if (dx < 0 && canAdvance && !isSaving) {
+      void nextStage();
+    } else if (dx > 0 && stageIndex > 0) {
+      previousStage();
+    }
+  }, [nextStage, previousStage, canAdvance, isSaving, stageIndex]);
+
   return (
-    <main className="flex-1 overflow-y-auto bg-[#f0f7ff]">
+    <main
+      className="flex-1 overflow-y-auto bg-[#f0f7ff]"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="mx-auto max-w-2xl px-3 py-3 sm:px-6 sm:py-5 animate-fade-in">
         {children}
       </div>

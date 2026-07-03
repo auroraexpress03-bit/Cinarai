@@ -52,6 +52,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   const [isLoading, setIsLoading] = useState(true);
   const [stageIndex, setStageIndex] = useState(0);
   const [canAdvance, setCanAdvance] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Subscribe to Firestore progress
   useEffect(() => {
@@ -94,18 +95,23 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
 
   /** Complete current stage in Firestore then advance to next stage. */
   const nextStage = useCallback(async () => {
-    if (!canAdvance || stageIndex >= totalStages - 1) return;
+    if (!canAdvance || isSaving || stageIndex >= totalStages - 1) return;
 
     const sintaks = stageToSintaks(currentStage);
     if (user?.uid && sintaks) {
+      setIsSaving(true);
       try {
         const next = await persistCompleteStage(user.uid, progress, sintaks);
         setProgress(next);
+        showSnackbar('Progress berhasil disimpan ✓', 'success');
       } catch (error) {
         console.error('Save Progress Error', error);
         const msg = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui.';
         showSnackbar(`Gagal menyimpan progress: ${msg}`, 'error');
+        setIsSaving(false);
         return; // jangan maju stage jika save gagal
+      } finally {
+        setIsSaving(false);
       }
     } else if (!user?.uid) {
       console.error('Save Progress Error: userId tidak tersedia.');
@@ -114,7 +120,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
     }
 
     setStageIndex((i) => Math.min(i + 1, totalStages - 1));
-  }, [user, stageIndex, totalStages, currentStage, progress, canAdvance, showSnackbar]);
+  }, [user, stageIndex, totalStages, currentStage, progress, canAdvance, isSaving, showSnackbar]);
 
   const previousStage = useCallback(() => {
     setCanAdvance(true); // reset gate saat mundur
@@ -150,6 +156,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       finishLearning,
       canAdvance,
       setCanAdvance,
+      isSaving,
     }),
     [
       comicId,
@@ -167,6 +174,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       finishLearning,
       canAdvance,
       setCanAdvance,
+      isSaving,
     ]
   );
 

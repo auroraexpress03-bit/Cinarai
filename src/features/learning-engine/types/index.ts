@@ -57,4 +57,7 @@ export interface LearningContextValue {
   // Stage gate — stage dapat mengunci/membuka tombol Next
   canAdvance: boolean;
   setCanAdvance: (value: boolean) => void;
+
+  // Save state — true while Firestore write is in-flight
+  isSaving: boolean;
 }

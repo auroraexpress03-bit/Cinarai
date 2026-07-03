@@ -9,6 +9,7 @@ export default function LearningBottomNav() {
     stageIndex,
     isFinished,
     canAdvance,
+    isSaving,
     nextStage,
     previousStage,
   } = useLearningEngine();
@@ -16,6 +17,7 @@ export default function LearningBottomNav() {
   const isFirst = stageIndex === 0;
   const isLastLearningStage = currentStage === Stage.Introspection;
   const showValidationMessage = !canAdvance && currentStage === Stage.Identification;
+  const nextDisabled = !canAdvance || isSaving;
 
   if (isFinished) return null;
 
@@ -35,7 +37,7 @@ export default function LearningBottomNav() {
         {/* Previous */}
         <button
           onClick={previousStage}
-          disabled={isFirst}
+          disabled={isFirst || isSaving}
           aria-label="Stage sebelumnya"
           className="flex items-center justify-center gap-1 h-11 rounded-xl border border-neutral-200 bg-white px-3 text-sm font-semibold text-neutral-600 hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors active:scale-[0.97]"
         >
@@ -48,15 +50,24 @@ export default function LearningBottomNav() {
         {/* Next */}
         <button
           onClick={() => { void nextStage(); }}
-          disabled={!canAdvance}
+          disabled={nextDisabled}
           aria-label={isLastLearningStage ? 'Selesaikan pembelajaran' : 'Stage berikutnya'}
           className="flex flex-1 items-center justify-center gap-1.5 h-11 rounded-xl bg-primary-600 px-4 text-sm font-black text-white shadow-sm hover:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
         >
-          {isLastLearningStage ? 'Selesai 🏆' : 'Berikutnya'}
-          {!isLastLearningStage && (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+          {isSaving ? (
+            <>
+              <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+              Menyimpan…
+            </>
+          ) : isLastLearningStage ? (
+            'Selesai 🏆'
+          ) : (
+            <>
+              Berikutnya
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </>
           )}
         </button>
       </div>
