@@ -1,5 +1,5 @@
 import { COMICS } from "@/data/comics";
-import type { Comic, ComicAvailability, ComicProgress, ComicStage, ComicStatus } from "@/types/comic";
+import type { Comic, ComicAvailability } from "@/types/comic";
 
 export function getAllComics(): Comic[] {
   return COMICS;
@@ -27,35 +27,4 @@ export function isActive(id: number): boolean {
 
 export function isComingSoon(id: number): boolean {
   return getComicById(id)?.availability === "COMING_SOON";
-}
-
-/** Derive status from progress. First comic is always available. */
-export function deriveComicStatus(
-  comicId: number,
-  allProgress: ComicProgress[]
-): ComicStatus {
-  const progress = allProgress.find((p) => p.comicId === comicId);
-  if (progress) return progress.status;
-
-  const comic = getComicById(comicId);
-  if (!comic) return "locked";
-
-  if (comicId === 1) return "available";
-
-  const prev = allProgress.find((p) => p.comicId === comicId - 1);
-  return prev?.status === "completed" ? "available" : "locked";
-}
-
-export function createInitialProgress(comicId: number): ComicProgress {
-  const comic = getComicById(comicId);
-  const firstStage: ComicStage = comic?.stages[0] ?? "comic";
-  return {
-    comicId,
-    status: comicId === 1 ? "available" : "locked",
-    currentStage: firstStage,
-    completedStages: [],
-    currentPage: 0,
-    totalPages: 0,
-    score: 0,
-  };
 }

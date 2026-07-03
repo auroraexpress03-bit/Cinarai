@@ -1,31 +1,24 @@
 'use client';
 
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where,
-  type Unsubscribe,
-} from 'firebase/firestore';
-import { firestore } from '@/lib/firebase/client';
+import { serverTimestamp } from 'firebase/firestore';
 import { getAllComics } from '@/lib/comicRepository';
 import { createInitialProgressState, restoreProgressState } from '@/lib/progressEngine';
+import {
+  setFirestoreDocument,
+  updateFirestoreDocument,
+  subscribeToFirestoreDocument,
+  subscribeToFirestoreCollection,
+  getFirestoreDocument,
+} from '@/services/firestore';
 import type { ComicProgressDocument } from '@/types/firestore';
-import type { ComicProgressState, SintaksProgress } from '@/types/progress';
-
-const COLLECTION = 'comic_progress';
+import type { ComicProgressState } from '@/types/progress';
+import type { Unsubscribe } from 'firebase/firestore';
 
 /** Deterministic doc ID: {userId}_{comicId} */
 function docId(userId: string, comicId: number): string {
   return `${userId}_${comicId}`;
 }
 
-/** Serialize sintaksList to a plain string for the `stage` field (current sintaks name). */
 function currentStage(state: ComicProgressState): string {
   return state.sintaksList.find((s) => s.status === 'CURRENT')?.sintaks ?? 'Cover';
 }
@@ -36,6 +29,28 @@ function deriveStatus(state: ComicProgressState): ComicProgressDocument['status'
   return 'not_started';
 }
 
+function toDocument(
+  userId: string,
+  state: ComicProgressState
+): Omit<ComicProgressDocument, 'id'> {
+  return {
+    userId,
+    comicId: state.comicId,
+    stage: currentStage(state),
+    percentage: state.percentage,
+    status: deriveStatus(state),
+    sintaksList: state.sintaksList,
+    updatedAt: serverTimestamp() as ComicProgressDocument['updatedAt'],
+  };
+}
+
+function fromDocument(comicId: number, data: ComicProgressDocument): ComicProgressState {
+  if (data.sintaksList?.length) {
+    return restoreProgressState(comicId, data.sintaksList);
+  }
+  return createInitialProgressState(comicId);
+}
+
 // ─── Create ──────────────────────────────────────────────────────────────────
 
 /** Create initial progress documents for all comics when user first logs in. */
@@ -44,23 +59,11 @@ export async function initializeUserProgress(userId: string): Promise<void> {
 
   await Promise.all(
     comics.map(async (comic) => {
-      const ref = doc(firestore, COLLECTION, docId(userId, comic.id));
-      const snap = await getDoc(ref);
-      if (snap.exists()) return; // already initialized
+      const existing = await getFirestoreDocument('comic_progress', docId(userId, comic.id));
+      if (existing) return;
 
       const state = createInitialProgressState(comic.id);
-
-      const data: Omit<ComicProgressDocument, 'id'> = {
-        userId,
-        comicId: comic.id,
-        stage: currentStage(state),
-        percentage: state.percentage,
-        status: deriveStatus(state),
-        sintaksList: state.sintaksList,
-        updatedAt: serverTimestamp() as ComicProgressDocument['updatedAt'],
-      };
-
-      await setDoc(ref, data);
+      await setFirestoreDocument('comic_progress', docId(userId, comic.id), toDocument(userId, state));
     })
   );
 }
@@ -72,16 +75,13 @@ export async function saveComicProgress(
   userId: string,
   state: ComicProgressState
 ): Promise<void> {
-  const ref = doc(firestore, COLLECTION, docId(userId, state.comicId));
-  const isCompleted = state.isCompleted;
-
-  await updateDoc(ref, {
+  await updateFirestoreDocument('comic_progress', docId(userId, state.comicId), {
     stage: currentStage(state),
     percentage: state.percentage,
     status: deriveStatus(state),
     sintaksList: state.sintaksList,
     updatedAt: serverTimestamp(),
-    ...(isCompleted ? { completedAt: serverTimestamp() } : {}),
+    ...(state.isCompleted ? { completedAt: serverTimestamp() } : {}),
   });
 }
 
@@ -93,22 +93,8 @@ export function subscribeToComicProgress(
   comicId: number,
   callback: (state: ComicProgressState) => void
 ): Unsubscribe {
-  const ref = doc(firestore, COLLECTION, docId(userId, comicId));
-
-  return onSnapshot(ref, (snap) => {
-    if (!snap.exists()) {
-      callback(createInitialProgressState(comicId));
-      return;
-    }
-
-    const data = snap.data() as ComicProgressDocument & { sintaksList?: SintaksProgress[] };
-
-    // If sintaksList is stored, restore from it; otherwise rebuild from stage/percentage
-    if (data.sintaksList) {
-      callback(restoreProgressState(comicId, data.sintaksList));
-    } else {
-      callback(createInitialProgressState(comicId));
-    }
+  return subscribeToFirestoreDocument('comic_progress', docId(userId, comicId), (data) => {
+    callback(data ? fromDocument(comicId, data) : createInitialProgressState(comicId));
   });
 }
 
@@ -117,22 +103,11 @@ export function subscribeToAllComicProgress(
   userId: string,
   callback: (states: ComicProgressState[]) => void
 ): Unsubscribe {
-  const q = query(
-    collection(firestore, COLLECTION),
-    where('userId', '==', userId)
+  return subscribeToFirestoreCollection(
+    'comic_progress',
+    (docs) => {
+      callback(docs.map((d) => fromDocument(d.comicId, d)));
+    },
+    { filters: [{ field: 'userId', operator: '==', value: userId }] }
   );
-
-  return onSnapshot(q, (snap) => {
-    const states: ComicProgressState[] = snap.docs.map((d) => {
-      const data = d.data() as ComicProgressDocument & { sintaksList?: SintaksProgress[] };
-      const comicId = data.comicId;
-
-      if (data.sintaksList) {
-        return restoreProgressState(comicId, data.sintaksList);
-      }
-      return createInitialProgressState(comicId);
-    });
-
-    callback(states);
-  });
 }

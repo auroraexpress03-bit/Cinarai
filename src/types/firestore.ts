@@ -1,4 +1,5 @@
 import type { Timestamp } from 'firebase/firestore';
+import type { SintaksProgress } from '@/types/progress';
 
 export type FirestoreTimestamp = Timestamp;
 
@@ -48,7 +49,7 @@ export interface ComicProgressDocument extends FirestoreBaseDocument {
   stage: string;
   percentage: number;
   status: 'not_started' | 'in_progress' | 'completed';
-  sintaksList: Array<{ sintaks: string; status: string }>;
+  sintaksList: SintaksProgress[];
   completedAt?: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }

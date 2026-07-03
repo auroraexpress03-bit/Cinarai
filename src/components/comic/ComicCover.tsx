@@ -14,16 +14,13 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
   const comic = getComicById(comicId);
   const { state, complete } = useComicProgress(comicId);
 
-  // Mark Cover sintaks as completed when this page is opened
+  // Mark Cover sintaks as completed — only after progress is loaded from Firestore
   useEffect(() => {
-    const alreadyDone = state.sintaksList.find(
-      (s) => s.sintaks === "Cover" && s.status === "COMPLETED"
-    );
-    if (!alreadyDone) {
+    if (state.completedCount === 0 && state.sintaksList[0]?.status === "CURRENT") {
       complete("Cover");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [state.sintaksList]);
 
   if (!comic) {
     return (
@@ -99,6 +96,7 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
                     src={char.avatar}
                     alt={char.name}
                     fill
+                    sizes="56px"
                     className="object-cover"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display = "none";

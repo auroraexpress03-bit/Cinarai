@@ -1,7 +1,5 @@
 export type ComicAvailability = "ACTIVE" | "COMING_SOON";
 
-export type ComicStatus = "locked" | "available" | "in_progress" | "completed";
-
 export type ComicStage = "comic" | "quiz" | "ar" | "reflection";
 
 export interface ComicCharacter {
@@ -25,14 +23,4 @@ export interface Comic {
   thumbnail: string;
   stages: ComicStage[];
   availability: ComicAvailability;
-}
-
-export interface ComicProgress {
-  comicId: number;
-  status: ComicStatus;
-  currentStage: ComicStage;
-  completedStages: ComicStage[];
-  currentPage: number;
-  totalPages: number;
-  score: number;
 }

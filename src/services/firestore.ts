@@ -10,6 +10,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   setDoc,
   updateDoc,
   where,
@@ -24,7 +25,7 @@ import {
   type WithFieldValue,
 } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
-import type { FirestoreCollectionMap } from '@/types/firestore';
+import type { FirestoreCollectionMap, UserDocument } from '@/types/firestore';
 
 export const FIRESTORE_COLLECTIONS = {
   users: 'users',
@@ -175,6 +176,23 @@ export const subscribeToFirestoreDocument = <
     callback(snapshot.exists() ? snapshot.data() : null);
   });
 };
+
+// ─── users helpers ───────────────────────────────────────────────────────────
+
+/** Create or update a user document (upsert). */
+export const upsertUser = async (user: Omit<UserDocument, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+  await setDoc(
+    getTypedDoc('users', user.uid),
+    { ...user, updatedAt: serverTimestamp() } as WithFieldValue<Omit<UserDocument, 'id'>>,
+    { merge: true }
+  );
+};
+
+/** Subscribe to a user document in realtime. */
+export const subscribeToUser = (
+  uid: string,
+  callback: (user: UserDocument | null) => void
+): Unsubscribe => subscribeToFirestoreDocument('users', uid, callback);
 
 export const subscribeToFirestoreCollection = <
   TCollectionName extends FirestoreCollectionName,

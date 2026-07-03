@@ -1,14 +1,35 @@
 'use client';
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { getAllComics } from "@/lib/comicRepository";
 import { getAllUnlockStatuses } from "@/lib/unlockEngine";
 import { useAllComicProgress } from "@/hooks/useAllComicProgress";
 
+const comics = getAllComics();
+
 export default function LearningJourney() {
-  const comics = getAllComics();
-  const { states, getProgress } = useAllComicProgress();
-  const unlockStatuses = getAllUnlockStatuses(states);
+  const { states, getProgress, isLoading } = useAllComicProgress();
+  const unlockStatuses = useMemo(() => getAllUnlockStatuses(states), [states]);
+
+  if (isLoading) {
+    return (
+      <section className="rounded-base border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-5">
+          <div className="h-4 w-28 rounded bg-neutral-200 animate-pulse" />
+          <div className="mt-2 h-6 w-40 rounded bg-neutral-200 animate-pulse" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-4">
+              <div className="h-10 w-10 rounded-full bg-neutral-200 animate-pulse flex-shrink-0" />
+              <div className="flex-1 h-24 rounded-base bg-neutral-200 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-base border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">

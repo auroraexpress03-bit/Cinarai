@@ -13,6 +13,7 @@ import {
   updateUserProfile,
 } from '@/lib/firebase/auth';
 import { initializeUserProgress } from '@/services/comicProgress';
+import { upsertUser } from '@/services/firestore';
 import type { User, AuthContextType, AuthState } from '@/types/auth';
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,7 +47,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (firebaseUser) {
         const user = mapFirebaseUserToUser(firebaseUser);
         setState({ user, loading: false, error: null });
-        // Initialize progress documents on first login (no-op if already exists)
+        // Upsert user document + initialize progress (no-op if already exists)
+        upsertUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: firebaseUser.displayName ?? undefined,
+          photoURL: firebaseUser.photoURL ?? undefined,
+          role: 'student',
+          isActive: true,
+          lastLoginAt: undefined,
+          emailVerified: undefined,
+        } as Parameters<typeof upsertUser>[0]).catch((err) =>
+          console.warn('User upsert error:', err)
+        );
         initializeUserProgress(firebaseUser.uid).catch((err) =>
           console.warn('Progress init error:', err)
         );

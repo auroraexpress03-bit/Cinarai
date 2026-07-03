@@ -5,8 +5,6 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
 const ZOOM_STEP = 0.25;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 3;
@@ -17,6 +15,7 @@ interface PdfReaderProps {
 }
 
 export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
+  const [workerReady, setWorkerReady] = useState(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [page, setPage] = useState(1);
   const [scale, setScale] = useState(1);
@@ -24,6 +23,12 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const fullscreenRef = useRef<HTMLDivElement>(null);
+
+  // Configure worker only on client — prevents SSR/DOMMatrix/window errors
+  useEffect(() => {
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+    setWorkerReady(true);
+  }, []);
 
   // Responsive: measure container width
   useEffect(() => {
@@ -43,9 +48,14 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
+  // Notify parent when last page reached
+  useEffect(() => {
+    if (numPages > 0 && page === numPages) onComplete?.();
+  }, [page, numPages, onComplete]);
+
   const onDocumentLoadSuccess = useCallback(
-    ({ numPages }: { numPages: number }) => {
-      setNumPages(numPages);
+    ({ numPages: n }: { numPages: number }) => {
+      setNumPages(n);
       setPage(1);
     },
     []
@@ -56,9 +66,15 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
     [numPages]
   );
 
-  const zoomIn = () => setScale((s) => Math.min(+(s + ZOOM_STEP).toFixed(2), ZOOM_MAX));
-  const zoomOut = () => setScale((s) => Math.max(+(s - ZOOM_STEP).toFixed(2), ZOOM_MIN));
-  const resetZoom = () => setScale(1);
+  const zoomIn = useCallback(
+    () => setScale((s) => Math.min(+(s + ZOOM_STEP).toFixed(2), ZOOM_MAX)),
+    []
+  );
+  const zoomOut = useCallback(
+    () => setScale((s) => Math.max(+(s - ZOOM_STEP).toFixed(2), ZOOM_MIN)),
+    []
+  );
+  const resetZoom = useCallback(() => setScale(1), []);
 
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
@@ -68,15 +84,18 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
     }
   };
 
-  // Notify parent when last page reached
-  useEffect(() => {
-    if (numPages > 0 && page === numPages) onComplete?.();
-  }, [page, numPages, onComplete]);
-
   // Compute page render width: fill container, capped at 900px
   const pageWidth = containerWidth
     ? Math.min(containerWidth - 32, 900) * scale
     : undefined;
+
+  if (!workerReady) {
+    return (
+      <div className="flex flex-col h-full bg-gray-900 items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div ref={fullscreenRef} className="flex flex-col h-full bg-gray-900">
@@ -174,7 +193,9 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
         >
           ‹
         </button>
-        <span className="text-sm">{numPages > 0 ? `${page} / ${numPages}` : "—"}</span>
+        <span className="text-sm">
+          {numPages > 0 ? `${page} / ${numPages}` : "—"}
+        </span>
         <button
           onClick={() => goTo(page + 1)}
           disabled={page >= numPages}

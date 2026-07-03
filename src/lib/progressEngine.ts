@@ -49,6 +49,10 @@ export function restoreProgressState(
   comicId: number,
   sintaksList: SintaksProgress[]
 ): ComicProgressState {
+  // Guard: if stored list doesn't match SINTAKS, rebuild from scratch
+  if (sintaksList.length !== TOTAL || !SINTAKS.every((s, i) => sintaksList[i]?.sintaks === s)) {
+    return createInitialProgressState(comicId);
+  }
   return buildState(comicId, sintaksList);
 }
 
