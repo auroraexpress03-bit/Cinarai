@@ -49,7 +49,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={handleLogout}
-              className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-600 shadow-sm hover:bg-neutral-50"
+              className="rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-600 shadow-sm hover:bg-neutral-50"
             >
               Keluar
             </button>

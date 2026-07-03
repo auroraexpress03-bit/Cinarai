@@ -29,7 +29,7 @@ export default function ComicPageClient({ comicId }: ComicPageClientProps) {
   return (
     <main className="flex flex-col min-h-screen bg-gray-900">
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-gray-800 text-white flex-shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 bg-gray-800 text-white flex-shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <Link
           href="/dashboard"
           className="text-sm text-gray-300 hover:text-white"

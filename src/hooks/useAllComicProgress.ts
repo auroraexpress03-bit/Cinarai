@@ -11,7 +11,10 @@ export function useAllComicProgress() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     const unsub = subscribeToAllComicProgress(user.uid, (s) => {
       setStates(s);
       setIsLoading(false);

@@ -12,7 +12,6 @@ export const LoginForm: React.FC = () => {
   const { user, loading, signIn, signInWithGoogle, error, clearError } = useAuth();
   const router = useRouter();
 
-  // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (!loading && user) {
       router.replace('/dashboard');
@@ -23,7 +22,6 @@ export const LoginForm: React.FC = () => {
     e.preventDefault();
     clearError();
     setIsLoading(true);
-
     try {
       await signIn(email, password);
       router.push('/dashboard');
@@ -37,7 +35,6 @@ export const LoginForm: React.FC = () => {
   const handleGoogleSignIn = async () => {
     clearError();
     setIsLoading(true);
-
     try {
       await signInWithGoogle();
       router.push('/dashboard');
@@ -50,22 +47,18 @@ export const LoginForm: React.FC = () => {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-neutral-900">Masuk</h1>
         <p className="text-neutral-600">Selamat datang kembali ke CINARAI</p>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="p-4 bg-error-50 border border-error-200 rounded-lg">
           <p className="text-sm text-error-700">{error}</p>
         </div>
       )}
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email Input */}
         <div className="space-y-2">
           <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
             Email
@@ -77,12 +70,11 @@ export const LoginForm: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            className="w-full px-4 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             disabled={isLoading}
           />
         </div>
 
-        {/* Password Input */}
         <div className="space-y-2">
           <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
             Password
@@ -94,12 +86,11 @@ export const LoginForm: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            className="w-full px-4 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             disabled={isLoading}
           />
         </div>
 
-        {/* Forgot Password Link */}
         <div className="text-right">
           <Link
             href="/auth/forgot-password"
@@ -109,28 +100,25 @@ export const LoginForm: React.FC = () => {
           </Link>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-300 text-white font-medium rounded-lg transition-colors"
+          className="w-full px-4 py-3 bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-300 text-white font-medium rounded-lg transition-colors"
         >
           {isLoading ? 'Sedang memproses...' : 'Masuk'}
         </button>
       </form>
 
-      {/* Divider */}
       <div className="flex items-center gap-4">
         <div className="flex-1 h-px bg-neutral-300" />
         <span className="text-sm text-neutral-600">atau</span>
         <div className="flex-1 h-px bg-neutral-300" />
       </div>
 
-      {/* Google Sign In */}
       <button
         onClick={handleGoogleSignIn}
         disabled={isLoading}
-        className="w-full px-4 py-2 border border-neutral-300 hover:bg-neutral-50 disabled:bg-neutral-100 text-neutral-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+        className="w-full px-4 py-3 border border-neutral-300 hover:bg-neutral-50 disabled:bg-neutral-100 text-neutral-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path
@@ -153,7 +141,6 @@ export const LoginForm: React.FC = () => {
         Masuk dengan Google
       </button>
 
-      {/* Sign Up Link */}
       <p className="text-center text-neutral-600">
         Belum punya akun?{' '}
         <Link href="/auth/signup" className="text-primary-600 hover:text-primary-700 font-medium">

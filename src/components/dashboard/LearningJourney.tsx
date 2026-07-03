@@ -126,14 +126,14 @@ export default function LearningJourney() {
                   {isComingSoonStatus || isLocked ? (
                     <button
                       disabled
-                      className="rounded-lg bg-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-400 cursor-not-allowed"
+                      className="rounded-lg bg-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-400 cursor-not-allowed"
                     >
                       Masuk
                     </button>
                   ) : (
                     <Link
                       href={`/comic/${comic.id}/cover`}
-                      className="inline-block rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+                      className="inline-block rounded-lg bg-primary-600 px-4 py-3 text-sm font-semibold text-white hover:bg-primary-700"
                     >
                       Masuk
                     </Link>

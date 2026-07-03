@@ -185,11 +185,11 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
       </div>
 
       {/* Mobile bottom nav */}
-      <div className="flex sm:hidden items-center justify-between px-6 py-3 bg-gray-800 text-white flex-shrink-0">
+      <div className="flex sm:hidden items-center justify-between px-6 py-3 bg-gray-800 text-white flex-shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <button
           onClick={() => goTo(page - 1)}
           disabled={page <= 1}
-          className="text-2xl px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-2xl px-5 py-3 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px]"
         >
           ‹
         </button>
@@ -199,7 +199,7 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
         <button
           onClick={() => goTo(page + 1)}
           disabled={page >= numPages}
-          className="text-2xl px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-2xl px-5 py-3 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px]"
         >
           ›
         </button>
