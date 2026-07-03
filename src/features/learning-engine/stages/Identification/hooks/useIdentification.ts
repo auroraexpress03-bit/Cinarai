@@ -4,17 +4,18 @@ import { useCallback, useMemo, useState } from 'react';
 import type { IdentificationState } from '../types';
 import {
   createIdentificationState,
-  markItemObserved,
   resetIdentificationState,
+  selectAnswer,
+  updateNote,
+  saveAnswer,
 } from '../services/identificationService';
 
 export interface UseIdentificationReturn {
   state: IdentificationState;
-  /** Tandai satu item sebagai OBSERVED berdasarkan id-nya */
-  markObserved: (itemId: string) => void;
-  /** Reset semua item ke PENDING */
+  selectOption: (itemId: string, optionId: string) => void;
+  setNote: (itemId: string, note: string) => void;
+  save: (itemId: string) => void;
   reset: () => void;
-  /** Persentase penyelesaian (0–100) */
   percentage: number;
 }
 
@@ -33,8 +34,16 @@ export function useIdentification({
     createIdentificationState(comicId, lokasi, learningTargets)
   );
 
-  const markObserved = useCallback((itemId: string) => {
-    setState((prev) => markItemObserved(prev, itemId));
+  const selectOption = useCallback((itemId: string, optionId: string) => {
+    setState((prev) => selectAnswer(prev, itemId, optionId));
+  }, []);
+
+  const setNote = useCallback((itemId: string, note: string) => {
+    setState((prev) => updateNote(prev, itemId, note));
+  }, []);
+
+  const save = useCallback((itemId: string) => {
+    setState((prev) => saveAnswer(prev, itemId));
   }, []);
 
   const reset = useCallback(() => {
@@ -46,5 +55,5 @@ export function useIdentification({
     return Math.round((state.observedCount / state.items.length) * 100);
   }, [state.observedCount, state.items.length]);
 
-  return { state, markObserved, reset, percentage };
+  return { state, selectOption, setNote, save, reset, percentage };
 }

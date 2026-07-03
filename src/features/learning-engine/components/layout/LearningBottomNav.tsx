@@ -15,6 +15,7 @@ export default function LearningBottomNav() {
 
   const isFirst = stageIndex === 0;
   const isLastLearningStage = currentStage === Stage.Introspection;
+  const showValidationMessage = !canAdvance && currentStage === Stage.Identification;
 
   if (isFinished) return null;
 
@@ -40,7 +41,7 @@ export default function LearningBottomNav() {
 
         {/* Next */}
         <button
-          onClick={nextStage}
+          onClick={() => { void nextStage(); }}
           disabled={!canAdvance}
           aria-label={isLastLearningStage ? 'Selesaikan pembelajaran' : 'Stage berikutnya'}
           className="flex flex-1 items-center justify-center gap-1.5 min-h-[48px] rounded-2xl bg-primary-600 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
@@ -53,6 +54,12 @@ export default function LearningBottomNav() {
           )}
         </button>
       </div>
+
+      {showValidationMessage && (
+        <p className="text-center text-xs text-warning-600 font-semibold mt-2">
+          Selesaikan aktivitas Identification terlebih dahulu.
+        </p>
+      )}
     </nav>
   );
 }

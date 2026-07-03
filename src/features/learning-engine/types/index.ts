@@ -22,6 +22,7 @@ export const LEARNING_STAGES: Stage[] = [
   Stage.Contextualization,
   Stage.Identification,
   Stage.Navigation,
+  Stage.Argumentation,
   Stage.Resolution,
   Stage.Application,
   Stage.Introspection,
@@ -46,7 +47,7 @@ export interface LearningContextValue {
   totalStages: number;
 
   // Navigation
-  nextStage: () => void;
+  nextStage: () => Promise<void>;
   previousStage: () => void;
   goToStage: (stage: Stage) => void;
 
