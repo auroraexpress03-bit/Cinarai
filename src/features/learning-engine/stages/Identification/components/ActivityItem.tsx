@@ -1,68 +1,74 @@
 'use client';
 
 import type { IdentificationItem } from '../types';
+import { useIdentificationContext } from '../context/IdentificationContext';
 import QuestionCard from './QuestionCard';
 import AnswerOptions from './AnswerOptions';
 import NoteArea from './NoteArea';
 import SaveButton from './SaveButton';
+import ReasonArea from './ReasonArea';
 
 interface ActivityItemProps {
   item: IdentificationItem;
-  onSelectOption: (itemId: string, optionId: string) => void;
-  onNoteChange: (itemId: string, note: string) => void;
-  onSave: (itemId: string) => void;
 }
 
-export default function ActivityItem({
-  item,
-  onSelectOption,
-  onNoteChange,
-  onSave,
-}: ActivityItemProps) {
+export default function ActivityItem({ item }: ActivityItemProps) {
+  const { selectOption, setNote, save, setReason, saveReason } = useIdentificationContext();
+
   const isSaved = item.answerStatus === 'SAVED';
+  const isReasonSaved = item.reasonStatus === 'SAVED';
   const canSave = item.selectedOptionId !== null && !isSaved;
 
   return (
     <li
       className={[
         'flex flex-col gap-4 rounded-2xl border p-4 sm:p-5 transition-colors',
-        isSaved
+        isReasonSaved
           ? 'border-accent-200 bg-accent-50'
           : 'border-neutral-100 bg-white shadow-sm',
       ].join(' ')}
     >
-      {/* Pertanyaan */}
       <QuestionCard
         index={item.targetIndex}
         question={item.question}
-        isSaved={isSaved}
+        isSaved={isReasonSaved}
       />
 
-      {/* Pilihan Jawaban */}
       <AnswerOptions
         options={item.options}
         selectedOptionId={item.selectedOptionId}
         isSaved={isSaved}
-        onSelect={(optionId) => onSelectOption(item.id, optionId)}
+        onSelect={(optionId) => selectOption(item.id, optionId)}
       />
 
-      {/* Area Catatan */}
       <NoteArea
         itemId={item.id}
         value={item.note}
         isSaved={isSaved}
-        onChange={onNoteChange}
+        onChange={setNote}
       />
 
-      {/* Tombol Simpan */}
-      <div className="flex justify-end">
-        <SaveButton
+      {!isSaved && (
+        <div className="flex justify-end">
+          <SaveButton
+            itemId={item.id}
+            canSave={canSave}
+            isSaved={isSaved}
+            onSave={save}
+          />
+        </div>
+      )}
+
+      {isSaved && (
+        <ReasonArea
           itemId={item.id}
-          canSave={canSave}
-          isSaved={isSaved}
-          onSave={onSave}
+          targetIndex={item.targetIndex}
+          value={item.reason}
+          isSaved={isReasonSaved}
+          onChange={setReason}
+          onSave={saveReason}
         />
-      </div>
+      )}
     </li>
   );
 }

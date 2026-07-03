@@ -1,8 +1,14 @@
+/** Step navigasi dalam Identification */
+export type IdentificationStep = 'OBSERVE' | 'IDENTIFY' | 'CONFIRM';
+
 /** Status satu item identifikasi */
 export type IdentificationItemStatus = 'PENDING' | 'OBSERVED';
 
 /** Status jawaban satu item */
 export type AnswerStatus = 'UNANSWERED' | 'ANSWERED' | 'SAVED';
+
+/** Status alasan satu item */
+export type ReasonStatus = 'EMPTY' | 'DRAFT' | 'SAVED';
 
 /** Satu pilihan jawaban */
 export interface AnswerOption {
@@ -21,12 +27,25 @@ export interface IdentificationItem {
   selectedOptionId: string | null;
   note: string;
   answerStatus: AnswerStatus;
+  reason: string;
+  reasonStatus: ReasonStatus;
+}
+
+/** State Step 1 — Amati */
+export interface ObserveState {
+  /** Catatan bebas siswa saat mengamati */
+  note: string;
+  /** true setelah siswa menekan tombol Lanjut di step Amati */
+  isDone: boolean;
 }
 
 /** State keseluruhan Identification Engine */
 export interface IdentificationState {
   readonly comicId: number;
   readonly lokasi: string;
+  readonly cover: string;
+  readonly title: string;
+  observe: ObserveState;
   items: IdentificationItem[];
   /** Jumlah item yang sudah SAVED */
   observedCount: number;

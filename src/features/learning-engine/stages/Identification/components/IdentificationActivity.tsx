@@ -1,25 +1,12 @@
 'use client';
 
-import type { IdentificationItem } from '../types';
+import { useIdentificationContext } from '../context/IdentificationContext';
 import ActivityItem from './ActivityItem';
 
-interface IdentificationActivityProps {
-  items: IdentificationItem[];
-  onSelectOption: (itemId: string, optionId: string) => void;
-  onNoteChange: (itemId: string, note: string) => void;
-  onSave: (itemId: string) => void;
-  isComplete: boolean;
-  lokasi: string;
-}
+export default function IdentificationActivity() {
+  const { state, lokasi } = useIdentificationContext();
+  const { items, isComplete } = state;
 
-export default function IdentificationActivity({
-  items,
-  onSelectOption,
-  onNoteChange,
-  onSave,
-  isComplete,
-  lokasi,
-}: IdentificationActivityProps) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 px-1">
@@ -28,13 +15,7 @@ export default function IdentificationActivity({
 
       <ul className="flex flex-col gap-3">
         {items.map((item) => (
-          <ActivityItem
-            key={item.id}
-            item={item}
-            onSelectOption={onSelectOption}
-            onNoteChange={onNoteChange}
-            onSave={onSave}
-          />
+          <ActivityItem key={item.id} item={item} />
         ))}
       </ul>
 

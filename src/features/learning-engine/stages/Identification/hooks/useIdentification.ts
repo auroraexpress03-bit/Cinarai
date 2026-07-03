@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import type { IdentificationAnswerDocument } from '@/types/firestore';
 import type { IdentificationState } from '../types';
 import {
   createIdentificationState,
@@ -8,13 +9,22 @@ import {
   selectAnswer,
   updateNote,
   saveAnswer,
+  setObserveNote,
+  completeObserve,
+  updateReason,
+  saveReason,
 } from '../services/identificationService';
 
 export interface UseIdentificationReturn {
   state: IdentificationState;
+  setObserveNote: (note: string) => void;
+  completeObserve: () => void;
   selectOption: (itemId: string, optionId: string) => void;
   setNote: (itemId: string, note: string) => void;
   save: (itemId: string) => void;
+  setReason: (itemId: string, reason: string) => void;
+  saveReason: (itemId: string) => void;
+  applyAnswers: (answers: IdentificationAnswerDocument[]) => void;
   reset: () => void;
   percentage: number;
 }
@@ -22,17 +32,29 @@ export interface UseIdentificationReturn {
 interface UseIdentificationOptions {
   comicId: number;
   lokasi: string;
+  cover: string;
+  title: string;
   learningTargets: readonly string[];
 }
 
 export function useIdentification({
   comicId,
   lokasi,
+  cover,
+  title,
   learningTargets,
 }: UseIdentificationOptions): UseIdentificationReturn {
   const [state, setState] = useState<IdentificationState>(() =>
-    createIdentificationState(comicId, lokasi, learningTargets)
+    createIdentificationState(comicId, lokasi, learningTargets, cover, title)
   );
+
+  const handleSetObserveNote = useCallback((note: string) => {
+    setState((prev) => setObserveNote(prev, note));
+  }, []);
+
+  const handleCompleteObserve = useCallback(() => {
+    setState((prev) => completeObserve(prev));
+  }, []);
 
   const selectOption = useCallback((itemId: string, optionId: string) => {
     setState((prev) => selectAnswer(prev, itemId, optionId));
@@ -46,6 +68,42 @@ export function useIdentification({
     setState((prev) => saveAnswer(prev, itemId));
   }, []);
 
+  const handleSetReason = useCallback((itemId: string, reason: string) => {
+    setState((prev) => updateReason(prev, itemId, reason));
+  }, []);
+
+  const handleSaveReason = useCallback((itemId: string) => {
+    setState((prev) => saveReason(prev, itemId));
+  }, []);
+
+  const applyAnswers = useCallback((answers: IdentificationAnswerDocument[]) => {
+    setState((prev) => {
+      let next = prev;
+      for (const answer of answers) {
+        const item = next.items.find((i) => i.targetIndex === answer.step);
+        if (!item) continue;
+        next = {
+          ...next,
+          items: next.items.map((i) =>
+            i.targetIndex === answer.step
+              ? {
+                  ...i,
+                  selectedOptionId: answer.selectedAnswer,
+                  note: answer.note,
+                  reason: answer.reason,
+                  answerStatus: answer.selectedAnswer ? 'SAVED' : 'UNANSWERED',
+                  reasonStatus: answer.reason?.trim() ? 'SAVED' : 'EMPTY',
+                  status: answer.reason?.trim() ? 'OBSERVED' : i.status,
+                }
+              : i
+          ),
+        };
+      }
+      const observedCount = next.items.filter((i) => i.status === 'OBSERVED').length;
+      return { ...next, observedCount, isComplete: next.items.every((i) => i.reasonStatus === 'SAVED') };
+    });
+  }, []);
+
   const reset = useCallback(() => {
     setState((prev) => resetIdentificationState(prev));
   }, []);
@@ -55,5 +113,5 @@ export function useIdentification({
     return Math.round((state.observedCount / state.items.length) * 100);
   }, [state.observedCount, state.items.length]);
 
-  return { state, selectOption, setNote, save, reset, percentage };
+  return { state, setObserveNote: handleSetObserveNote, completeObserve: handleCompleteObserve, selectOption, setNote, save, setReason: handleSetReason, saveReason: handleSaveReason, applyAnswers, reset, percentage };
 }

@@ -24,7 +24,9 @@ function buildOptions(itemId: string): AnswerOption[] {
 export function createIdentificationState(
   comicId: number,
   lokasi: string,
-  learningTargets: readonly string[]
+  learningTargets: readonly string[],
+  cover: string,
+  title: string,
 ): IdentificationState {
   const items: IdentificationItem[] = learningTargets.map((targetText, index) => {
     const id = `${comicId}-identification-${index}`;
@@ -38,12 +40,17 @@ export function createIdentificationState(
       selectedOptionId: null,
       note: '',
       answerStatus: 'UNANSWERED',
+      reason: '',
+      reasonStatus: 'EMPTY',
     };
   });
 
   return {
     comicId,
     lokasi,
+    cover,
+    title,
+    observe: { note: '', isDone: false },
     items,
     observedCount: 0,
     isComplete: false,
@@ -77,6 +84,21 @@ export function markItemObserved(
   };
 }
 
+/** Update catatan observasi Step Amati. */
+export function setObserveNote(
+  state: IdentificationState,
+  note: string,
+): IdentificationState {
+  return { ...state, observe: { ...state.observe, note } };
+}
+
+/** Selesaikan Step Amati — tandai isDone = true. */
+export function completeObserve(
+  state: IdentificationState,
+): IdentificationState {
+  return { ...state, observe: { ...state.observe, isDone: true } };
+}
+
 /** Pilih satu opsi jawaban untuk item tertentu. */
 export function selectAnswer(
   state: IdentificationState,
@@ -108,8 +130,8 @@ export function updateNote(
 }
 
 /**
- * Simpan jawaban item — tandai sebagai SAVED + OBSERVED.
- * isComplete true jika semua item sudah SAVED.
+ * Simpan jawaban item — tandai sebagai ANSWERED + SAVED.
+ * isComplete true jika semua item sudah reasonStatus SAVED.
  */
 export function saveAnswer(
   state: IdentificationState,
@@ -117,17 +139,49 @@ export function saveAnswer(
 ): IdentificationState {
   const updatedItems: IdentificationItem[] = state.items.map((item) =>
     item.id === itemId
-      ? { ...item, status: 'OBSERVED', answerStatus: 'SAVED' }
+      ? { ...item, answerStatus: 'SAVED' }
       : item
   );
 
+  return {
+    ...state,
+    items: updatedItems,
+  };
+}
+
+/** Update teks alasan untuk item tertentu. */
+export function updateReason(
+  state: IdentificationState,
+  itemId: string,
+  reason: string,
+): IdentificationState {
+  return {
+    ...state,
+    items: state.items.map((item) =>
+      item.id === itemId
+        ? { ...item, reason, reasonStatus: reason.trim().length > 0 ? 'DRAFT' : 'EMPTY' }
+        : item
+    ),
+  };
+}
+
+/** Simpan alasan item — tandai reasonStatus = SAVED dan status = OBSERVED. */
+export function saveReason(
+  state: IdentificationState,
+  itemId: string,
+): IdentificationState {
+  const updatedItems: IdentificationItem[] = state.items.map((item) =>
+    item.id === itemId ? { ...item, status: 'OBSERVED', reasonStatus: 'SAVED' } : item
+  );
+
   const observedCount = updatedItems.filter((item) => item.status === 'OBSERVED').length;
+  const isComplete = updatedItems.every((item) => item.reasonStatus === 'SAVED');
 
   return {
     ...state,
     items: updatedItems,
     observedCount,
-    isComplete: observedCount === updatedItems.length,
+    isComplete,
   };
 }
 

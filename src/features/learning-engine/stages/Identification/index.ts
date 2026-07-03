@@ -1,19 +1,38 @@
-// Layout utama — gunakan ini di IdentificationStage
+// Layout utama
 export { default as IdentificationLayout } from './components/IdentificationLayout';
 
-// Sub-komponen zona
+// Step components
+export { default as StepAmati } from './components/StepAmati';
+export { default as StepIdentifikasi } from './components/StepIdentifikasi';
+export { default as StepKonfirmasi } from './components/StepKonfirmasi';
+
+// Step Amati sub-komponen
+export { default as StepAmatiTitle } from './components/StepAmatiTitle';
+export { default as StepAmatiViewer } from './components/StepAmatiViewer';
+export { default as StepAmatiNoteBox } from './components/StepAmatiNoteBox';
+
+// Step Konfirmasi sub-komponen
+export { default as StepKonfirmasiItem } from './components/StepKonfirmasiItem';
+
+// Identifikasi sub-komponen
 export { default as IdentificationHeader } from './components/IdentificationHeader';
 export { default as IdentificationProgress } from './components/IdentificationProgress';
 export { default as IdentificationTitle } from './components/IdentificationTitle';
 export { default as IdentificationInstructions } from './components/IdentificationInstructions';
 export { default as IdentificationActivity } from './components/IdentificationActivity';
-
-// Area Aktivitas sub-komponen
 export { default as ActivityItem } from './components/ActivityItem';
 export { default as QuestionCard } from './components/QuestionCard';
 export { default as AnswerOptions } from './components/AnswerOptions';
 export { default as NoteArea } from './components/NoteArea';
 export { default as SaveButton } from './components/SaveButton';
+export { default as ReasonArea } from './components/ReasonArea';
+
+// Context
+export {
+  IdentificationProvider,
+  useIdentificationContext,
+} from './context';
+export type { IdentificationContextValue } from './context';
 
 // Hook
 export { useIdentification } from './hooks/useIdentification';
@@ -22,19 +41,26 @@ export { useIdentification } from './hooks/useIdentification';
 export {
   createIdentificationState,
   markItemObserved,
+  setObserveNote,
+  completeObserve,
   selectAnswer,
   updateNote,
   saveAnswer,
+  updateReason,
+  saveReason,
   resetIdentificationState,
 } from './services/identificationService';
 
 // Types
 export type {
+  IdentificationStep,
   AnswerOption,
   AnswerStatus,
+  ReasonStatus,
   IdentificationItem,
   IdentificationItemStatus,
   IdentificationState,
+  ObserveState,
   MarkObservedPayload,
   SelectAnswerPayload,
   UpdateNotePayload,

@@ -90,6 +90,17 @@ export interface ActivityDocument extends FirestoreBaseDocument {
   occurredAt: FirestoreTimestamp;
 }
 
+export interface IdentificationAnswerDocument extends FirestoreBaseDocument {
+  userId: string;
+  comicId: number;
+  step: number;
+  selectedAnswer: string | null;
+  note: string;
+  reason: string;
+  createdAt?: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}
+
 export interface FirestoreCollectionMap {
   users: UserDocument;
   progress: ProgressDocument;
@@ -98,4 +109,5 @@ export interface FirestoreCollectionMap {
   leaderboard: LeaderboardDocument;
   badge: BadgeDocument;
   activity: ActivityDocument;
+  identification_answers: IdentificationAnswerDocument;
 }

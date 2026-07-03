@@ -36,6 +36,7 @@ export const FIRESTORE_COLLECTIONS = {
   leaderboard: 'leaderboard',
   badge: 'badge',
   activity: 'activity',
+  identificationAnswers: 'identification_answers',
 } as const;
 
 export type FirestoreCollectionName = keyof FirestoreCollectionMap;

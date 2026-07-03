@@ -22,6 +22,8 @@ export default function IdentificationStage() {
       lokasi={comic.lokasi}
       subtitle={comic.subtitle}
       kelas={comic.kelas}
+      cover={comic.cover}
+      title={comic.title}
       learningTargets={comic.learningTargets}
       onCompleteChange={handleCompleteChange}
     />
