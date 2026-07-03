@@ -13,10 +13,15 @@ interface ComicPageClientProps {
 export default function ComicPageClient({ comicId }: ComicPageClientProps) {
   const comic = getComicById(comicId);
 
-  if (!comic) {
+  if (!comic || comic.availability === "COMING_SOON") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-neutral-50">
-        <p className="text-neutral-500">Komik tidak ditemukan.</p>
+        <div className="text-center">
+          <p className="text-neutral-500">Komik belum tersedia.</p>
+          <Link href="/dashboard" className="mt-4 inline-block text-sm text-primary-600 hover:underline">
+            ← Kembali ke Dashboard
+          </Link>
+        </div>
       </main>
     );
   }

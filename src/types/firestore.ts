@@ -44,12 +44,13 @@ export interface ProgressDocument extends FirestoreBaseDocument {
 
 export interface ComicProgressDocument extends FirestoreBaseDocument {
   userId: string;
-  comicId: string;
-  chapterId?: string;
-  currentPage: number;
-  totalPages: number;
-  isCompleted: boolean;
+  comicId: number;
+  stage: string;
+  percentage: number;
+  status: 'not_started' | 'in_progress' | 'completed';
+  sintaksList: Array<{ sintaks: string; status: string }>;
   completedAt?: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
 }
 
 export interface ReflectionDocument extends FirestoreBaseDocument {

@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { getComicById } from "@/lib/comicRepository";
+import { useComicProgress } from "@/hooks/useComicProgress";
 
 interface ComicCoverProps {
   comicId: number;
@@ -10,6 +12,18 @@ interface ComicCoverProps {
 
 export default function ComicCover({ comicId }: ComicCoverProps) {
   const comic = getComicById(comicId);
+  const { state, complete } = useComicProgress(comicId);
+
+  // Mark Cover sintaks as completed when this page is opened
+  useEffect(() => {
+    const alreadyDone = state.sintaksList.find(
+      (s) => s.sintaks === "Cover" && s.status === "COMPLETED"
+    );
+    if (!alreadyDone) {
+      complete("Cover");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!comic) {
     return (
@@ -49,6 +63,17 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
             {comic.title}
           </h1>
           <p className="mt-1 text-base text-neutral-500">{comic.subtitle}</p>
+        </div>
+
+        {/* Progress indicator */}
+        <div className="mt-4 flex items-center gap-3">
+          <div className="flex-1 h-1.5 rounded-full bg-neutral-200">
+            <div
+              className="h-1.5 rounded-full bg-primary-600 transition-all"
+              style={{ width: `${state.percentage}%` }}
+            />
+          </div>
+          <span className="text-xs font-semibold text-neutral-500">{state.percentage}%</span>
         </div>
 
         {/* Sinopsis */}

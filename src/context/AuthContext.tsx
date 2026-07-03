@@ -12,6 +12,7 @@ import {
   subscribeToAuthChanges,
   updateUserProfile,
 } from '@/lib/firebase/auth';
+import { initializeUserProgress } from '@/services/comicProgress';
 import type { User, AuthContextType, AuthState } from '@/types/auth';
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,11 +44,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((firebaseUser) => {
       if (firebaseUser) {
-        setState({
-          user: mapFirebaseUserToUser(firebaseUser),
-          loading: false,
-          error: null,
-        });
+        const user = mapFirebaseUserToUser(firebaseUser);
+        setState({ user, loading: false, error: null });
+        // Initialize progress documents on first login (no-op if already exists)
+        initializeUserProgress(firebaseUser.uid).catch((err) =>
+          console.warn('Progress init error:', err)
+        );
       } else {
         setState({
           user: null,

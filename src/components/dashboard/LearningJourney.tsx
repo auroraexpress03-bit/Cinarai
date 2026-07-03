@@ -1,8 +1,14 @@
+'use client';
+
 import Link from "next/link";
 import { getAllComics } from "@/lib/comicRepository";
+import { getAllUnlockStatuses } from "@/lib/unlockEngine";
+import { useAllComicProgress } from "@/hooks/useAllComicProgress";
 
 export default function LearningJourney() {
   const comics = getAllComics();
+  const { states, getProgress } = useAllComicProgress();
+  const unlockStatuses = getAllUnlockStatuses(states);
 
   return (
     <section className="rounded-base border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
@@ -13,8 +19,13 @@ export default function LearningJourney() {
 
       <div className="space-y-0">
         {comics.map((comic, index) => {
-          const isComingSoon = comic.availability === "COMING_SOON";
           const isLast = index === comics.length - 1;
+          const progress = getProgress(comic.id);
+          const percentage = progress?.percentage ?? 0;
+          const isCompleted = progress?.isCompleted ?? false;
+          const unlockStatus = unlockStatuses.get(comic.id) ?? "LOCKED";
+          const isLocked = unlockStatus === "LOCKED";
+          const isComingSoonStatus = unlockStatus === "COMING_SOON";
 
           return (
             <article className="relative flex gap-4" key={comic.id}>
@@ -22,9 +33,11 @@ export default function LearningJourney() {
               <div className="flex w-10 flex-col items-center">
                 <div
                   className={`z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold ${
-                    isComingSoon
+                    isComingSoonStatus || isLocked
                       ? "border-neutral-300 bg-neutral-100 text-neutral-400"
-                      : "border-primary-600 bg-white text-primary-700"
+                      : isCompleted
+                        ? "border-accent-500 bg-accent-500 text-white"
+                        : "border-primary-600 bg-white text-primary-700"
                   }`}
                 >
                   {index + 1}
@@ -40,31 +53,56 @@ export default function LearningJourney() {
               {/* Card */}
               <div
                 className={`mb-4 flex-1 rounded-base border p-4 ${
-                  isComingSoon
+                  isComingSoonStatus || isLocked
                     ? "border-neutral-200 bg-neutral-50"
-                    : "border-primary-200 bg-primary-50"
+                    : isCompleted
+                      ? "border-accent-200 bg-accent-50"
+                      : "border-primary-200 bg-primary-50"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className={`font-bold ${isComingSoon ? "text-neutral-400" : "text-neutral-900"}`}>
+                      <h3 className={`font-bold ${isComingSoonStatus || isLocked ? "text-neutral-400" : "text-neutral-900"}`}>
                         {comic.title}
                       </h3>
-                      {isComingSoon && (
+                      {isComingSoonStatus && (
                         <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
                           Sedang Dikembangkan
                         </span>
                       )}
+                      {isLocked && (
+                        <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-neutral-500">
+                          Terkunci
+                        </span>
+                      )}
+                      {isCompleted && (
+                        <span className="inline-flex items-center rounded-full bg-accent-100 px-2.5 py-0.5 text-xs font-semibold text-accent-700">
+                          Selesai
+                        </span>
+                      )}
                     </div>
-                    <p className={`mt-0.5 text-sm ${isComingSoon ? "text-neutral-400" : "text-neutral-500"}`}>
+                    <p className={`mt-0.5 text-sm ${isComingSoonStatus || isLocked ? "text-neutral-400" : "text-neutral-500"}`}>
                       {comic.subtitle} · Kelas {comic.kelas}
                     </p>
                   </div>
+                  {!isComingSoonStatus && !isLocked && (
+                    <span className="text-sm font-bold text-neutral-500">{percentage}%</span>
+                  )}
                 </div>
 
+                {/* Progress bar */}
+                {!isComingSoonStatus && !isLocked && (
+                  <div className="mt-3 h-1.5 rounded-full bg-white">
+                    <div
+                      className={`h-1.5 rounded-full transition-all ${isCompleted ? "bg-accent-500" : "bg-primary-600"}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                )}
+
                 <div className="mt-3">
-                  {isComingSoon ? (
+                  {isComingSoonStatus || isLocked ? (
                     <button
                       disabled
                       className="rounded-lg bg-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-400 cursor-not-allowed"
@@ -73,7 +111,7 @@ export default function LearningJourney() {
                     </button>
                   ) : (
                     <Link
-                      href={`/comic/${comic.id}`}
+                      href={`/comic/${comic.id}/cover`}
                       className="inline-block rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
                     >
                       Masuk
