@@ -7,8 +7,8 @@ export default function LearningHeader() {
   const { comic } = useLearningEngine();
 
   return (
-    <header className="flex items-center gap-3 bg-gradient-to-r from-primary-600 to-primary-700 px-4 py-3 sm:px-6"
-      style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
+    <header className="flex items-center gap-3 bg-gradient-to-r from-primary-600 to-primary-700 px-3 py-2.5 sm:px-6 sm:py-3"
+      style={{ paddingTop: 'max(0.625rem, env(safe-area-inset-top))' }}
     >
       <Link
         href="/dashboard"

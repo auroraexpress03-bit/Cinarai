@@ -16,7 +16,7 @@ export default function LearningLayout({ children }: LearningLayoutProps) {
     <div
       className="flex flex-col bg-[#f0f7ff]"
       style={{
-        minHeight: '100dvh',
+        height: '100dvh',
         paddingTop: 'env(safe-area-inset-top)',
       }}
     >
@@ -27,10 +27,10 @@ export default function LearningLayout({ children }: LearningLayoutProps) {
         <LearningBreadcrumb />
       </div>
 
-      {/* Scrollable content */}
+      {/* Scrollable content — fills remaining space */}
       <LearningContent>{children}</LearningContent>
 
-      {/* Fixed bottom navigation */}
+      {/* Sticky bottom navigation — always visible */}
       <LearningBottomNav />
     </div>
   );

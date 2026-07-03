@@ -22,21 +22,27 @@ export default function LearningBottomNav() {
   return (
     <nav
       aria-label="Navigasi stage"
-      className="flex-shrink-0 bg-white border-t border-neutral-200 px-4 py-3 sm:px-6"
-      style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      className="flex-shrink-0 bg-white border-t border-neutral-200 px-3 pt-2.5 sm:px-6"
+      style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom))' }}
     >
-      <div className="flex items-center gap-3 mx-auto max-w-2xl">
+      {showValidationMessage && (
+        <p className="text-center text-[11px] text-warning-600 font-semibold mb-2">
+          Selesaikan aktivitas Identification terlebih dahulu.
+        </p>
+      )}
+
+      <div className="flex items-center gap-2 mx-auto max-w-2xl">
         {/* Previous */}
         <button
           onClick={previousStage}
           disabled={isFirst}
           aria-label="Stage sebelumnya"
-          className="flex items-center justify-center gap-1.5 min-h-[48px] rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-600 hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors active:scale-[0.97]"
+          className="flex items-center justify-center gap-1 h-11 rounded-xl border border-neutral-200 bg-white px-3 text-sm font-semibold text-neutral-600 hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors active:scale-[0.97]"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          Sebelumnya
+          <span className="hidden xs:inline">Sebelumnya</span>
         </button>
 
         {/* Next */}
@@ -44,22 +50,16 @@ export default function LearningBottomNav() {
           onClick={() => { void nextStage(); }}
           disabled={!canAdvance}
           aria-label={isLastLearningStage ? 'Selesaikan pembelajaran' : 'Stage berikutnya'}
-          className="flex flex-1 items-center justify-center gap-1.5 min-h-[48px] rounded-2xl bg-primary-600 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+          className="flex flex-1 items-center justify-center gap-1.5 h-11 rounded-xl bg-primary-600 px-4 text-sm font-black text-white shadow-sm hover:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
         >
           {isLastLearningStage ? 'Selesai 🏆' : 'Berikutnya'}
           {!isLastLearningStage && (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           )}
         </button>
       </div>
-
-      {showValidationMessage && (
-        <p className="text-center text-xs text-warning-600 font-semibold mt-2">
-          Selesaikan aktivitas Identification terlebih dahulu.
-        </p>
-      )}
     </nav>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Stage, LEARNING_STAGES } from '../../types';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 
@@ -30,43 +31,61 @@ const STAGE_EMOJI: Record<Stage, string> = {
 export default function LearningBreadcrumb() {
   const { currentStage, completedStages, goToStage } = useLearningEngine();
   const completedSet = new Set<string>(completedStages);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-scroll active step into view on stage change
+  useEffect(() => {
+    const el = activeRef.current;
+    const container = scrollRef.current;
+    if (!el || !container) return;
+    const elLeft = el.offsetLeft;
+    const elWidth = el.offsetWidth;
+    const containerWidth = container.offsetWidth;
+    container.scrollTo({
+      left: elLeft - containerWidth / 2 + elWidth / 2,
+      behavior: 'smooth',
+    });
+  }, [currentStage]);
 
   return (
     <nav
       aria-label="Stage pembelajaran"
-      className="relative bg-white border-b border-neutral-100 overflow-x-auto scrollbar-none"
+      className="bg-white border-b border-neutral-100"
     >
-      <ol className="flex items-center gap-1.5 px-4 py-2.5 sm:px-6 min-w-max">
-        {LEARNING_STAGES.map((stage, index) => {
+      <div
+        ref={scrollRef}
+        className="flex items-center gap-1 px-3 py-2 overflow-x-auto scrollbar-none"
+        style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+      >
+        {LEARNING_STAGES.map((stage) => {
           const isCompleted = completedSet.has(stage);
           const isCurrent = currentStage === stage;
           const isAccessible = isCompleted || isCurrent;
 
           return (
-            <li key={stage} className="flex items-center gap-1.5">
-              {index > 0 && (
-                <span className="text-neutral-300 text-xs select-none">›</span>
-              )}
-              <button
-                onClick={() => isAccessible && goToStage(stage)}
-                disabled={!isAccessible}
-                aria-current={isCurrent ? 'step' : undefined}
-                className={[
-                  'flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap min-h-[32px]',
-                  isCurrent
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : isCompleted
-                      ? 'bg-accent-100 text-accent-700 hover:bg-accent-200'
-                      : 'bg-neutral-100 text-neutral-400 cursor-not-allowed',
-                ].join(' ')}
-              >
-                <span className="text-[13px] leading-none">{STAGE_EMOJI[stage]}</span>
-                {STAGE_LABELS[stage]}
-              </button>
-            </li>
+            <button
+              key={stage}
+              ref={isCurrent ? activeRef : undefined}
+              onClick={() => isAccessible && goToStage(stage)}
+              disabled={!isAccessible}
+              aria-current={isCurrent ? 'step' : undefined}
+              style={{ scrollSnapAlign: 'start', flexShrink: 0 }}
+              className={[
+                'flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors whitespace-nowrap',
+                isCurrent
+                  ? 'bg-primary-600 text-white shadow-sm'
+                  : isCompleted
+                    ? 'bg-accent-100 text-accent-700 active:bg-accent-200'
+                    : 'bg-neutral-100 text-neutral-400 cursor-not-allowed',
+              ].join(' ')}
+            >
+              <span className="text-[12px] leading-none">{STAGE_EMOJI[stage]}</span>
+              {STAGE_LABELS[stage]}
+            </button>
           );
         })}
-      </ol>
+      </div>
     </nav>
   );
 }
