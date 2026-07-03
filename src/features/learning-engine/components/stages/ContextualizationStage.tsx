@@ -7,13 +7,17 @@ import { useLearningEngine } from '../../hooks/useLearningEngine';
 const PdfReader = dynamic(() => import('@/components/comic/PdfReader'), { ssr: false });
 
 export default function ContextualizationStage() {
-  const { comic, setCanAdvance } = useLearningEngine();
+  const { comic, progress, setCanAdvance } = useLearningEngine();
 
-  // Kunci tombol Next sampai halaman terakhir PDF selesai dibaca
+  const alreadyCompleted = progress.sintaksList.some(
+    (s) => s.sintaks === 'Contextualization' && s.status === 'COMPLETED'
+  );
+
   useEffect(() => {
-    setCanAdvance(false);
-    return () => setCanAdvance(true); // reset saat stage unmount
-  }, [setCanAdvance]);
+    // If already completed (e.g. user returns to this stage), unlock immediately
+    setCanAdvance(alreadyCompleted);
+    return () => setCanAdvance(true);
+  }, [alreadyCompleted, setCanAdvance]);
 
   const handlePdfComplete = () => {
     setCanAdvance(true);

@@ -11,10 +11,20 @@ const ZOOM_MAX = 3;
 
 interface PdfReaderProps {
   pdfPath: string;
+  /** Called exactly once when the user reaches the last page. */
   onComplete?: () => void;
+  /** When true, renders a "Selesaikan Komik" CTA on the last page. */
+  showCompleteButton?: boolean;
+  /** Label for the complete button. Defaults to "Selesaikan Komik". */
+  completeButtonLabel?: string;
 }
 
-export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
+export default function PdfReader({
+  pdfPath,
+  onComplete,
+  showCompleteButton = false,
+  completeButtonLabel = "Selesaikan Komik",
+}: PdfReaderProps) {
   const [workerReady, setWorkerReady] = useState(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [page, setPage] = useState(1);
@@ -23,14 +33,14 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const fullscreenRef = useRef<HTMLDivElement>(null);
+  // Guard: fire onComplete only once per mount
+  const completedRef = useRef(false);
 
-  // Configure worker only on client — prevents SSR/DOMMatrix/window errors
   useEffect(() => {
     pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
     setWorkerReady(true);
   }, []);
 
-  // Responsive: measure container width
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -41,16 +51,18 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
     return () => ro.disconnect();
   }, []);
 
-  // Sync fullscreen state with browser API
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  // Notify parent when last page reached
+  // Fire onComplete exactly once when user navigates to the last page
   useEffect(() => {
-    if (numPages > 0 && page === numPages) onComplete?.();
+    if (numPages > 0 && page === numPages && !completedRef.current) {
+      completedRef.current = true;
+      onComplete?.();
+    }
   }, [page, numPages, onComplete]);
 
   const onDocumentLoadSuccess = useCallback(
@@ -84,10 +96,9 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
     }
   };
 
-  // Compute page render width: fill container, capped at 900px
-  const pageWidth = containerWidth
-    ? Math.min(containerWidth - 32, 900) * scale
-    : undefined;
+  const baseWidth = containerWidth || 320;
+  const pageWidth = baseWidth * scale;
+  const isLastPage = numPages > 0 && page === numPages;
 
   if (!workerReady) {
     return (
@@ -100,43 +111,46 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
   return (
     <div ref={fullscreenRef} className="flex flex-col h-full bg-gray-900">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 text-white text-sm flex-shrink-0">
+      <div className="flex items-center justify-between gap-1 px-2 py-2 bg-gray-800 text-white text-sm flex-shrink-0">
         {/* Page navigation */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => goTo(page - 1)}
             disabled={page <= 1}
-            className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-9 h-9 flex items-center justify-center rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed text-lg"
             aria-label="Halaman sebelumnya"
           >
             ‹
           </button>
-          <span className="min-w-[80px] text-center">
+          <span className="min-w-[56px] text-center text-xs tabular-nums">
             {numPages > 0 ? `${page} / ${numPages}` : "—"}
           </span>
-          <button
-            onClick={() => goTo(page + 1)}
-            disabled={page >= numPages}
-            className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
-            aria-label="Halaman berikutnya"
-          >
-            ›
-          </button>
+          {/* Hide Next on last page when showCompleteButton is active */}
+          {!(isLastPage && showCompleteButton) && (
+            <button
+              onClick={() => goTo(page + 1)}
+              disabled={page >= numPages}
+              className="w-9 h-9 flex items-center justify-center rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed text-lg"
+              aria-label="Halaman berikutnya"
+            >
+              ›
+            </button>
+          )}
         </div>
 
         {/* Zoom */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={zoomOut}
             disabled={scale <= ZOOM_MIN}
-            className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-9 h-9 flex items-center justify-center rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Perkecil"
           >
             −
           </button>
           <button
             onClick={resetZoom}
-            className="min-w-[52px] text-center px-2 py-1 rounded bg-gray-700 hover:bg-gray-600"
+            className="min-w-[44px] h-9 text-center px-1 rounded bg-gray-700 hover:bg-gray-600 text-xs tabular-nums"
             aria-label="Reset zoom"
           >
             {Math.round(scale * 100)}%
@@ -144,7 +158,7 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
           <button
             onClick={zoomIn}
             disabled={scale >= ZOOM_MAX}
-            className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-9 h-9 flex items-center justify-center rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Perbesar"
           >
             +
@@ -154,7 +168,7 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
         {/* Fullscreen */}
         <button
           onClick={toggleFullscreen}
-          className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600"
+          className="w-9 h-9 flex items-center justify-center rounded bg-gray-700 hover:bg-gray-600"
           aria-label={isFullscreen ? "Keluar fullscreen" : "Fullscreen"}
         >
           {isFullscreen ? "⊠" : "⛶"}
@@ -164,46 +178,37 @@ export default function PdfReader({ pdfPath, onComplete }: PdfReaderProps) {
       {/* PDF Viewport */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto flex justify-center items-start py-4"
+        className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center py-4"
+        style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       >
         <Document
           file={pdfPath}
           onLoadSuccess={onDocumentLoadSuccess}
           loading={<LoadingSpinner />}
           error={<ErrorMessage />}
-          className="flex flex-col items-center"
         >
           <Page
-            key={`page_${page}`}
+            key={`page_${page}_${scale}`}
             pageNumber={page}
             width={pageWidth}
-            loading={<PageSkeleton width={pageWidth} />}
+            loading={<PageSkeleton width={baseWidth} />}
             renderAnnotationLayer
             renderTextLayer
           />
         </Document>
       </div>
 
-      {/* Mobile bottom nav */}
-      <div className="flex sm:hidden items-center justify-between px-6 py-3 bg-gray-800 text-white flex-shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <button
-          onClick={() => goTo(page - 1)}
-          disabled={page <= 1}
-          className="text-2xl px-5 py-3 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px]"
-        >
-          ‹
-        </button>
-        <span className="text-sm">
-          {numPages > 0 ? `${page} / ${numPages}` : "—"}
-        </span>
-        <button
-          onClick={() => goTo(page + 1)}
-          disabled={page >= numPages}
-          className="text-2xl px-5 py-3 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px]"
-        >
-          ›
-        </button>
-      </div>
+      {/* Complete CTA — shown only on last page when enabled */}
+      {isLastPage && showCompleteButton && onComplete && (
+        <div className="flex-shrink-0 px-4 py-3 bg-gray-800 border-t border-gray-700">
+          <button
+            onClick={onComplete}
+            className="w-full min-h-[48px] rounded-xl bg-primary-600 px-4 py-3 text-base font-semibold text-white shadow-sm hover:bg-primary-700 active:bg-primary-800 transition-colors"
+          >
+            {completeButtonLabel}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -220,14 +225,14 @@ function PageSkeleton({ width }: { width?: number }) {
   return (
     <div
       className="bg-gray-700 animate-pulse rounded"
-      style={{ width: width ?? 600, height: ((width ?? 600) * 4) / 3 }}
+      style={{ width: width ?? 320, height: ((width ?? 320) * 4) / 3 }}
     />
   );
 }
 
 function ErrorMessage() {
   return (
-    <div className="flex items-center justify-center w-full h-64 text-red-400 text-sm">
+    <div className="flex items-center justify-center w-full h-64 text-red-400 text-sm px-4 text-center">
       Gagal memuat PDF. Pastikan file tersedia.
     </div>
   );

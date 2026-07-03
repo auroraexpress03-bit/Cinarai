@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getComicById } from "@/lib/comicRepository";
 import { useComicProgress } from "@/hooks/useComicProgress";
 
@@ -14,12 +14,11 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
   const comic = getComicById(comicId);
   const { state, complete } = useComicProgress(comicId);
 
-  // Mark Cover sintaks as completed — only after progress is loaded from Firestore
   useEffect(() => {
     if (state.completedCount === 0 && state.sintaksList[0]?.status === "CURRENT") {
       complete("Cover");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.sintaksList]);
 
   if (!comic) {
@@ -32,7 +31,6 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
 
   return (
     <main className="min-h-screen bg-neutral-50 text-neutral-900">
-      {/* Back */}
       <div className="px-4 py-3 sm:px-6">
         <Link href="/dashboard" className="text-sm text-primary-600 hover:underline">
           ← Kembali
@@ -42,12 +40,11 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
       <div className="mx-auto max-w-2xl px-4 pb-16 sm:px-6">
         {/* Cover Image */}
         <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg">
-          <Image
+          <CoverImage
             src={comic.cover}
             alt={`Cover ${comic.title}`}
-            fill
-            className="object-cover"
-            priority
+            pdfPath={comic.pdfPath}
+            title={comic.title}
           />
         </div>
 
@@ -78,9 +75,7 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
           <h2 className="text-sm font-semibold uppercase tracking-widest text-neutral-400">
             Sinopsis
           </h2>
-          <p className="mt-2 text-base leading-relaxed text-neutral-700">
-            {comic.synopsis}
-          </p>
+          <p className="mt-2 text-base leading-relaxed text-neutral-700">{comic.synopsis}</p>
         </section>
 
         {/* Profil Tokoh */}
@@ -91,18 +86,7 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
           <ul className="mt-3 flex flex-col gap-3">
             {comic.characters.map((char) => (
               <li key={char.name} className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm">
-                <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
-                  <Image
-                    src={char.avatar}
-                    alt={char.name}
-                    fill
-                    sizes="56px"
-                    className="object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </div>
+                <AvatarImage src={char.avatar} name={char.name} />
                 <div>
                   <p className="font-semibold text-neutral-900">{char.name}</p>
                   <p className="text-sm text-neutral-500">{char.description}</p>
@@ -147,5 +131,118 @@ export default function ComicCover({ comicId }: ComicCoverProps) {
         </div>
       </div>
     </main>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CoverImage — tries static cover, falls back to PDF page 1, then placeholder
+// ---------------------------------------------------------------------------
+function CoverImage({
+  src,
+  alt,
+  pdfPath,
+  title,
+}: {
+  src: string;
+  alt: string;
+  pdfPath: string | null;
+  title: string;
+}) {
+  const [status, setStatus] = useState<"img" | "pdf" | "placeholder">("img");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // When status flips to "pdf", render PDF page 1 onto the canvas
+  useEffect(() => {
+    if (status !== "pdf" || !pdfPath) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
+        GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs`;
+        const pdf = await getDocument(pdfPath).promise;
+        const page = await pdf.getPage(1);
+        const canvas = canvasRef.current;
+        if (!canvas || cancelled) return;
+        const viewport = page.getViewport({ scale: 1 });
+        const scale = canvas.width / viewport.width;
+        const scaled = page.getViewport({ scale });
+        canvas.height = scaled.height;
+        const ctx = canvas.getContext("2d")!;
+        await page.render({ canvasContext: ctx, canvas, viewport: scaled }).promise;
+      } catch {
+        if (!cancelled) setStatus("placeholder");
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [status, pdfPath]);
+
+  if (status === "img") {
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        priority
+        onError={() => setStatus(pdfPath ? "pdf" : "placeholder")}
+      />
+    );
+  }
+
+  if (status === "pdf") {
+    return (
+      <canvas
+        ref={canvasRef}
+        width={600}
+        className="w-full h-full object-cover"
+        aria-label={alt}
+      />
+    );
+  }
+
+  // Placeholder — styled card with title initials
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 gap-3">
+      <span className="text-5xl font-black text-primary-600 select-none">
+        {title.charAt(0)}
+      </span>
+      <span className="text-xs text-primary-500 text-center px-6 line-clamp-2">{title}</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AvatarImage — shows initials when avatar image is missing
+// ---------------------------------------------------------------------------
+function AvatarImage({ src, name }: { src: string; name: string }) {
+  const [broken, setBroken] = useState(false);
+  const initials = name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+
+  if (broken) {
+    return (
+      <div className="h-14 w-14 flex-shrink-0 rounded-full bg-primary-100 flex items-center justify-center">
+        <span className="text-sm font-bold text-primary-700">{initials}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
+      <Image
+        src={src}
+        alt={name}
+        fill
+        sizes="56px"
+        className="object-cover"
+        onError={() => setBroken(true)}
+      />
+    </div>
   );
 }
