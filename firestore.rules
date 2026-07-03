@@ -33,6 +33,13 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid;
     }
 
+    // ── comics ────────────────────────────────────────────────────────────
+    // Metadata komik: read publik, write hanya dari server (Admin SDK)
+    match /comics/{docId} {
+      allow read: if true;
+      allow write: if true;  // SEMENTARA: hapus setelah seed selesai
+    }
+
     // ── Semua collection lain: tolak ─────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

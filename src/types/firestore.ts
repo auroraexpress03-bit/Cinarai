@@ -101,6 +101,32 @@ export interface IdentificationAnswerDocument extends FirestoreBaseDocument {
   updatedAt: FirestoreTimestamp;
 }
 
+export interface ComicCharacterDocument {
+  name: string;
+  role: string;
+  description: string;
+  avatar: string;
+}
+
+export interface ComicDocument extends FirestoreBaseDocument {
+  /** Numeric ID: 1–5 */
+  comicId: number;
+  slug: string;
+  title: string;
+  subtitle: string;
+  kelas: string;
+  lokasi: string;
+  synopsis: string;
+  characters: ComicCharacterDocument[];
+  learningTargets: string[];
+  estimatedMinutes: number;
+  pdfUrl: string | null;
+  coverUrl: string;
+  thumbnailUrl: string;
+  order: number;
+  availability: 'ACTIVE' | 'COMING_SOON';
+}
+
 export interface FirestoreCollectionMap {
   users: UserDocument;
   progress: ProgressDocument;
@@ -110,4 +136,5 @@ export interface FirestoreCollectionMap {
   badge: BadgeDocument;
   activity: ActivityDocument;
   identification_answers: IdentificationAnswerDocument;
+  comics: ComicDocument;
 }

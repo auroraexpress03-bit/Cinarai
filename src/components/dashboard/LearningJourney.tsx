@@ -1,16 +1,14 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getAllComics } from '@/lib/comicRepository';
+import { fetchAllComics } from '@/services/comicFirestoreService';
 import { getAllUnlockStatuses } from '@/lib/unlockEngine';
 import { useAllComicProgress } from '@/hooks/useAllComicProgress';
 import { SINTAKS } from '@/types/progress';
 import type { Comic } from '@/types/comic';
 import type { UnlockStatus } from '@/lib/unlockEngine';
-
-const comics = getAllComics();
 
 // Per-comic visual identity — no external assets needed
 const COMIC_THEME: Record<number, {
@@ -31,15 +29,18 @@ const DEFAULT_THEME = COMIC_THEME[1];
 
 export default function LearningJourney() {
   const { states, getProgress, isLoading } = useAllComicProgress();
+  const [comics, setComics] = useState<Comic[]>([]);
+  const [comicsLoading, setComicsLoading] = useState(true);
   const unlockStatuses = useMemo(() => getAllUnlockStatuses(states), [states]);
 
   useEffect(() => {
-    if (!isLoading) {
-      // Learning Journey loaded
-    }
-  }, [isLoading, states]);
+    fetchAllComics()
+      .then(setComics)
+      .catch(() => setComics([]))
+      .finally(() => setComicsLoading(false));
+  }, []);
 
-  if (isLoading) {
+  if (isLoading || comicsLoading) {
     return <JourneySkeleton />;
   }
 
