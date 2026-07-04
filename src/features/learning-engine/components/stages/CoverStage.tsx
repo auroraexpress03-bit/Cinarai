@@ -30,10 +30,10 @@ export default function CoverStage() {
 
       {/* Judul & Subjudul */}
       <div className="px-0">
-        <h2 className="text-lg font-black text-neutral-950 sm:text-2xl leading-snug">
+        <h2 className="text-xl font-black text-neutral-950 sm:text-2xl leading-snug">
           {comic.title}
         </h2>
-        <p className="mt-0.5 text-sm text-neutral-500 leading-relaxed">{comic.subtitle}</p>
+        <p className="mt-1 text-base text-neutral-500 leading-relaxed">{comic.subtitle}</p>
       </div>
 
       {/* Meta chips */}
@@ -61,18 +61,18 @@ export default function CoverStage() {
 
       {/* Target Pembelajaran */}
       <section className="rounded-2xl bg-white shadow-sm overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-neutral-100">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-            Target Pembelajaran
+        <div className="px-4 py-3 border-b border-neutral-100">
+          <h3 className="text-sm font-black text-neutral-700">
+            🎯 Yang Akan Kamu Pelajari
           </h3>
         </div>
         <ul className="px-3 py-2.5 flex flex-col gap-1.5">
           {comic.learningTargets.map((target, i) => (
-            <li key={i} className="flex items-start gap-2.5 rounded-xl bg-neutral-50 p-2.5">
-              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-700 mt-0.5">
+            <li key={i} className="flex items-start gap-3 rounded-xl bg-neutral-50 p-3">
+              <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-black text-primary-700 mt-0.5">
                 {i + 1}
               </span>
-              <p className="text-sm text-neutral-700 leading-relaxed">{target}</p>
+              <p className="text-base text-neutral-700 leading-relaxed">{target}</p>
             </li>
           ))}
         </ul>

@@ -25,7 +25,6 @@ export default function StepIdentifikasi() {
       <IdentificationProgress
         observedCount={state.observedCount}
         totalCount={state.items.length}
-        percentage={0}
         isComplete={state.isComplete}
       />
 

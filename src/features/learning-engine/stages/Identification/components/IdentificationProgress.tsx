@@ -3,7 +3,6 @@
 interface IdentificationProgressProps {
   observedCount: number;
   totalCount: number;
-  percentage: number;
   isComplete: boolean;
 }
 

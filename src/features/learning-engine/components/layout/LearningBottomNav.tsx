@@ -16,7 +16,7 @@ export default function LearningBottomNav() {
 
   const isFirst = stageIndex === 0;
   const isLastLearningStage = currentStage === Stage.Introspection;
-  const showValidationMessage = !canAdvance && currentStage === Stage.Identification;
+  const showValidationMessage = !canAdvance && currentStage !== Stage.Cover;
   const nextDisabled = !canAdvance || isSaving;
 
   if (isFinished) return null;

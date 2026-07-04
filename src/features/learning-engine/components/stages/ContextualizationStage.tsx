@@ -34,11 +34,13 @@ export default function ContextualizationStage() {
   return (
     <div
       className="rounded-xl overflow-hidden shadow-sm"
-      style={{ height: 'calc(100dvh - 220px)', minHeight: '400px' }}
+      style={{ height: 'calc(100dvh - 200px)', minHeight: '380px' }}
     >
       <PdfReader
         pdfPath={comic.pdfPath}
         onComplete={handlePdfComplete}
+        showCompleteButton={!alreadyCompleted}
+        completeButtonLabel="Saya Sudah Membaca ✅"
       />
     </div>
   );

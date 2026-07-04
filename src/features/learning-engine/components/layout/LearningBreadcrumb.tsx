@@ -6,7 +6,7 @@ import { useLearningEngine } from '../../hooks/useLearningEngine';
 
 const STAGE_LABELS: Record<Stage, string> = {
   [Stage.Cover]:             'Cover',
-  [Stage.Contextualization]: 'Konteks',
+  [Stage.Contextualization]: 'Komik',
   [Stage.Identification]:    'Identifikasi',
   [Stage.Navigation]:        'Navigasi',
   [Stage.Argumentation]:     'Argumen',
