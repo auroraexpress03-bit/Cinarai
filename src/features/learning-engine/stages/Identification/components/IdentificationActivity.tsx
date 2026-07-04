@@ -8,21 +8,21 @@ export default function IdentificationActivity() {
   const { items, isComplete } = state;
 
   return (
-    <div className="flex flex-col gap-3">
-      <ul className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
+      <ul className="flex flex-col gap-5">
         {items.map((item) => (
           <ActivityItem key={item.id} item={item} />
         ))}
       </ul>
 
       {isComplete && (
-        <div className="rounded-2xl bg-accent-500 px-5 py-4 flex items-center gap-3 mt-1">
-          <span className="text-3xl flex-shrink-0">🎉</span>
+        <div className="rounded-2xl bg-accent-500 px-5 py-5 flex items-center gap-4 mt-1">
+          <span className="text-4xl flex-shrink-0">🎉</span>
           <div className="min-w-0">
-            <p className="text-base font-black text-white leading-tight">
+            <p className="text-2xl font-black text-white leading-tight">
               Hebat! Semua soal selesai!
             </p>
-            <p className="text-sm text-accent-100 mt-0.5 leading-snug">
+            <p className="text-lg text-accent-100 mt-1 leading-snug">
               Kamu berhasil di {lokasi}. Tekan Berikutnya!
             </p>
           </div>

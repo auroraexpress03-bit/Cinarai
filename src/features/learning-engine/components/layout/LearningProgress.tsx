@@ -15,14 +15,12 @@ const STAGE_LABELS: Record<Stage, string> = {
   [Stage.Finish]:            '🏆 Selesai',
 };
 
-// Cover is now rendered inside the engine — all learning stages are visible.
 const VISIBLE_STAGES = LEARNING_STAGES.filter((s) => s !== Stage.Finish);
 
 export default function LearningProgress() {
   const { currentStage, progress } = useLearningEngine();
 
   const visibleIndex = VISIBLE_STAGES.indexOf(currentStage as typeof VISIBLE_STAGES[number]);
-  // stageNumber: 1-based; clamp to valid range for Finish stage
   const stageNumber = visibleIndex !== -1 ? visibleIndex + 1 : VISIBLE_STAGES.length;
   const totalVisible = VISIBLE_STAGES.length;
 
@@ -32,8 +30,8 @@ export default function LearningProgress() {
         <span className="text-sm font-bold text-neutral-700 truncate">
           {STAGE_LABELS[currentStage]}
         </span>
-        <span className="text-sm font-black text-primary-600 ml-2 flex-shrink-0">
-          Tahap {Math.min(stageNumber, totalVisible)} dari {totalVisible}
+        <span className="text-xs font-semibold text-neutral-400 ml-2 flex-shrink-0">
+          {Math.min(stageNumber, totalVisible)}/{totalVisible}
         </span>
       </div>
 

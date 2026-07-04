@@ -20,23 +20,23 @@ export default function ActivityItem({ item }: ActivityItemProps) {
 
   return (
     <li className={[
-      'flex flex-col gap-4 rounded-3xl border-2 p-4 transition-all',
+      'flex flex-col gap-5 rounded-3xl border-2 p-5 transition-all',
       isReasonSaved
         ? 'border-accent-300 bg-accent-50'
         : 'border-neutral-200 bg-white shadow-sm',
     ].join(' ')}>
 
       {/* Nomor soal + pertanyaan */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         <span className={[
-          'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-base font-black shadow-sm',
+          'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-xl font-black shadow-sm',
           isReasonSaved
             ? 'bg-accent-500 text-white'
             : 'bg-primary-600 text-white',
         ].join(' ')}>
           {isReasonSaved ? '✓' : item.targetIndex + 1}
         </span>
-        <p className="text-base font-bold text-neutral-800 leading-snug flex-1 pt-1">
+        <p className="text-2xl font-black text-neutral-800 leading-snug flex-1 pt-1.5">
           {item.question}
         </p>
       </div>

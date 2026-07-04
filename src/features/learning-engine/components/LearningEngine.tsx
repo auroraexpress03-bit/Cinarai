@@ -1,13 +1,14 @@
 'use client';
 
 import type { Comic } from '@/types/comic';
+import { Stage } from '../types';
 import { LearningEngineProvider } from '../context/LearningEngineContext';
 import LearningLayout from './layout/LearningLayout';
 import StageRouter from './StageRouter';
 import { useLearningEngine } from '../hooks/useLearningEngine';
 
 function LearningEngineInner() {
-  const { isLoading, isFinished } = useLearningEngine();
+  const { isLoading, isFinished, currentStage } = useLearningEngine();
 
   if (isLoading) {
     return <LearningPageSkeleton />;
@@ -15,6 +16,11 @@ function LearningEngineInner() {
 
   // FinishStage renders full-screen without layout
   if (isFinished) {
+    return <StageRouter />;
+  }
+
+  // ContextualizationStage manages its own full-height layout (PDF reader)
+  if (currentStage === Stage.Contextualization) {
     return <StageRouter />;
   }
 
@@ -42,12 +48,12 @@ export default function LearningEngine({ comic }: LearningEngineProps) {
 export function LearningPageSkeleton() {
   return (
     <div className="flex flex-col bg-[#f0f7ff]" style={{ height: '100dvh' }}>
-      {/* Header */}
-      <div className="flex items-center gap-3 bg-gradient-to-r from-primary-600 to-primary-700 px-3 py-2.5">
-        <div className="h-9 w-9 rounded-xl bg-white/20 flex-shrink-0" />
+      {/* Header putih */}
+      <div className="flex items-center gap-3 bg-white border-b border-neutral-100 px-3 py-2.5 shadow-sm">
+        <div className="h-9 w-9 rounded-xl bg-neutral-100 flex-shrink-0" />
         <div className="flex-1 space-y-1.5">
-          <div className="h-2.5 w-24 rounded-full bg-white/30" />
-          <div className="h-3.5 w-40 rounded-full bg-white/40" />
+          <div className="h-2.5 w-24 rounded-full skeleton" />
+          <div className="h-3.5 w-40 rounded-full skeleton" />
         </div>
       </div>
 
@@ -55,16 +61,9 @@ export function LearningPageSkeleton() {
       <div className="bg-white border-b border-neutral-100 px-4 py-2">
         <div className="flex justify-between mb-1">
           <div className="h-2.5 w-24 rounded-full skeleton" />
-          <div className="h-2.5 w-12 rounded-full skeleton" />
+          <div className="h-2.5 w-8 rounded-full skeleton" />
         </div>
         <div className="h-1 w-full rounded-full bg-neutral-100" />
-      </div>
-
-      {/* Breadcrumb */}
-      <div className="bg-white border-b border-neutral-100 px-3 py-2 flex gap-1.5 overflow-hidden">
-        {[80, 64, 88, 72, 68, 80, 64, 72].map((w, i) => (
-          <div key={i} className="h-6 rounded-full skeleton flex-shrink-0" style={{ width: w }} />
-        ))}
       </div>
 
       {/* Content */}
