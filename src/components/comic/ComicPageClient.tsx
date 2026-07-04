@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchComicById } from '@/services/comicFirestoreService';
 import { useComicProgress } from '@/hooks/useComicProgress';
+import { extractFirebaseErrorCode } from '@/services/comicProgress';
 import type { Comic } from '@/types/comic';
 
 const PdfReader = dynamic(() => import('./PdfReader'), { ssr: false });
@@ -25,6 +26,7 @@ export default function ComicPageClient({ comicId }: ComicPageClientProps) {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [saveErrorCode, setSaveErrorCode] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const savingRef = useRef(false);
@@ -76,13 +78,15 @@ export default function ComicPageClient({ comicId }: ComicPageClientProps) {
     return loadComic();
   }, [loadComic]);
 
-  // Auto-navigate to learn page 1 second after save succeeds
+  // Navigate to learn page ONLY after save is confirmed — never before
   useEffect(() => {
     if (saveStatus !== 'saved') return;
+    const route = `/comic/${comicId}/learn`;
+    console.log('[ROUTE]', route);
     const t = setTimeout(() => {
       if (!navigatedRef.current) {
         navigatedRef.current = true;
-        router.push(`/comic/${comicId}/learn`);
+        router.push(route);
       }
     }, 1000);
     return () => clearTimeout(t);
@@ -96,13 +100,19 @@ export default function ComicPageClient({ comicId }: ComicPageClientProps) {
   const handleComplete = useCallback(async () => {
     if (savingRef.current || navigatedRef.current) return;
 
+    console.log('[START SAVE] comicId:', comicId, '| sintaks: Contextualization');
+
     savingRef.current = true;
     setSaveStatus('saving');
+    setSaveErrorCode('');
     try {
       await complete('Contextualization');
+      console.log('[SAVE SUCCESS] comicId:', comicId);
       setSaveStatus('saved');
     } catch (error) {
-      console.error(`[ComicPageClient] handleComplete gagal — comicId: ${comicId}`, error);
+      const code = extractFirebaseErrorCode(error);
+      console.error('[SAVE FAILED] code:', code, '| comicId:', comicId, error);
+      setSaveErrorCode(code);
       setSaveStatus('error');
     } finally {
       savingRef.current = false;
@@ -258,10 +268,10 @@ export default function ComicPageClient({ comicId }: ComicPageClientProps) {
             <span className="text-2xl flex-shrink-0">😅</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-black text-orange-800">Belum tersimpan</p>
-              <p className="text-xs text-orange-600">Periksa internet kamu, lalu tekan tombol lagi.</p>
+              <p className="text-xs text-orange-600 font-mono break-all">{saveErrorCode || 'unknown-error'}</p>
             </div>
             <button
-              onClick={() => setSaveStatus('idle')}
+              onClick={() => { setSaveStatus('idle'); setSaveErrorCode(''); }}
               className="flex-shrink-0 rounded-xl bg-orange-500 px-3 py-2 text-xs font-black text-white hover:bg-orange-600 transition-colors"
             >
               OK

@@ -16,6 +16,20 @@ import { createInitialProgressState, restoreProgressState } from '@/lib/progress
 import type { ComicProgressDocument } from '@/types/firestore';
 import type { ComicProgressState } from '@/types/progress';
 
+// ─── Error helper ─────────────────────────────────────────────────────────────
+
+/**
+ * Extract the Firebase error code (e.g. 'permission-denied', 'unauthenticated',
+ * 'network-request-failed') so callers can display the real cause instead of a
+ * generic message.
+ */
+export function extractFirebaseErrorCode(error: unknown): string {
+  if (error && typeof error === 'object' && 'code' in error) {
+    return String((error as { code: string }).code);
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
 // ─── Path helpers ─────────────────────────────────────────────────────────────
 
 /** Doc ID for a comic progress: comic-{comicId} */
@@ -86,27 +100,37 @@ export async function initializeUserProgress(userId: string): Promise<void> {
 
 // ─── Update ───────────────────────────────────────────────────────────────────
 
-/** Persist updated progress state to Firestore, then verify the write succeeded. */
+/** Persist updated progress state to Firestore. Creates the document if it does not exist (merge: true). */
 export async function saveComicProgress(
   userId: string,
   state: ComicProgressState
 ): Promise<void> {
+  const stage = currentStage(state);
+  const docPath = `users/${userId}/progress/comic-${state.comicId}`;
+
+  // ── Auth guard ────────────────────────────────────────────────────────────
   if (!userId) {
-    throw new Error('userId tidak tersedia');
+    console.error('[SAVE FAILED] CURRENT UID: null — userId tidak tersedia');
+    throw new Error('unauthenticated');
   }
+
+  console.log('[START SAVE] CURRENT UID:', userId, '| comicId:', state.comicId, '| CURRENT STAGE:', stage, '| path:', docPath);
+
   const ref = progressDocRef(userId, state.comicId);
   const payload = {
     ...toDocument(state),
     ...(state.isCompleted ? { completedAt: serverTimestamp() } : {}),
   };
+
   try {
+    // merge: true → creates document automatically if it does not exist
     await setDoc(ref, payload, { merge: true });
+    console.log('[SAVE SUCCESS] CURRENT UID:', userId, '| comicId:', state.comicId, '| CURRENT STAGE:', stage);
   } catch (error) {
-    console.error(
-      `[saveComicProgress] setDoc gagal — userId: ${userId}, comicId: ${state.comicId}`,
-      error
-    );
-    throw error;
+    const code = extractFirebaseErrorCode(error);
+    console.error('[SAVE FAILED] code:', code, '| CURRENT UID:', userId, '| comicId:', state.comicId, error);
+    // Re-throw with the Firebase error code as the message so callers can surface it
+    throw new Error(code);
   }
 }
 

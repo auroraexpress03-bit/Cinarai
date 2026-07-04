@@ -22,6 +22,7 @@ import {
   ALL_STAGES,
   type LearningContextValue,
 } from '../types';
+import { extractFirebaseErrorCode } from '@/services/comicProgress';
 
 const LearningContext = createContext<LearningContextValue | null>(null);
 
@@ -129,32 +130,44 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
     if (!canAdvance || isSavingRef.current || stageIndex >= totalStages - 1) return;
 
     const sintaks = stageToSintaks(currentStage);
-    if (user?.uid && sintaks) {
+    const nextStageEnum = ALL_STAGES[stageIndex + 1] ?? Stage.Finish;
+
+    console.log('[CURRENT STAGE]', currentStage);
+    console.log('[NEXT STAGE]', nextStageEnum);
+    console.log('[ROUTE]', `/comic/${comicId}/learn`);
+
+    if (!user?.uid) {
+      console.error('[SAVE FAILED] CURRENT UID: null — login diperlukan');
+      showSnackbar('Gagal menyimpan progress: login diperlukan.', 'error');
+      return;
+    }
+
+    console.log('[CURRENT UID]', user.uid);
+
+    if (sintaks) {
       isSavingRef.current = true;
       setIsSaving(true);
       try {
+        console.log('[START SAVE] uid:', user.uid, '| sintaks:', sintaks);
         const next = await persistCompleteStage(user.uid, progressRef.current, sintaks);
         setProgress(next);
+        console.log('[SAVE SUCCESS] uid:', user.uid, '| sintaks:', sintaks);
         showSnackbar('Progress berhasil disimpan ✓', 'success');
       } catch (error) {
-        console.error('Save Progress Error', error);
-        const msg = error instanceof Error ? error.message : 'Terjadi kesalahan tidak diketahui.';
-        showSnackbar(`Gagal menyimpan progress: ${msg}`, 'error');
+        const code = extractFirebaseErrorCode(error);
+        console.error('[SAVE FAILED] code:', code, '| uid:', user.uid, '| sintaks:', sintaks, error);
+        showSnackbar(`Gagal menyimpan progress: ${code}`, 'error');
         isSavingRef.current = false;
         setIsSaving(false);
-        return; // jangan maju stage jika save gagal
+        return;
       } finally {
         isSavingRef.current = false;
         setIsSaving(false);
       }
-    } else if (!user?.uid) {
-      console.error('Save Progress Error: userId tidak tersedia.');
-      showSnackbar('Gagal menyimpan progress: sesi tidak ditemukan.', 'error');
-      return;
     }
 
     setStageIndex((i) => Math.min(i + 1, totalStages - 1));
-  }, [user, stageIndex, totalStages, currentStage, canAdvance, showSnackbar]);
+  }, [user, comicId, stageIndex, totalStages, currentStage, canAdvance, showSnackbar]);
 
   const previousStage = useCallback(() => {
     setCanAdvance(true); // reset gate saat mundur

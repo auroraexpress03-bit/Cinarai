@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/context/SnackbarContext';
-import { subscribeToComicProgress, saveComicProgress } from '@/services/comicProgress';
+import { subscribeToComicProgress, saveComicProgress, extractFirebaseErrorCode } from '@/services/comicProgress';
 import { completeSintaks, createInitialProgressState } from '@/lib/progressEngine';
 import type { ComicProgressState, Sintaks } from '@/types/progress';
 
@@ -24,30 +24,29 @@ export function useComicProgress(comicId: number) {
   }, [user, comicId]);
 
   const complete = useCallback(async (sintaks: Sintaks): Promise<void> => {
+    console.log('[CURRENT UID]', user?.uid ?? 'null');
+    console.log('[CURRENT STAGE]', sintaks);
+
     if (!user?.uid) {
-      const err = new Error('userId tidak tersedia');
-      console.error('[useComicProgress] complete: userId tidak tersedia', err);
-      showSnackbar('Gagal menyimpan progress: sesi tidak ditemukan.', 'error');
-      throw err;
+      console.error('[SAVE FAILED] userId null — login diperlukan');
+      showSnackbar('Gagal menyimpan progress: login diperlukan.', 'error');
+      throw new Error('unauthenticated');
     }
 
-    // Compute next state from the latest snapshot (not a stale closure)
     const next = completeSintaks(stateRef.current, sintaks);
+    const nextStageLabel = next.sintaksList.find((s) => s.status === 'CURRENT')?.sintaks ?? 'selesai';
+    console.log('[NEXT STAGE]', nextStageLabel);
 
-    // Write to Firestore FIRST — only update local state after confirmed write
+    console.log('[START SAVE] uid:', user.uid, '| sintaks:', sintaks);
     try {
       await saveComicProgress(user.uid, next);
-      // Firestore write confirmed: update local state
-      // (onSnapshot will also arrive shortly and produce the same result)
       setState(next);
+      console.log('[SAVE SUCCESS] uid:', user.uid, '| sintaks:', sintaks);
     } catch (error) {
-      console.error(
-        `[useComicProgress] saveComicProgress gagal — userId: ${user.uid}, comicId: ${comicId}, sintaks: ${sintaks}`,
-        error
-      );
-      const msg = error instanceof Error ? error.message : String(error);
-      showSnackbar(`Gagal menyimpan progress: ${msg}`, 'error');
-      throw error; // re-throw so handleComplete knows the write failed
+      const code = extractFirebaseErrorCode(error);
+      console.error('[SAVE FAILED] code:', code, '| uid:', user.uid, '| sintaks:', sintaks, error);
+      showSnackbar(`Gagal menyimpan progress: ${code}`, 'error');
+      throw error;
     }
   }, [user, comicId, showSnackbar]);
 
