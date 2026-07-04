@@ -8,13 +8,8 @@ import "react-pdf/dist/Page/TextLayer.css";
 const ZOOM_STEP = 0.25;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 3;
-const MAX_PAGE_WIDTH = 1000;
 const SWIPE_THRESHOLD = 50;
 const SWIPE_VERTICAL_LIMIT = 80;
-
-// Height of the bottom nav bar (mobile/tablet) — used in fit calculation
-// 56px button + 12px pt + 12px pb + 1px border ≈ 81px; use 88 for safety
-const BOTTOM_NAV_H = 88;
 
 interface PdfReaderProps {
   pdfPath: string;
@@ -37,9 +32,7 @@ export default function PdfReader({
   const [numPages, setNumPages] = useState<number>(0);
   const [page, setPage] = useState(1);
   const [userScale, setUserScale] = useState(1);
-  const [viewportWidth, setViewportWidth] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(0);
-  const [pageAspectRatio, setPageAspectRatio] = useState<number | null>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
   const [showZoom, setShowZoom] = useState(false);
   // true when viewport is lg+ (≥1024px) — side-nav mode
   const [isDesktop, setIsDesktop] = useState(false);
@@ -50,6 +43,7 @@ export default function PdfReader({
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   // ── Worker ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -59,28 +53,16 @@ export default function PdfReader({
   }, []);
 
   // ── Measure viewport + detect desktop breakpoint ───────────────────────────
-  // viewportWidth/Height = PDF column dimensions (for fit calculation).
-  // isDesktop = window.innerWidth >= 1024 (true breakpoint, not column width).
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
-      setViewportWidth(entry.contentRect.width);
-      setViewportHeight(entry.contentRect.height);
+      setContainerWidth(entry.contentRect.width);
       setIsDesktop(window.innerWidth >= 1024);
     });
     ro.observe(el);
-    // Also update on window resize (handles orientation change)
-    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', onResize);
-    };
+    return () => ro.disconnect();
   }, []);
-
-  // Reset aspect ratio on page change
-  useEffect(() => { setPageAspectRatio(null); }, [page]);
 
   // ── Notify parent ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -137,34 +119,8 @@ export default function PdfReader({
     setPage(1);
   }, []);
 
-  // ── Capture actual page aspect ratio ──────────────────────────────────────
-  const pageRef = useRef<HTMLDivElement>(null);
-  const onPageRenderSuccess = useCallback(() => {
-    const canvas = pageRef.current?.querySelector("canvas");
-    if (canvas && canvas.width > 0 && canvas.height > 0) {
-      setPageAspectRatio(canvas.width / canvas.height);
-    }
-  }, []);
-
-  // ── Fit-to-contain width calculation ──────────────────────────────────────
-  // Desktop (isDesktop): no bottom bar — full viewport height available.
-  //   PADDING_V = 24px (py-3 top+bottom of scroll area)
-  // Mobile/tablet: bottom bar takes BOTTOM_NAV_H.
-  //   PADDING_V = 24 + BOTTOM_NAV_H
-  //
-  // baseWidth = min(fitByWidth, fitByHeight, MAX_PAGE_WIDTH)
-  const PADDING_V = isDesktop ? 24 : 24 + BOTTOM_NAV_H;
-  const availW = Math.max(viewportWidth || 320, 1);
-  const availH = Math.max((viewportHeight || 600) - PADDING_V, 100);
-
-  let baseWidth: number;
-  if (pageAspectRatio !== null && pageAspectRatio > 0) {
-    baseWidth = Math.min(availW, availH * pageAspectRatio, MAX_PAGE_WIDTH);
-  } else {
-    baseWidth = Math.min(availW, MAX_PAGE_WIDTH);
-  }
-
-  const pageWidth = Math.round(Math.max(baseWidth * userScale, 100));
+  // ── Fit-to-width: PDF fills container width, aspect ratio preserved by react-pdf ──
+  const pageWidth = Math.round(Math.max((containerWidth || 320) * userScale, 100));
 
   const isFirstPage = page <= 1;
   const isLastPage  = isLastPageReached;
@@ -263,8 +219,7 @@ export default function PdfReader({
                 key={`page_${page}`}
                 pageNumber={page}
                 width={pageWidth}
-                onRenderSuccess={onPageRenderSuccess}
-                loading={<PageSkeleton width={pageWidth} aspectRatio={pageAspectRatio} />}
+                loading={<PageSkeleton width={pageWidth} />}
                 renderAnnotationLayer
                 renderTextLayer
               />
@@ -363,12 +318,11 @@ function PdfLoadingSpinner() {
   );
 }
 
-function PageSkeleton({ width, aspectRatio }: { width: number; aspectRatio: number | null }) {
-  const height = aspectRatio ? Math.round(width / aspectRatio) : Math.round(width * 1.414);
+function PageSkeleton({ width }: { width: number }) {
   return (
     <div
       className="bg-neutral-200 animate-pulse rounded-lg"
-      style={{ width, height }}
+      style={{ width, height: Math.round(width * 1.414) }}
     />
   );
 }
