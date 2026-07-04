@@ -1,10 +1,16 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 
 export default function CoverStage() {
-  const { comic } = useLearningEngine();
+  const { comic, setCanAdvance } = useLearningEngine();
+
+  // Cover stage allows immediate advancement - no interaction needed
+  useEffect(() => {
+    setCanAdvance(true);
+  }, [setCanAdvance]);
 
   const hours = Math.floor(comic.estimatedMinutes / 60);
   const minutes = comic.estimatedMinutes % 60;

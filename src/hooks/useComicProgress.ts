@@ -48,7 +48,7 @@ export function useComicProgress(comicId: number) {
       showSnackbar(`Gagal menyimpan progress: ${code}`, 'error');
       throw error;
     }
-  }, [user, comicId, showSnackbar]);
+  }, [user, showSnackbar]);
 
   return { state, complete };
 }

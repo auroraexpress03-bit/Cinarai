@@ -104,9 +104,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
 
   // Sync stageIndex to Firestore progress on initial load only.
   // After the first sync, in-session navigation drives stageIndex exclusively.
-  // Cover stage is never rendered inside LearningEngine — it is shown via
-  // /comic/[id]/cover. If Firestore says CURRENT = Cover, auto-complete it
-  // silently and jump straight to Contextualization.
+  // On mount, read the current stage from Firestore and set it as the active stage.
   useEffect(() => {
     if (isLoading) return;
     if (initialSyncDoneRef.current) return;
@@ -141,7 +139,10 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   const completeAndAdvance = useCallback(async (sintaks: Sintaks) => {
     if (isSavingRef.current) return;
 
-    const nextStageEnum = ALL_STAGES[ALL_STAGES.indexOf(Stage[sintaks as keyof typeof Stage] ?? Stage.Contextualization) + 1] ?? Stage.Identification;
+    // Find the stage enum for this sintaks string
+    const currentStageEnum = Stage[sintaks as keyof typeof Stage] ?? Stage.Contextualization;
+    const currentIdx = ALL_STAGES.indexOf(currentStageEnum);
+    const nextStageEnum = ALL_STAGES[currentIdx + 1] ?? Stage.Identification;
 
     console.log('[CURRENT STAGE]', sintaks);
     console.log('[NEXT STAGE]', nextStageEnum);
