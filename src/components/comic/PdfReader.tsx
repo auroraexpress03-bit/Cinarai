@@ -8,7 +8,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 const ZOOM_STEP = 0.25;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 3;
-const MAX_PAGE_WIDTH = 1000; // cap for desktop — never render wider than this at scale=1
+const MAX_PAGE_WIDTH = 1000;
 const SWIPE_THRESHOLD = 50;
 const SWIPE_VERTICAL_LIMIT = 80;
 
@@ -32,12 +32,18 @@ export default function PdfReader({
   const [workerReady, setWorkerReady] = useState(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [page, setPage] = useState(1);
-  const [scale, setScale] = useState(1);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [userScale, setUserScale] = useState(1);
+
+  // Measured dimensions of the scroll viewport
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+
+  // Actual aspect ratio of the current PDF page (width / height), from react-pdf
+  const [pageAspectRatio, setPageAspectRatio] = useState<number | null>(null);
+
   const [showZoom, setShowZoom] = useState(false);
 
-  // containerRef measures the full available width of the scroll area
-  const containerRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
@@ -46,20 +52,27 @@ export default function PdfReader({
 
   // ── Worker ─────────────────────────────────────────────────────────────────
   useEffect(() => {
-    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+    pdfjs.GlobalWorkerOptions.workerSrc =
+      `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
     setWorkerReady(true);
   }, []);
 
-  // ── Measure container width via ResizeObserver ─────────────────────────────
+  // ── Measure viewport (both width AND height) via ResizeObserver ────────────
   useEffect(() => {
-    const el = containerRef.current;
+    const el = viewportRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
-      setContainerWidth(entry.contentRect.width);
+      setViewportWidth(entry.contentRect.width);
+      setViewportHeight(entry.contentRect.height);
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  // Reset aspect ratio when page changes so we don't flash wrong size
+  useEffect(() => {
+    setPageAspectRatio(null);
+  }, [page]);
 
   // ── Notify parent ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -75,9 +88,9 @@ export default function PdfReader({
   );
 
   // ── Zoom ───────────────────────────────────────────────────────────────────
-  const zoomIn  = useCallback(() => setScale((s) => Math.min(+(s + ZOOM_STEP).toFixed(2), ZOOM_MAX)), []);
-  const zoomOut = useCallback(() => setScale((s) => Math.max(+(s - ZOOM_STEP).toFixed(2), ZOOM_MIN)), []);
-  const resetZoom = useCallback(() => setScale(1), []);
+  const zoomIn  = useCallback(() => setUserScale((s) => Math.min(+(s + ZOOM_STEP).toFixed(2), ZOOM_MAX)), []);
+  const zoomOut = useCallback(() => setUserScale((s) => Math.max(+(s - ZOOM_STEP).toFixed(2), ZOOM_MIN)), []);
+  const resetZoom = useCallback(() => setUserScale(1), []);
 
   // ── Swipe ──────────────────────────────────────────────────────────────────
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -116,12 +129,46 @@ export default function PdfReader({
     setPage(1);
   }, []);
 
-  // ── Responsive page width ──────────────────────────────────────────────────
-  // baseWidth = actual container width, capped at MAX_PAGE_WIDTH.
-  // pageWidth = baseWidth * scale (zoom applied on top).
-  // Falls back to 320 until ResizeObserver fires.
-  const baseWidth = Math.min(containerWidth || 320, MAX_PAGE_WIDTH);
-  const pageWidth = Math.round(baseWidth * scale);
+  // ── Capture actual page aspect ratio after react-pdf renders it ────────────
+  // react-pdf fires onRenderSuccess with the Page proxy; we read width/height
+  // from the rendered canvas element instead to avoid internal API coupling.
+  const pageRef = useRef<HTMLDivElement>(null);
+  const onPageRenderSuccess = useCallback(() => {
+    const canvas = pageRef.current?.querySelector("canvas");
+    if (canvas && canvas.width > 0 && canvas.height > 0) {
+      setPageAspectRatio(canvas.width / canvas.height);
+    }
+  }, []);
+
+  // ── Fit-to-contain width calculation ──────────────────────────────────────
+  // Goal: the page fits entirely inside the viewport (no cropping, no overflow)
+  // at userScale = 1. User zoom is applied on top.
+  //
+  // Available space (with small vertical padding):
+  //   availW = viewportWidth  (full column width)
+  //   availH = viewportHeight - 24px (top+bottom py-3 padding)
+  //
+  // If we know the aspect ratio (w/h):
+  //   fitByWidth  = availW
+  //   fitByHeight = availH * aspectRatio
+  //   baseWidth   = min(fitByWidth, fitByHeight, MAX_PAGE_WIDTH)
+  //
+  // If aspect ratio not yet known, fall back to width-only sizing.
+  const PADDING_V = 24; // py-3 top + bottom = 12+12
+  const availW = Math.max(viewportWidth || 320, 1);
+  const availH = Math.max((viewportHeight || 600) - PADDING_V, 100);
+
+  let baseWidth: number;
+  if (pageAspectRatio !== null && pageAspectRatio > 0) {
+    const fitByWidth  = availW;
+    const fitByHeight = availH * pageAspectRatio;
+    baseWidth = Math.min(fitByWidth, fitByHeight, MAX_PAGE_WIDTH);
+  } else {
+    // Before aspect ratio is known: use width-only, capped
+    baseWidth = Math.min(availW, MAX_PAGE_WIDTH);
+  }
+
+  const pageWidth = Math.round(Math.max(baseWidth * userScale, 100));
 
   const isFirstPage = page <= 1;
   const isLastPage  = isLastPageReached;
@@ -151,11 +198,10 @@ export default function PdfReader({
               className="flex items-center gap-1 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-bold text-neutral-500 hover:bg-neutral-200 transition-colors"
               aria-label="Ubah ukuran"
             >
-              🔍 {Math.round(scale * 100)}%
+              🔍 {Math.round(userScale * 100)}%
             </button>
           </div>
 
-          {/* Progress bar */}
           <div className="h-2.5 w-full rounded-full bg-neutral-100 overflow-hidden">
             <div
               className="h-2.5 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 transition-all duration-300"
@@ -163,26 +209,17 @@ export default function PdfReader({
             />
           </div>
 
-          {/* Zoom controls */}
           {showZoom && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-neutral-100">
-              <button
-                onClick={zoomOut}
-                disabled={scale <= ZOOM_MIN}
+              <button onClick={zoomOut} disabled={userScale <= ZOOM_MIN}
                 className="flex-1 h-9 rounded-xl bg-neutral-100 text-neutral-700 font-black text-lg disabled:opacity-40 hover:bg-neutral-200 transition-colors"
-                aria-label="Perkecil"
-              >−</button>
-              <button
-                onClick={resetZoom}
+                aria-label="Perkecil">−</button>
+              <button onClick={resetZoom}
                 className="flex-1 h-9 rounded-xl bg-neutral-100 text-neutral-700 text-xs font-black hover:bg-neutral-200 transition-colors"
-                aria-label="Ukuran normal"
-              >Normal</button>
-              <button
-                onClick={zoomIn}
-                disabled={scale >= ZOOM_MAX}
+                aria-label="Ukuran normal">Normal</button>
+              <button onClick={zoomIn} disabled={userScale >= ZOOM_MAX}
                 className="flex-1 h-9 rounded-xl bg-neutral-100 text-neutral-700 font-black text-lg disabled:opacity-40 hover:bg-neutral-200 transition-colors"
-                aria-label="Perbesar"
-              >+</button>
+                aria-label="Perbesar">+</button>
             </div>
           )}
         </div>
@@ -190,34 +227,37 @@ export default function PdfReader({
 
       {/* ── PDF viewport ─────────────────────────────────────────────────────── */}
       {/*
-        containerRef measures the full scroll-area width.
-        The inner wrapper centers the page and constrains it to max-w-[1000px].
-        overflow-x-auto allows horizontal scroll only when zoomed beyond container.
+        viewportRef measures available width AND height.
+        At userScale=1 the page is sized to fit entirely within this area.
+        When zoomed in, overflow-auto allows scrolling.
       */}
       <div
-        ref={containerRef}
-        className="flex-1 overflow-y-auto overflow-x-auto bg-[#f0f7ff] select-none"
+        ref={viewportRef}
+        className="flex-1 min-h-0 overflow-auto bg-[#f0f7ff] select-none"
         style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div className="flex flex-col items-center py-3 min-h-full">
-          <Document
-            file={pdfPath}
-            onLoadSuccess={onDocumentLoadSuccess}
-            loading={<PdfLoadingSpinner />}
-            error={<PdfErrorMessage />}
-          >
-            <Page
-              key={`page_${page}_${scale}`}
-              pageNumber={page}
-              width={pageWidth}
-              loading={<PageSkeleton width={pageWidth} />}
-              renderAnnotationLayer
-              renderTextLayer
-            />
-          </Document>
+          <div ref={pageRef}>
+            <Document
+              file={pdfPath}
+              onLoadSuccess={onDocumentLoadSuccess}
+              loading={<PdfLoadingSpinner />}
+              error={<PdfErrorMessage />}
+            >
+              <Page
+                key={`page_${page}`}
+                pageNumber={page}
+                width={pageWidth}
+                onRenderSuccess={onPageRenderSuccess}
+                loading={<PageSkeleton width={pageWidth} aspectRatio={pageAspectRatio} />}
+                renderAnnotationLayer
+                renderTextLayer
+              />
+            </Document>
+          </div>
         </div>
       </div>
 
@@ -251,7 +291,6 @@ export default function PdfReader({
                 </svg>
                 Sebelumnya
               </button>
-
               <button
                 onClick={() => goTo(page + 1)}
                 disabled={isLastPage}
@@ -282,12 +321,12 @@ function PdfLoadingSpinner() {
   );
 }
 
-function PageSkeleton({ width }: { width: number }) {
-  // A4 aspect ratio ≈ 1:1.414
+function PageSkeleton({ width, aspectRatio }: { width: number; aspectRatio: number | null }) {
+  const height = aspectRatio ? Math.round(width / aspectRatio) : Math.round(width * 1.414);
   return (
     <div
       className="bg-neutral-200 animate-pulse rounded-lg"
-      style={{ width, height: Math.round(width * 1.414) }}
+      style={{ width, height }}
     />
   );
 }
