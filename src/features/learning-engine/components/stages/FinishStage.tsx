@@ -54,11 +54,11 @@ export default function FinishStage() {
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -left-6 bottom-4 h-28 w-28 rounded-full bg-secondary-400/20" />
         <div className="relative mx-auto max-w-2xl">
-          <div className="inline-flex h-24 w-24 md:h-28 md:w-28 items-center justify-center rounded-full bg-white/20 text-5xl md:text-6xl shadow-lg ring-4 ring-white/30 mb-4">
+          <div className="inline-flex h-24 w-24 md:h-28 md:w-28 items-center justify-center rounded-full bg-white/20 text-2xl md:text-6xl shadow-lg ring-4 ring-white/30 mb-4">
             🏆
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-white leading-tight">Luar Biasa! 🎉</h1>
-          <p className="mt-2 text-xl md:text-2xl text-primary-200 leading-snug px-4">
+          <h1 className="text-2xl md:text-4xl font-black text-white leading-tight">Luar Biasa! 🎉</h1>
+          <p className="mt-2 text-base md:text-2xl text-primary-200 leading-snug px-4">
             Kamu telah menyelesaikan<br />
             <span className="font-black text-white">{comic.title}</span>
           </p>
@@ -92,7 +92,7 @@ export default function FinishStage() {
                   ].join(' ')}>
                     {done ? '✅' : (STAGE_EMOJI[stage] ?? '○')}
                   </span>
-                  <span className={`text-xl flex-1 ${done ? 'text-neutral-800 font-bold' : 'text-neutral-400'}`}>
+                  <span className={`text-lg md:text-xl flex-1 ${done ? 'text-neutral-800 font-bold' : 'text-neutral-400'}`}>
                     {STAGE_LABELS[stage]}
                   </span>
                   {done && (
@@ -126,7 +126,7 @@ function StatCard({ emoji, label, value, color }: {
       <span className={`flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full ${color} text-xl md:text-2xl`}>
         {emoji}
       </span>
-      <span className="text-xl md:text-2xl font-black text-neutral-900 leading-tight">{value}</span>
+      <span className="text-lg md:text-2xl font-black text-neutral-900 leading-tight">{value}</span>
       <span className="text-sm md:text-base text-neutral-400 leading-tight">{label}</span>
     </div>
   );

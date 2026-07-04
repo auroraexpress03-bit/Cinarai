@@ -15,9 +15,9 @@ export default function NavigationStage() {
 
       {/* Hero card */}
       <div className="rounded-2xl bg-white shadow-sm px-5 py-8 text-center">
-        <div className="text-8xl mb-5">🧭</div>
-        <h2 className="text-3xl font-black text-neutral-900 leading-snug">Navigasi Cerita</h2>
-        <p className="mt-3 text-xl text-neutral-500 leading-relaxed">
+        <div className="text-xl md:text-8xl mb-5">🧭</div>
+        <h2 className="text-xl md:text-3xl font-black text-neutral-900 leading-snug">Navigasi Cerita</h2>
+        <p className="mt-3 text-base md:text-xl text-neutral-500 leading-relaxed">
           Jelajahi <span className="font-black text-primary-600">{comic.lokasi}</span> lebih dalam!
         </p>
       </div>
@@ -32,14 +32,14 @@ export default function NavigationStage() {
             📚 Kelas {comic.kelas}
           </span>
         </div>
-        <h3 className="text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
-        <p className="mt-2 text-xl text-neutral-500 leading-relaxed">{comic.subtitle}</p>
+        <h3 className="text-xl md:text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
+        <p className="mt-2 text-base md:text-xl text-neutral-500 leading-relaxed">{comic.subtitle}</p>
       </div>
 
       {/* Materi Pembelajaran */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-100">
-          <h3 className="text-xl font-black text-neutral-700">📚 Materi Pembelajaran</h3>
+          <h3 className="text-lg md:text-xl font-black text-neutral-700">📚 Materi Pembelajaran</h3>
         </div>
         <ul className="px-4 py-4 flex flex-col gap-3">
           {comic.learningTargets.map((target, i) => (
@@ -47,7 +47,7 @@ export default function NavigationStage() {
               <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white mt-0.5">
                 {i + 1}
               </span>
-              <p className="text-xl text-neutral-700 leading-relaxed pt-1">{target}</p>
+              <p className="text-base md:text-lg text-neutral-700 leading-relaxed pt-1">{target}</p>
             </li>
           ))}
         </ul>
@@ -56,7 +56,7 @@ export default function NavigationStage() {
       {/* Aktivitas */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-100">
-          <h3 className="text-xl font-black text-neutral-700">🎮 Aktivitas</h3>
+          <h3 className="text-lg md:text-xl font-black text-neutral-700">🎮 Aktivitas</h3>
         </div>
         <div className="px-4 py-4 flex flex-col gap-3">
           {[
@@ -65,10 +65,10 @@ export default function NavigationStage() {
             { emoji: '📝', title: 'Kuis Navigasi', desc: 'Uji pemahamanmu tentang materi yang sudah dipelajari.' },
           ].map((item) => (
             <div key={item.title} className="flex items-start gap-4 rounded-2xl bg-neutral-50 p-4">
-              <span className="text-3xl flex-shrink-0">{item.emoji}</span>
+              <span className="text-2xl md:text-3xl flex-shrink-0">{item.emoji}</span>
               <div className="min-w-0">
-                <p className="text-xl font-black text-neutral-800 leading-tight">{item.title}</p>
-                <p className="text-lg text-neutral-500 mt-1 leading-relaxed">{item.desc}</p>
+                <p className="text-lg md:text-xl font-black text-neutral-800 leading-tight">{item.title}</p>
+                <p className="text-base md:text-lg text-neutral-500 mt-1 leading-relaxed">{item.desc}</p>
                 <span className="mt-2 inline-block rounded-full bg-warning-100 px-3 py-1 text-sm font-bold text-warning-700">
                   🚧 Segera Hadir
                 </span>

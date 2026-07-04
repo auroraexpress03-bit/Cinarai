@@ -15,9 +15,9 @@ export default function ArgumentationStage() {
 
       {/* Hero card */}
       <div className="rounded-2xl bg-white shadow-sm px-5 py-8 text-center">
-        <div className="text-8xl mb-5">💬</div>
-        <h2 className="text-3xl font-black text-neutral-900 leading-snug">Argumentasi</h2>
-        <p className="mt-3 text-xl text-neutral-500 leading-relaxed">
+        <div className="text-xl md:text-8xl mb-5">💬</div>
+        <h2 className="text-xl md:text-3xl font-black text-neutral-900 leading-snug">Argumentasi</h2>
+        <p className="mt-3 text-base md:text-xl text-neutral-500 leading-relaxed">
           Sampaikan pendapatmu tentang{' '}
           <span className="font-black text-primary-600">{comic.lokasi}</span>!
         </p>
@@ -33,8 +33,8 @@ export default function ArgumentationStage() {
             📚 Kelas {comic.kelas}
           </span>
         </div>
-        <h3 className="text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
-        <p className="mt-2 text-xl text-neutral-500 leading-relaxed">
+        <h3 className="text-xl md:text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
+        <p className="mt-2 text-base md:text-xl text-neutral-500 leading-relaxed">
           Sampaikan pendapatmu tentang {comic.subtitle.toLowerCase()}.
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function ArgumentationStage() {
       {/* Apa itu Argumentasi */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-100">
-          <h3 className="text-xl font-black text-neutral-700">💡 Apa itu Argumentasi?</h3>
+          <h3 className="text-lg md:text-xl font-black text-neutral-700">💡 Apa itu Argumentasi?</h3>
         </div>
         <ul className="px-4 py-4 flex flex-col gap-3">
           {[
@@ -51,8 +51,8 @@ export default function ArgumentationStage() {
             { emoji: '🤝', text: 'Dengarkan pendapat teman dan hargai perbedaan.' },
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-4 rounded-2xl bg-primary-50 p-4">
-              <span className="text-2xl flex-shrink-0">{item.emoji}</span>
-              <p className="text-xl text-neutral-700 leading-relaxed">{item.text}</p>
+              <span className="text-xl md:text-2xl flex-shrink-0">{item.emoji}</span>
+              <p className="text-base md:text-xl text-neutral-700 leading-relaxed">{item.text}</p>
             </li>
           ))}
         </ul>
@@ -64,12 +64,12 @@ export default function ArgumentationStage() {
           <h3 className="text-xl font-black text-neutral-700">🎯 Aktivitas Argumentasi</h3>
         </div>
         <div className="px-5 py-10 flex flex-col items-center gap-4 text-center">
-          <span className="text-6xl">🚧</span>
-          <p className="text-2xl font-black text-neutral-700">Segera Hadir!</p>
-          <p className="text-xl text-neutral-400 leading-relaxed max-w-xs">
+          <span className="text-xl md:text-5xl">🚧</span>
+          <p className="text-lg md:text-xl font-black text-neutral-700">Segera Hadir!</p>
+          <p className="text-sm md:text-base text-neutral-400 leading-relaxed max-w-xs">
             Aktivitas diskusi dan argumentasi interaktif akan segera tersedia di sini.
           </p>
-          <span className="rounded-full bg-warning-100 px-4 py-2 text-base font-bold text-warning-700">
+          <span className="rounded-full bg-warning-100 px-4 py-2 text-sm md:text-base font-bold text-warning-700">
             Dalam Pengembangan
           </span>
         </div>

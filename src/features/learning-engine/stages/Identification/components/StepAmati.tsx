@@ -11,9 +11,9 @@ export default function StepAmati() {
 
       {/* Hero card */}
       <div className="rounded-2xl bg-white shadow-sm px-5 py-8 text-center">
-        <div className="text-8xl mb-5">🔍</div>
-        <h2 className="text-3xl font-black text-neutral-900 leading-snug">Yuk, Amati Komiknya!</h2>
-        <p className="mt-3 text-xl text-neutral-500 leading-relaxed">
+        <div className="text-xl md:text-8xl mb-5">🔍</div>
+        <h2 className="text-xl md:text-3xl font-black text-neutral-900 leading-snug">Yuk, Amati Komiknya!</h2>
+        <p className="mt-3 text-base md:text-xl text-neutral-500 leading-relaxed">
           Ingat-ingat cerita di <span className="font-black text-primary-600">{lokasi}</span>.
           Apa saja yang kamu lihat?
         </p>
@@ -34,7 +34,7 @@ export default function StepAmati() {
               <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white mt-0.5">
                 {i + 1}
               </span>
-              <span className="text-xl text-neutral-700 leading-relaxed pt-1">
+              <span className="text-base md:text-lg text-neutral-700 leading-relaxed pt-1">
                 {step.emoji} {step.text}
               </span>
             </li>
@@ -54,10 +54,10 @@ export default function StepAmati() {
             onChange={(e) => setObserveNote(e.target.value)}
             placeholder="Contoh: Saya melihat bentuk kubus pada bangunan candi…"
             rows={4}
-            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-xl leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
+            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-base md:text-lg leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
           />
           {!canProceed && (
-            <p className="text-lg font-bold text-warning-700 bg-warning-50 border-2 border-warning-200 rounded-2xl px-5 py-4">
+            <p className="text-base md:text-lg font-bold text-warning-700 bg-warning-50 border-2 border-warning-200 rounded-2xl px-5 py-4">
               ✏️ Tulis dulu apa yang kamu temukan, baru bisa lanjut ya!
             </p>
           )}
@@ -69,7 +69,7 @@ export default function StepAmati() {
         type="button"
         onClick={nextStep}
         disabled={!canProceed}
-        className="flex w-full items-center justify-center gap-3 min-h-[72px] rounded-2xl bg-primary-600 px-5 py-4 text-2xl font-black text-white shadow-md hover:bg-primary-700 transition-all active:scale-[0.97] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="flex w-full items-center justify-center gap-3 min-h-[72px] rounded-2xl bg-primary-600 px-5 py-4 text-lg md:text-xl font-black text-white shadow-md hover:bg-primary-700 transition-all active:scale-[0.97] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
       >
         {canProceed ? (
           <>

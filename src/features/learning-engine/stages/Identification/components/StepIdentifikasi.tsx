@@ -12,9 +12,9 @@ export default function StepIdentifikasi() {
 
       {/* Hero card */}
       <div className="rounded-2xl bg-white shadow-sm px-5 py-8 text-center">
-        <div className="text-8xl mb-5">🧩</div>
-        <h2 className="text-3xl font-black text-neutral-900 leading-snug">Identifikasi Masalah</h2>
-        <p className="mt-3 text-xl text-neutral-500 leading-relaxed">
+        <div className="text-xl md:text-8xl mb-5">🧩</div>
+        <h2 className="text-xl md:text-3xl font-black text-neutral-900 leading-snug">Identifikasi Masalah</h2>
+        <p className="mt-3 text-base md:text-xl text-neutral-500 leading-relaxed">
           Temukan konsep matematika di{' '}
           <span className="font-black text-primary-600">{lokasi}</span>
         </p>
@@ -42,7 +42,7 @@ export default function StepIdentifikasi() {
               <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white mt-0.5">
                 {i + 1}
               </span>
-              <span className="text-xl text-neutral-700 leading-relaxed pt-1">
+              <span className="text-base md:text-lg text-neutral-700 leading-relaxed pt-1">
                 {step.emoji} {step.text}
               </span>
             </li>

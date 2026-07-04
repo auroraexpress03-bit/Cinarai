@@ -12,9 +12,9 @@ export default function StepKonfirmasi() {
 
       {/* Hero card */}
       <div className="rounded-2xl bg-white shadow-sm px-5 py-8 text-center">
-        <div className="text-8xl mb-5">✅</div>
-        <h2 className="text-3xl font-black text-neutral-900 leading-snug">Periksa Jawabanmu</h2>
-        <p className="mt-3 text-xl text-neutral-500 leading-relaxed">
+        <div className="text-xl md:text-8xl mb-5">✅</div>
+        <h2 className="text-xl md:text-3xl font-black text-neutral-900 leading-snug">Periksa Jawabanmu</h2>
+        <p className="mt-3 text-base md:text-xl text-neutral-500 leading-relaxed">
           Pastikan semua jawaban sudah benar sebelum lanjut.
         </p>
       </div>
@@ -22,7 +22,7 @@ export default function StepKonfirmasi() {
       {/* Daftar ringkasan */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-100">
-          <h3 className="text-xl font-black text-neutral-700">📋 Ringkasan Jawabanmu</h3>
+          <h3 className="text-lg md:text-xl font-black text-neutral-700">📋 Ringkasan Jawabanmu</h3>
         </div>
         <ul className="px-4 py-4 flex flex-col gap-4">
           {state.items.map((item) => {
@@ -48,8 +48,8 @@ export default function StepKonfirmasi() {
           <ul className="px-4 py-4 flex flex-col gap-3">
             {validationErrors.map((err) => (
               <li key={err} className="flex items-start gap-3 rounded-2xl bg-error-50 p-4">
-                <span className="text-error-500 flex-shrink-0 mt-1 text-xl">•</span>
-                <span className="text-xl text-error-700 leading-relaxed">{err}</span>
+                <span className="text-error-500 flex-shrink-0 mt-1 text-lg">•</span>
+                <span className="text-base md:text-lg text-error-700 leading-relaxed">{err}</span>
               </li>
             ))}
           </ul>
@@ -61,7 +61,7 @@ export default function StepKonfirmasi() {
         type="button"
         onClick={advance}
         disabled={!canAdvance}
-        className="flex w-full items-center justify-center gap-3 min-h-[72px] rounded-2xl bg-primary-600 px-5 py-4 text-2xl font-black text-white shadow-md hover:bg-primary-700 transition-all active:scale-[0.97] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="flex w-full items-center justify-center gap-3 min-h-[72px] rounded-2xl bg-primary-600 px-5 py-4 text-xl md:text-2xl font-black text-white shadow-md hover:bg-primary-700 transition-all active:scale-[0.97] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
       >
         {canAdvance ? (
           <>
@@ -86,7 +86,7 @@ export default function StepKonfirmasi() {
         <button
           type="button"
           onClick={previousStep}
-          className="flex flex-1 items-center justify-center gap-2 min-h-[60px] rounded-2xl border-2 border-neutral-200 bg-white px-4 py-3 text-xl font-black text-neutral-600 hover:bg-neutral-50 transition-colors active:scale-[0.97]"
+          className="flex flex-1 items-center justify-center gap-2 min-h-[60px] rounded-2xl border-2 border-neutral-200 bg-white px-4 py-3 text-base md:text-lg font-black text-neutral-600 hover:bg-neutral-50 transition-colors active:scale-[0.97]"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

@@ -23,7 +23,7 @@ export default function LearningHeader() {
         </Link>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] md:text-xs font-semibold text-neutral-400 truncate">
+          <p className="text-xs md:text-xs font-semibold text-neutral-400 truncate">
             Kelas {comic.kelas} · {comic.lokasi}
           </p>
           <h1 className="text-sm md:text-base lg:text-lg font-black text-neutral-800 truncate leading-tight">

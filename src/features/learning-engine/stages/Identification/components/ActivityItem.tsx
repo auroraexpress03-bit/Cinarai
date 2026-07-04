@@ -35,7 +35,7 @@ export default function ActivityItem({ item }: ActivityItemProps) {
         ].join(' ')}>
           {isReasonSaved ? '✓' : item.targetIndex + 1}
         </span>
-        <p className="text-2xl font-black text-neutral-800 leading-snug flex-1 pt-1.5">
+        <p className="text-xl md:text-2xl font-black text-neutral-800 leading-snug flex-1 pt-1.5">
           {item.question}
         </p>
       </div>

@@ -27,7 +27,7 @@ export default function StepKonfirmasiItem({
         ].join(' ')}>
           {isComplete ? '✓' : item.targetIndex + 1}
         </span>
-        <p className="text-xl font-black text-neutral-800 leading-snug flex-1 pt-1.5">
+        <p className="text-base md:text-lg font-black text-neutral-800 leading-snug flex-1 pt-1.5">
           {item.targetText}
         </p>
       </div>

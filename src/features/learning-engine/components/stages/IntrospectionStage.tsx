@@ -36,9 +36,9 @@ export default function IntrospectionStage() {
 
       {/* Hero card */}
       <div className="rounded-2xl bg-white shadow-sm px-5 py-8 text-center">
-        <div className="text-8xl mb-5">🪞</div>
-        <h2 className="text-3xl font-black text-neutral-900 leading-snug">Refleksi Pembelajaran</h2>
-        <p className="mt-3 text-xl text-neutral-500 leading-relaxed">
+        <div className="text-xl md:text-8xl mb-5">🪞</div>
+        <h2 className="text-xl md:text-3xl font-black text-neutral-900 leading-snug">Refleksi Pembelajaran</h2>
+        <p className="mt-3 text-base md:text-xl text-neutral-500 leading-relaxed">
           Kamu telah menyelesaikan petualangan di{' '}
           <span className="font-black text-primary-600">{comic.lokasi}</span>!
         </p>
@@ -54,8 +54,8 @@ export default function IntrospectionStage() {
             📚 Kelas {comic.kelas}
           </span>
         </div>
-        <h3 className="text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
-        <p className="mt-2 text-xl text-neutral-500 leading-relaxed">
+        <h3 className="text-xl md:text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
+        <p className="mt-2 text-base md:text-xl text-neutral-500 leading-relaxed">
           Kamu telah menyelesaikan petualangan di {comic.lokasi}.
         </p>
       </div>
@@ -63,8 +63,8 @@ export default function IntrospectionStage() {
       {/* Checklist */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-100">
-          <h3 className="text-xl font-black text-neutral-700">✅ Apa yang sudah kamu kuasai?</h3>
-          <p className="text-lg text-neutral-400 mt-1">Centang semua yang sudah kamu pahami.</p>
+          <h3 className="text-lg md:text-xl font-black text-neutral-700">✅ Apa yang sudah kamu kuasai?</h3>
+          <p className="text-base md:text-lg text-neutral-400 mt-1">Centang semua yang sudah kamu pahami.</p>
         </div>
         <ul className="px-4 py-4 flex flex-col gap-3">
           {comic.learningTargets.map((target, i) => (
@@ -93,7 +93,7 @@ export default function IntrospectionStage() {
                     </svg>
                   )}
                 </span>
-                <span className={`text-xl leading-relaxed ${checked[i] ? 'text-neutral-900 font-bold' : 'text-neutral-600'}`}>
+                <span className={`text-base md:text-lg leading-relaxed ${checked[i] ? 'text-neutral-900 font-bold' : 'text-neutral-600'}`}>
                   {target}
                 </span>
               </label>
@@ -121,8 +121,8 @@ export default function IntrospectionStage() {
                   : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
               ].join(' ')}
             >
-              <span className="text-3xl leading-none">{opt.emoji}</span>
-              <span className="text-sm font-bold text-center leading-tight">{opt.label}</span>
+              <span className="text-xl md:text-3xl leading-none">{opt.emoji}</span>
+              <span className="text-xs md:text-sm font-bold text-center leading-tight">{opt.label}</span>
             </button>
           ))}
         </div>
@@ -142,7 +142,7 @@ export default function IntrospectionStage() {
             onChange={(e) => setNote(e.target.value)}
             rows={3}
             placeholder="Hal yang ingin kamu ingat, pertanyaan yang masih ada, atau perasaanmu..."
-            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-xl leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
+            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-base md:text-lg leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
           />
         </div>
       </div>
@@ -153,7 +153,7 @@ export default function IntrospectionStage() {
           <h3 className="text-xl font-black text-neutral-700">💬 Kesimpulanmu</h3>
         </div>
         <div className="px-5 py-4 flex flex-col gap-3">
-          <p className="text-xl text-neutral-500 leading-relaxed">
+          <p className="text-base md:text-lg text-neutral-500 leading-relaxed">
             Dengan kata-katamu sendiri, apa pelajaran terpenting yang kamu dapat dari {comic.lokasi}?
           </p>
           <textarea
@@ -161,7 +161,7 @@ export default function IntrospectionStage() {
             onChange={(e) => setSummary(e.target.value)}
             rows={4}
             placeholder="Tuliskan kesimpulanmu di sini..."
-            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-xl leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
+            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-base md:text-lg leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
           />
           <p className="text-base text-neutral-400 text-right">{summary.trim().length} karakter</p>
         </div>
@@ -172,7 +172,7 @@ export default function IntrospectionStage() {
         type="button"
         onClick={() => { void nextStage(); }}
         disabled={!canFinish}
-        className="flex w-full items-center justify-center gap-3 min-h-[72px] rounded-2xl bg-primary-600 px-5 py-4 text-2xl font-black text-white shadow-md hover:bg-primary-700 transition-all active:scale-[0.97] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="flex w-full items-center justify-center gap-3 min-h-[72px] rounded-2xl bg-primary-600 px-5 py-4 text-lg md:text-xl font-black text-white shadow-md hover:bg-primary-700 transition-all active:scale-[0.97] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
       >
         {canFinish ? (
           <>

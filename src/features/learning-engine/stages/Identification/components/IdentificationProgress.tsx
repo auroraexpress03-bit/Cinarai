@@ -18,10 +18,10 @@ export default function IdentificationProgress({
         ? 'bg-accent-50 border-2 border-accent-300'
         : 'bg-white border-2 border-neutral-100 shadow-sm',
     ].join(' ')}>
-      <span className="text-4xl flex-shrink-0">{isComplete ? '🎉' : '📊'}</span>
+      <span className="text-2xl md:text-4xl flex-shrink-0">{isComplete ? '🎉' : '📊'}</span>
       <div className="flex-1 min-w-0">
         <p className={[
-          'text-xl font-black leading-tight',
+          'text-lg md:text-xl font-black leading-tight',
           isComplete ? 'text-accent-700' : 'text-neutral-800',
         ].join(' ')}>
           {isComplete ? 'Semua soal selesai!' : `Soal ${observedCount} dari ${totalCount} selesai`}
@@ -44,7 +44,7 @@ export default function IdentificationProgress({
         </div>
       </div>
       <span className={[
-        'text-2xl font-black flex-shrink-0',
+        'text-lg md:text-2xl font-black flex-shrink-0',
         isComplete ? 'text-accent-600' : 'text-primary-600',
       ].join(' ')}>
         {observedCount}/{totalCount}

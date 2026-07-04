@@ -53,8 +53,8 @@ export default function CoverStage() {
                 ⏱ {estimasiLabel}
               </span>
             </div>
-            <h2 className="text-2xl lg:text-3xl font-black text-neutral-950 leading-snug">{comic.title}</h2>
-            <p className="mt-2 text-xl text-neutral-500 leading-relaxed">{comic.subtitle}</p>
+            <h2 className="text-lg md:text-2xl lg:text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h2>
+            <p className="mt-2 text-base md:text-lg text-neutral-500 leading-relaxed">{comic.subtitle}</p>
           </div>
 
           {/* Target Pembelajaran */}
@@ -68,7 +68,7 @@ export default function CoverStage() {
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white mt-0.5">
                     {i + 1}
                   </span>
-                  <p className="text-xl text-neutral-700 leading-relaxed pt-1">{target}</p>
+                  <p className="text-base md:text-lg text-neutral-700 leading-relaxed pt-1">{target}</p>
                 </li>
               ))}
             </ul>

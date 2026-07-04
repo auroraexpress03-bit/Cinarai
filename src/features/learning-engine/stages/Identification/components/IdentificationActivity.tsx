@@ -17,12 +17,12 @@ export default function IdentificationActivity() {
 
       {isComplete && (
         <div className="rounded-2xl bg-accent-500 px-5 py-5 flex items-center gap-4 mt-1">
-          <span className="text-4xl flex-shrink-0">🎉</span>
+          <span className="text-2xl md:text-4xl flex-shrink-0">🎉</span>
           <div className="min-w-0">
-            <p className="text-2xl font-black text-white leading-tight">
+            <p className="text-xl md:text-2xl font-black text-white leading-tight">
               Hebat! Semua soal selesai!
             </p>
-            <p className="text-lg text-accent-100 mt-1 leading-snug">
+            <p className="text-base md:text-lg text-accent-100 mt-1 leading-snug">
               Kamu berhasil di {lokasi}. Tekan Berikutnya!
             </p>
           </div>

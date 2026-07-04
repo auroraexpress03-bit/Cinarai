@@ -30,9 +30,9 @@ export default function StageHero({ cover, title, emoji, stageName, lokasi }: St
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
         {/* Teks di atas overlay */}
         <div className="absolute inset-0 flex flex-col items-center justify-end px-5 pb-5 text-center">
-          <span className="text-4xl mb-2 drop-shadow-lg">{emoji}</span>
-          <h2 className="text-xl font-black text-white leading-snug drop-shadow-md">{stageName}</h2>
-          <p className="mt-1 text-sm text-white/80 leading-snug">{lokasi}</p>
+          <span className="text-3xl md:text-4xl mb-2 drop-shadow-lg">{emoji}</span>
+          <h2 className="text-lg md:text-xl font-black text-white leading-snug drop-shadow-md">{stageName}</h2>
+          <p className="mt-1 text-xs md:text-sm text-white/80 leading-snug">{lokasi}</p>
         </div>
       </div>
     </div>

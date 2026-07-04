@@ -75,7 +75,7 @@ export default function LearningBreadcrumb() {
               aria-current={isCurrent ? 'step' : undefined}
               style={{ scrollSnapAlign: 'start', flexShrink: 0 }}
               className={[
-                'flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors whitespace-nowrap',
+                'flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap',
                 isCurrent
                   ? 'bg-primary-600 text-white shadow-sm'
                   : isCompleted
@@ -83,7 +83,7 @@ export default function LearningBreadcrumb() {
                     : 'bg-neutral-100 text-neutral-400 cursor-not-allowed',
               ].join(' ')}
             >
-              <span className="text-[12px] leading-none">{STAGE_EMOJI[stage]}</span>
+              <span className="text-xs leading-none">{STAGE_EMOJI[stage]}</span>
               {STAGE_LABELS[stage]}
             </button>
           );

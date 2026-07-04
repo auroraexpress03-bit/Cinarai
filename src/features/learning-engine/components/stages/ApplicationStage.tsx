@@ -26,9 +26,9 @@ export default function ApplicationStage() {
 
       {/* Hero card */}
       <div className="rounded-2xl bg-white shadow-sm px-5 py-8 text-center">
-        <div className="text-8xl mb-5">🎯</div>
-        <h2 className="text-3xl font-black text-neutral-900 leading-snug">Penerapan Konsep</h2>
-        <p className="mt-3 text-xl text-neutral-500 leading-relaxed">
+        <div className="text-xl md:text-8xl mb-5">🎯</div>
+        <h2 className="text-xl md:text-3xl font-black text-neutral-900 leading-snug">Penerapan Konsep</h2>
+        <p className="mt-3 text-base md:text-xl text-neutral-500 leading-relaxed">
           Terapkan ilmu dari{' '}
           <span className="font-black text-primary-600">{comic.lokasi}</span> pada situasi baru!
         </p>
@@ -44,8 +44,8 @@ export default function ApplicationStage() {
             📚 Kelas {comic.kelas}
           </span>
         </div>
-        <h3 className="text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
-        <p className="mt-2 text-xl text-neutral-500 leading-relaxed">
+        <h3 className="text-xl md:text-2xl font-black text-neutral-950 leading-snug">{comic.title}</h3>
+        <p className="mt-2 text-base md:text-xl text-neutral-500 leading-relaxed">
           Terapkan ilmu dari {comic.lokasi} pada situasi baru.
         </p>
       </div>
@@ -64,7 +64,7 @@ export default function ApplicationStage() {
             {/* Situasi */}
             <div className="rounded-2xl bg-primary-50 p-4">
               <p className="text-sm font-black uppercase tracking-widest text-primary-400 mb-2">Situasi Baru</p>
-              <p className="text-xl text-neutral-700 leading-relaxed">
+              <p className="text-base md:text-xl text-neutral-700 leading-relaxed">
                 Bayangkan kamu berada di tempat lain yang berbeda dari {comic.lokasi}. Bagaimana kamu
                 menerapkan konsep{' '}
                 <span className="font-black text-neutral-900">{target.toLowerCase()}</span>{' '}
@@ -78,9 +78,9 @@ export default function ApplicationStage() {
               onChange={(e) => handleAnswer(i, e.target.value)}
               rows={4}
               placeholder="Tuliskan penerapan konsepmu di sini..."
-              className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-xl leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
+              className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-base md:text-lg leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
             />
-            <p className="text-base text-neutral-400 text-right">{(answers[i] ?? '').trim().length} karakter</p>
+            <p className="text-sm md:text-base text-neutral-400 text-right">{(answers[i] ?? '').trim().length} karakter</p>
           </div>
         </div>
       ))}
@@ -99,7 +99,7 @@ export default function ApplicationStage() {
             onChange={(e) => setNote(e.target.value)}
             rows={3}
             placeholder="Hal menarik, pertanyaan, atau hal yang ingin kamu ingat..."
-            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-xl leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
+            className="w-full resize-none rounded-2xl border-2 border-neutral-200 bg-neutral-50 px-5 py-4 text-base md:text-xl leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-colors"
           />
         </div>
       </div>

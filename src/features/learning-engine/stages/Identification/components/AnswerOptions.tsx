@@ -50,7 +50,7 @@ export default function AnswerOptions({
                 {isSelected && <span className="h-3 w-3 rounded-full bg-white" />}
               </span>
               <span className={[
-                'flex-1 text-xl font-bold leading-snug',
+                'flex-1 text-base md:text-lg font-bold leading-snug',
                 isSaved && isSelected ? 'text-accent-800' : isSaved ? 'text-neutral-400' : isSelected ? 'text-primary-800' : 'text-neutral-700',
               ].join(' ')}>
                 {option.text}

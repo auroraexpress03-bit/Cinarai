@@ -47,9 +47,9 @@ export default function ContextualizationStage() {
         {/* PDF reader fills remaining space */}
         {!comic.pdfPath ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-6">
-            <span className="text-6xl">📄</span>
-            <p className="text-2xl font-black text-neutral-700">PDF belum tersedia</p>
-            <p className="text-xl text-neutral-400">Komik ini belum memiliki file PDF.</p>
+            <span className="text-2xl md:text-6xl">📄</span>
+            <p className="text-lg md:text-xl font-black text-neutral-700">PDF belum tersedia</p>
+            <p className="text-base md:text-lg text-neutral-400">Komik ini belum memiliki file PDF.</p>
           </div>
         ) : (
           <div className="flex-1 min-h-0 min-w-0">
