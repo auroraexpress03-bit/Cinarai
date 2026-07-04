@@ -69,12 +69,19 @@ export default function IntrospectionStage() {
         <ul className="px-4 py-4 flex flex-col gap-3">
           {comic.learningTargets.map((target, i) => (
             <li key={i}>
-              <label className="flex items-start gap-4 rounded-2xl p-4 cursor-pointer hover:bg-neutral-50 transition-colors">
-                {/* Modern checkbox */}
+              <label className="flex items-start gap-4 rounded-2xl p-4 cursor-pointer hover:bg-neutral-50 transition-colors select-none">
+                {/* Hidden native checkbox — handles all a11y & Android tap correctly */}
+                <input
+                  type="checkbox"
+                  checked={checked[i] ?? false}
+                  onChange={(e) => handleCheck(i, e.target.checked)}
+                  className="sr-only"
+                />
+                {/* Custom visual checkbox */}
                 <span
-                  onClick={() => handleCheck(i, !(checked[i] ?? false))}
+                  aria-hidden="true"
                   className={[
-                    'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border-[3px] transition-colors cursor-pointer mt-0.5',
+                    'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border-[3px] transition-colors mt-0.5',
                     checked[i]
                       ? 'border-primary-600 bg-primary-600'
                       : 'border-neutral-300 bg-white',

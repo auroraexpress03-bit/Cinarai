@@ -62,7 +62,7 @@ export default function LearningContent({ children }: LearningContentProps) {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      <div className="mx-auto max-w-2xl px-3 py-3 sm:px-6 sm:py-5 animate-fade-in">
+      <div className="mx-auto max-w-2xl px-3 pt-3 pb-8 sm:px-6 sm:pt-5 sm:pb-10 animate-fade-in">
         {children}
       </div>
     </main>
