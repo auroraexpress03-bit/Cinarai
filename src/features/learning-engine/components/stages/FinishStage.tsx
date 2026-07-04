@@ -53,7 +53,7 @@ export default function FinishStage() {
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 px-5 pt-12 pb-20 md:pt-16 md:pb-24 text-center">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -left-6 bottom-4 h-28 w-28 rounded-full bg-secondary-400/20" />
-        <div className="relative">
+        <div className="relative mx-auto max-w-2xl">
           <div className="inline-flex h-24 w-24 md:h-28 md:w-28 items-center justify-center rounded-full bg-white/20 text-5xl md:text-6xl shadow-lg ring-4 ring-white/30 mb-4">
             🏆
           </div>
@@ -66,7 +66,7 @@ export default function FinishStage() {
       </div>
 
       {/* Content */}
-      <div className="relative -mt-12 mx-auto w-full max-w-lg md:max-w-2xl lg:max-w-4xl px-4 md:px-6 flex flex-col gap-4">
+      <div className="relative -mt-12 mx-auto w-full max-w-2xl lg:max-w-3xl px-4 md:px-6 flex flex-col gap-4">
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 md:gap-4">

@@ -11,7 +11,7 @@ export default function LearningHeader() {
       className="bg-white border-b border-neutral-100 shadow-sm"
       style={{ paddingTop: 'max(0px, env(safe-area-inset-top))' }}
     >
-      <div className="mx-auto w-full max-w-[1400px] flex items-center gap-3 px-3 py-2.5 md:px-6 md:py-3 lg:px-8">
+      <div className="mx-auto w-full max-w-[1400px] flex items-center gap-3 px-3 py-2.5 md:px-6 md:py-3 lg:px-8 overflow-hidden">
         <Link
           href="/dashboard"
           aria-label="Kembali ke dashboard"

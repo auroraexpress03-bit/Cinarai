@@ -18,7 +18,7 @@ export default function CoverStage() {
     : `${minutes} menit`;
 
   return (
-    <div className="flex flex-col gap-4 animate-fade-in-up">
+    <div className="flex flex-col gap-4 animate-fade-in-up overflow-x-hidden">
 
       {/* ── Mobile/tablet: stacked. Desktop: side-by-side ── */}
       <div className="lg:grid lg:grid-cols-[320px_1fr] lg:gap-6 xl:grid-cols-[360px_1fr]">

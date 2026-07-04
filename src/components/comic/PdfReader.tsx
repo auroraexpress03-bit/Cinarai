@@ -59,18 +59,24 @@ export default function PdfReader({
   }, []);
 
   // ── Measure viewport + detect desktop breakpoint ───────────────────────────
+  // viewportWidth/Height = PDF column dimensions (for fit calculation).
+  // isDesktop = window.innerWidth >= 1024 (true breakpoint, not column width).
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
-      const w = entry.contentRect.width;
-      const h = entry.contentRect.height;
-      setViewportWidth(w);
-      setViewportHeight(h);
-      setIsDesktop(w >= 1024);
+      setViewportWidth(entry.contentRect.width);
+      setViewportHeight(entry.contentRect.height);
+      setIsDesktop(window.innerWidth >= 1024);
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    // Also update on window resize (handles orientation change)
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', onResize);
+    };
   }, []);
 
   // Reset aspect ratio on page change

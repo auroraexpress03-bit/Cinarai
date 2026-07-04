@@ -56,13 +56,17 @@ export default function LearningContent({ children }: LearningContentProps) {
   return (
     <main
       ref={mainRef}
-      className="flex-1 overflow-y-auto bg-[#f0f7ff]"
+      className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f0f7ff]"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Mobile/tablet: centered narrow column. Desktop: fills sidebar's right column. */}
-      <div className="mx-auto w-full max-w-2xl md:max-w-3xl lg:max-w-none px-3 pt-3 pb-8 md:px-6 md:pt-5 md:pb-10 lg:px-8 lg:pt-6 lg:pb-12 animate-fade-in">
+      {/*
+        Mobile/tablet : centered, max-w-2xl / max-w-3xl
+        Desktop       : still centered but capped at max-w-3xl so lines
+                        never stretch across a 1600px+ right column.
+      */}
+      <div className="mx-auto w-full max-w-2xl md:max-w-3xl px-3 pt-3 pb-8 md:px-6 md:pt-5 md:pb-10 lg:px-8 lg:pt-6 lg:pb-12 animate-fade-in">
         {children}
       </div>
     </main>

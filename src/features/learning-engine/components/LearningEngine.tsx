@@ -71,7 +71,7 @@ export function LearningPageSkeleton() {
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 min-h-0 mx-auto w-full max-w-[1400px]">
+      <div className="flex flex-1 min-h-0 w-full overflow-hidden mx-auto max-w-[1400px]">
         {/* Sidebar skeleton — desktop only */}
         <div className="hidden lg:flex flex-shrink-0 w-64 xl:w-72 flex-col border-r border-neutral-200 bg-white px-4 py-4 gap-3">
           <div className="h-3 w-20 rounded-full skeleton" />

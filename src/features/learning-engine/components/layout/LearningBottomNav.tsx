@@ -27,12 +27,12 @@ export default function LearningBottomNav() {
       style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom))' }}
     >
       {showValidationMessage && (
-        <p className="text-center text-sm md:text-base text-warning-700 font-bold bg-warning-50 border border-warning-200 rounded-xl px-3 py-2.5 mb-2 mx-auto max-w-2xl md:max-w-3xl lg:max-w-none">
+        <p className="text-center text-sm md:text-base text-warning-700 font-bold bg-warning-50 border border-warning-200 rounded-xl px-3 py-2.5 mb-2 mx-auto w-full max-w-2xl md:max-w-3xl">
           ⚠️ Selesaikan semua bagian terlebih dahulu
         </p>
       )}
 
-      <div className="flex items-center gap-2 mx-auto max-w-2xl md:max-w-3xl lg:max-w-none">
+      <div className="flex items-center gap-2 mx-auto w-full max-w-2xl md:max-w-3xl">
         {/* Previous */}
         <button
           onClick={previousStage}
