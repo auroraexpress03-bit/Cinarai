@@ -126,6 +126,11 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   const currentStage = ALL_STAGES[stageIndex] ?? Stage.Cover;
   const totalStages = ALL_STAGES.length;
 
+  useEffect(() => {
+    if (isLoading) return;
+    console.log('[UI RE-RENDER] currentStage:', currentStage, 'stageIndex:', stageIndex);
+  }, [currentStage, stageIndex, isLoading]);
+
   const completedStages: Sintaks[] = useMemo(
     () => progress.sintaksList.filter((s) => s.status === 'COMPLETED').map((s) => s.sintaks),
     [progress.sintaksList]
@@ -139,13 +144,12 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   const completeAndAdvance = useCallback(async (sintaks: Sintaks) => {
     if (isSavingRef.current) return;
 
-    // Find the stage enum for this sintaks string
-    const currentStageEnum = Stage[sintaks as keyof typeof Stage] ?? Stage.Contextualization;
+    const currentStageEnum = sintaksToStage(sintaks);
     const currentIdx = ALL_STAGES.indexOf(currentStageEnum);
     const nextStageEnum = ALL_STAGES[currentIdx + 1] ?? Stage.Identification;
 
-    console.log('[CURRENT STAGE]', sintaks);
-    console.log('[NEXT STAGE]', nextStageEnum);
+    console.log('[currentStage before update]', currentStageEnum);
+    console.log('[nextStage target]', nextStageEnum);
 
     if (!user?.uid) {
       console.error('[SAVE FAILED] CURRENT UID: null — login diperlukan');
@@ -155,11 +159,13 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
 
     isSavingRef.current = true;
     setIsSaving(true);
+    let next: ComicProgressState | null = null;
     try {
       console.log('[START SAVE] uid:', user.uid, '| sintaks:', sintaks);
-      const next = await persistCompleteStage(user.uid, progressRef.current, sintaks);
+      next = await persistCompleteStage(user.uid, progressRef.current, sintaks);
+      progressRef.current = next;
       setProgress(next);
-      console.log('[SAVE SUCCESS] uid:', user.uid, '| sintaks:', sintaks, '| nextStage:', nextStageEnum);
+      console.log('[Firestore write success] uid:', user.uid, '| sintaks:', sintaks, '| nextStage:', nextStageEnum);
       showSnackbar('Progress berhasil disimpan ✓', 'success');
     } catch (error) {
       const code = extractFirebaseErrorCode(error);
@@ -173,9 +179,17 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       setIsSaving(false);
     }
 
-    // Firestore berhasil — baru advance ke stage berikutnya
-    const nextIdx = ALL_STAGES.indexOf(nextStageEnum);
-    if (nextIdx !== -1) setStageIndex(nextIdx);
+    if (next) {
+      const nextCurrentSintaks = next.sintaksList.find((item) => item.status === 'CURRENT')?.sintaks;
+      const nextStageFromProgress = nextCurrentSintaks ? sintaksToStage(nextCurrentSintaks) : nextStageEnum;
+      console.log('[currentStage after update]', nextStageFromProgress);
+      const nextIdx = ALL_STAGES.indexOf(nextStageFromProgress);
+      if (nextIdx !== -1) {
+        setStageIndex(nextIdx);
+      } else {
+        console.warn('[Stage update skipped] nextStage not found', nextStageFromProgress);
+      }
+    }
   }, [user, showSnackbar]);
 
   /** Complete current stage in Firestore then advance to next stage. */
