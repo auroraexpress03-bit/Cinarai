@@ -1,202 +1,200 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
 import type { ComicAssetEntry } from '@/services/comic-assets/types';
 
-const progressSteps = [
-  { label: 'Contextualization', status: '✓' },
-  { label: 'Identification', status: '✓' },
-  { label: 'Navigation', status: 'ACTIVE' },
-  { label: 'Argumentation', status: 'LOCK' },
-  { label: 'Resolution', status: 'LOCK' },
-  { label: 'Application', status: 'LOCK' },
-  { label: 'Introspection', status: 'LOCK' },
-];
+// ── Accordion ──────────────────────────────────────────────────────────────────
 
-const CATEGORY_ICON: Record<string, string> = {
-  model3D: '🧊',
-  video: '🎬',
-  quiz: '📝',
-  website: '🌐',
-};
+interface AccordionItemProps {
+  icon: string;
+  label: string;
+  count?: number;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}
 
-function AssetButton({ entry }: { entry: ComicAssetEntry }) {
+function AccordionItem({ icon, label, count, defaultOpen = false, children }: AccordionItemProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
   return (
-    <div className="flex flex-col rounded-[20px] border border-neutral-200 bg-white p-4 shadow-sm">
-      <p className="text-sm font-semibold text-neutral-700">Halaman {entry.page}</p>
-      <div className="mt-auto pt-3">
-        <button
-          type="button"
-          disabled
-          className="w-full rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 disabled:cursor-not-allowed disabled:opacity-70"
+    <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+      {/* Touch target min 48px — py-3 + text-base = ~48px */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-h-[52px] w-full min-w-0 items-center gap-3 px-4 py-3 text-left touch-manipulation active:bg-neutral-50"
+        aria-expanded={open}
+      >
+        <span className="text-2xl leading-none">{icon}</span>
+        <span className="flex-1 text-base font-black text-neutral-900">{label}</span>
+        {count !== undefined && (
+          <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-bold text-primary-700">
+            {count}
+          </span>
+        )}
+        <svg
+          className={`h-5 w-5 flex-shrink-0 text-neutral-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
         >
-          {entry.buttonLabel}
-        </button>
-      </div>
-      <span className="mt-2 inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-sm font-bold text-warning-700">
-        Coming Soon
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="border-t border-neutral-100 px-4 pb-4 pt-4">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Asset row ──────────────────────────────────────────────────────────────────
+
+function AssetRow({ entry }: { entry: ComicAssetEntry }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2 rounded-2xl border border-neutral-100 bg-neutral-50 px-4 py-4">
+      {/* text-base = 16px minimum */}
+      <span className="text-base font-semibold text-neutral-500">Halaman {entry.page}</span>
+      <button
+        type="button"
+        disabled
+        className="flex min-h-[48px] w-full min-w-0 items-center justify-center rounded-2xl border border-primary-200 bg-primary-50 px-4 text-base font-semibold text-primary-700 touch-manipulation disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {entry.buttonLabel}
+      </button>
+      <span className="inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-base font-bold text-warning-700">
+        Segera Hadir
       </span>
     </div>
   );
 }
 
-function AssetSection({ label, icon, entries }: { label: string; icon: string; entries: ComicAssetEntry[] }) {
-  if (entries.length === 0) return null;
-  return (
-    <div className="rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="mb-3 flex items-center gap-2">
-        <span className="text-2xl">{icon}</span>
-        <h3 className="text-lg font-black text-neutral-900">{label}</h3>
-        <span className="ml-auto rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-bold text-primary-700">
-          {entries.length}
-        </span>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {entries.map((entry) => (
-          <AssetButton key={`${entry.page}-${entry.url}`} entry={entry} />
-        ))}
-      </div>
-    </div>
-  );
-}
+// ── Main ───────────────────────────────────────────────────────────────────────
 
 export default function NavigationStage() {
   const { comic, setCanAdvance } = useLearningEngine();
   const metadata = useComicMetadata(comic.id);
   const { model3D, video, quiz, website } = metadata.assets;
-  const hasAnyAsset = model3D.length > 0 || video.length > 0 || quiz.length > 0 || website.length > 0;
+  const isEmpty = model3D.length === 0 && video.length === 0 && quiz.length === 0 && website.length === 0;
 
   useEffect(() => {
     setCanAdvance(true);
   }, [setCanAdvance]);
 
   return (
-    <div className="flex flex-col gap-4 animate-fade-in-up">
-      <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            className="flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-600 shadow-sm sm:px-5 sm:py-3.5 sm:text-base"
-          >
-            Kembali
-          </button>
-          <button
-            type="button"
-            className="flex-1 rounded-2xl bg-primary-600 px-4 py-3 text-sm font-black text-white shadow-sm sm:px-5 sm:py-3.5 sm:text-base"
-          >
-            Lanjut
-          </button>
-        </div>
+    <div className="flex min-w-0 flex-col gap-3 overflow-x-hidden px-1 py-1 animate-fade-in-up sm:gap-4 sm:px-2">
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {progressSteps.map((step) => {
-            const isActive = step.status === 'ACTIVE';
-            const isDone = step.status === '✓';
-            const isLocked = step.status === 'LOCK';
-
-            return (
-              <div
-                key={step.label}
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold ${
-                  isActive
-                    ? 'bg-primary-600 text-white'
-                    : isDone
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-neutral-100 text-neutral-500'
-                }`}
-              >
-                <span className="text-xs">
-                  {isActive ? '●' : isDone ? '✓' : isLocked ? '🔒' : '•'}
-                </span>
-                <span>{step.label}</span>
-                <span className="text-xs font-bold uppercase tracking-wide">
-                  {step.status}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="rounded-[24px] bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-5 shadow-sm sm:p-6">
-        <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-600 text-2xl text-white shadow-sm">
+      {/* Hero */}
+      <div className="rounded-2xl bg-gradient-to-br from-primary-50 via-white to-secondary-50 px-4 py-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-2xl text-white shadow-sm">
             🧭
           </div>
-          <div>
-            <h2 className="text-xl font-black text-neutral-900 sm:text-2xl">Navigasi Bangun Ruang</h2>
-            <p className="mt-1 text-sm leading-relaxed text-neutral-600 sm:text-base">
-              Jelajahi <span className="font-black text-primary-700">{comic.lokasi}</span> melalui pengalaman interaktif yang masih dalam tahap UI placeholder.
-            </p>
+          <div className="min-w-0">
+            <h2 className="text-lg font-black text-neutral-900">Navigasi Interaktif</h2>
+            {/* truncate mencegah overflow panjang nama lokasi */}
+            <p className="truncate text-base text-neutral-500">{comic.lokasi}</p>
           </div>
         </div>
       </div>
 
-      {hasAnyAsset ? (
-        <div className="flex flex-col gap-4">
-          <AssetSection label="Model 3D" icon={CATEGORY_ICON.model3D} entries={model3D} />
-          <AssetSection label="Video" icon={CATEGORY_ICON.video} entries={video} />
-          <AssetSection label="Kuis" icon={CATEGORY_ICON.quiz} entries={quiz} />
-          <AssetSection label="Website" icon={CATEGORY_ICON.website} entries={website} />
-        </div>
-      ) : (
-        <div className="rounded-[24px] border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500 shadow-sm">
+      {/* Accordion — Model 3D */}
+      {model3D.length > 0 && (
+        <AccordionItem icon="🧊" label="Model 3D" count={model3D.length} defaultOpen>
+          <div className="flex flex-col gap-3">
+            {model3D.map((entry) => (
+              <AssetRow key={`${entry.page}-${entry.url}`} entry={entry} />
+            ))}
+          </div>
+        </AccordionItem>
+      )}
+
+      {/* Accordion — Video */}
+      {video.length > 0 && (
+        <AccordionItem icon="🎬" label="Video" count={video.length}>
+          <div className="flex flex-col gap-3">
+            {video.map((entry) => (
+              <AssetRow key={`${entry.page}-${entry.url}`} entry={entry} />
+            ))}
+          </div>
+        </AccordionItem>
+      )}
+
+      {/* Accordion — Kuis */}
+      {quiz.length > 0 && (
+        <AccordionItem icon="📝" label="Kuis" count={quiz.length}>
+          <div className="flex flex-col gap-3">
+            {quiz.map((entry) => (
+              <AssetRow key={`${entry.page}-${entry.url}`} entry={entry} />
+            ))}
+          </div>
+        </AccordionItem>
+      )}
+
+      {/* Accordion — Website */}
+      {website.length > 0 && (
+        <AccordionItem icon="🌐" label="Website" count={website.length}>
+          <div className="flex flex-col gap-3">
+            {website.map((entry) => (
+              <AssetRow key={`${entry.page}-${entry.url}`} entry={entry} />
+            ))}
+          </div>
+        </AccordionItem>
+      )}
+
+      {/* Empty state */}
+      {isEmpty && (
+        <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-6 text-center text-base text-neutral-500 shadow-sm">
           Belum ada aset interaktif untuk komik ini.
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex min-h-[200px] flex-col rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-black text-neutral-900">QR Model</h3>
-            <span className="text-2xl">📱</span>
-          </div>
-          <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-            Gunakan QR untuk membuka model 3D pada perangkat lain.
-          </p>
-          <div className="mt-auto pt-4">
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-500 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              📥 Tampilkan QR
-            </button>
-          </div>
-          <span className="mt-3 inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-sm font-bold text-warning-700">
-            Coming Soon
-          </span>
-        </div>
+      {/* Accordion — QR Model */}
+      <AccordionItem icon="📱" label="QR Model">
+        <p className="mb-4 text-base leading-relaxed text-neutral-600">
+          Gunakan QR untuk membuka model 3D pada perangkat lain.
+        </p>
+        <button
+          type="button"
+          disabled
+          className="flex min-h-[48px] w-full min-w-0 items-center justify-center rounded-2xl border border-primary-200 bg-primary-50 px-4 text-base font-semibold text-primary-700 touch-manipulation disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          📥 Tampilkan QR
+        </button>
+        <span className="mt-3 inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-base font-bold text-warning-700">
+          Segera Hadir
+        </span>
+      </AccordionItem>
 
-        <div className="flex min-h-[200px] flex-col rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-black text-neutral-900">AI Assistant</h3>
-            <span className="text-2xl">🤖</span>
-          </div>
-          <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-            Tanyakan apa saja mengenai bangun ruang.
-          </p>
-          <textarea
-            disabled
-            placeholder="Tulis pertanyaanmu..."
-            className="mt-4 min-h-[80px] w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-500 outline-none"
-          />
-          <div className="mt-3">
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-2xl bg-neutral-300 px-4 py-3 text-sm font-semibold text-neutral-600 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              Kirim
-            </button>
-          </div>
-          <span className="mt-3 inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-sm font-bold text-warning-700">
-            Coming Soon
-          </span>
-        </div>
-      </div>
+      {/* Accordion — AI Assistant */}
+      <AccordionItem icon="🤖" label="AI Assistant">
+        <p className="mb-4 text-base leading-relaxed text-neutral-600">
+          Tanyakan apa saja mengenai materi komik ini.
+        </p>
+        {/* font-size 16px mencegah auto-zoom pada iOS/Android */}
+        <textarea
+          disabled
+          placeholder="Tulis pertanyaanmu..."
+          className="min-h-[88px] w-full min-w-0 resize-none rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-base text-neutral-500 outline-none"
+        />
+        <button
+          type="button"
+          disabled
+          className="mt-3 flex min-h-[48px] w-full min-w-0 items-center justify-center rounded-2xl border border-primary-200 bg-primary-50 px-4 text-base font-semibold text-primary-700 touch-manipulation disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Kirim
+        </button>
+        <span className="mt-3 inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-base font-bold text-warning-700">
+          Segera Hadir
+        </span>
+      </AccordionItem>
+
     </div>
   );
 }

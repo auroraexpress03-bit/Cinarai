@@ -7,6 +7,8 @@ import "react-pdf/dist/Page/TextLayer.css";
 
 const SWIPE_THRESHOLD = 50;
 const SWIPE_VERTICAL_LIMIT = 80;
+const PDF_MAX_WIDTH = 900;
+const PDF_HORIZONTAL_MARGIN = 16;
 
 interface PdfReaderProps {
   pdfPath: string;
@@ -48,7 +50,12 @@ export default function PdfReader({
   const updateContainerWidth = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
-    setContainerWidth(Math.max(0, Math.floor(el.getBoundingClientRect().width)));
+
+    const rect = el.getBoundingClientRect();
+    const viewportWidth = Math.max(0, Math.floor(rect.width));
+    const nextWidth = Math.max(0, viewportWidth - PDF_HORIZONTAL_MARGIN);
+
+    setContainerWidth(nextWidth);
   }, []);
 
   useEffect(() => {
@@ -62,11 +69,16 @@ export default function PdfReader({
 
     updateContainerWidth();
 
+    const mediaQuery = window.matchMedia('(orientation: landscape)');
+    const handleOrientationChange = () => updateContainerWidth();
+
+    mediaQuery.addEventListener?.('change', handleOrientationChange);
     window.addEventListener("resize", updateContainerWidth);
     window.addEventListener("orientationchange", updateContainerWidth);
 
     return () => {
       ro.disconnect();
+      mediaQuery.removeEventListener?.('change', handleOrientationChange);
       window.removeEventListener("resize", updateContainerWidth);
       window.removeEventListener("orientationchange", updateContainerWidth);
     };
@@ -125,7 +137,9 @@ export default function PdfReader({
   const progressPct = numPages > 0 ? Math.round((page / numPages) * 100) : 0;
 
   // Fit-width: PDF fills the available container width while staying centered and responsive.
-  const pageWidth = containerWidth > 0 ? Math.min(containerWidth, 900) : undefined;
+  const availableWidth = Math.max(0, containerWidth - 8);
+  const pageWidth = availableWidth > 0 ? Math.min(availableWidth, PDF_MAX_WIDTH) : undefined;
+  const pageHeight = pageWidth ? Math.round(pageWidth * 1.414) : undefined;
 
   if (!workerReady) {
     return (
@@ -154,7 +168,7 @@ export default function PdfReader({
 
       {/* ── Progress bar + page indicator ──────────────────────────────────── */}
       <div className="flex-shrink-0 bg-neutral-800 px-3 py-2 flex items-center gap-3">
-        <span className="text-xs font-bold text-neutral-300 flex-shrink-0 tabular-nums">
+        <span className="text-sm font-bold text-neutral-300 flex-shrink-0 tabular-nums">
           {numPages > 0 ? `${page} / ${numPages}` : "…"}
         </span>
         <div className="flex-1 h-1.5 rounded-full bg-neutral-600 overflow-hidden">
@@ -168,28 +182,31 @@ export default function PdfReader({
       {/* ── PDF viewport ────────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-neutral-900 select-none"
+        className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden overscroll-none bg-neutral-900 select-none"
         style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="mx-auto flex w-full max-w-[900px] justify-center px-2 py-2 sm:px-3 sm:py-3">
-          <Document
-            file={pdfPath}
-            onLoadSuccess={onDocumentLoadSuccess}
-            loading={<PdfLoadingSpinner />}
-            error={<PdfErrorMessage />}
-          >
-            <Page
-              key={`page_${page}`}
-              pageNumber={page}
-              width={pageWidth}
-              loading={pageWidth ? <PageSkeleton width={pageWidth} /> : null}
-              renderAnnotationLayer={false}
-              renderTextLayer={false}
-            />
-          </Document>
+        <div className="mx-auto flex w-full max-w-[900px] min-w-0 justify-center px-2 py-2 sm:px-3 sm:py-3">
+          <div className="w-full max-w-full min-w-0 overflow-hidden rounded-none bg-neutral-900" style={{ maxWidth: pageWidth ? `${pageWidth}px` : '100%' }}>
+            <Document
+              file={pdfPath}
+              onLoadSuccess={onDocumentLoadSuccess}
+              loading={<PdfLoadingSpinner />}
+              error={<PdfErrorMessage />}
+            >
+              <Page
+                key={`page_${page}`}
+                pageNumber={page}
+                width={pageWidth}
+                height={pageHeight}
+                loading={pageWidth ? <PageSkeleton width={pageWidth} /> : null}
+                renderAnnotationLayer={false}
+                renderTextLayer={false}
+              />
+            </Document>
+          </div>
         </div>
       </div>
 
@@ -204,7 +221,7 @@ export default function PdfReader({
               onClick={() => goTo(page - 1)}
               disabled={isFirstPage}
               aria-label="Halaman sebelumnya"
-              className="flex items-center justify-center gap-1.5 min-h-[48px] flex-1 rounded-xl bg-neutral-700 text-neutral-200 font-black text-sm hover:bg-neutral-600 active:bg-neutral-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center justify-center gap-1.5 min-h-[48px] flex-1 rounded-xl bg-neutral-700 text-neutral-200 font-black text-base hover:bg-neutral-600 active:bg-neutral-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -215,7 +232,7 @@ export default function PdfReader({
               onClick={() => goTo(page + 1)}
               disabled={isLastPage}
               aria-label="Halaman berikutnya"
-              className="flex items-center justify-center gap-1.5 min-h-[48px] flex-1 rounded-xl bg-primary-600 text-white font-black text-sm hover:bg-primary-700 active:bg-primary-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm"
+              className="flex items-center justify-center gap-1.5 min-h-[48px] flex-1 rounded-xl bg-primary-600 text-white font-black text-base hover:bg-primary-700 active:bg-primary-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
               Selanjutnya
               <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

@@ -27,7 +27,7 @@ export default function LearningBottomNav() {
       style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom))' }}
     >
       {showValidationMessage && (
-        <p className="mx-auto mb-3 w-full max-w-2xl rounded-2xl border border-warning-200 bg-warning-50 px-4 py-3 text-center text-sm font-semibold text-warning-700 md:max-w-3xl md:text-base">
+        <p className="mx-auto mb-3 w-full max-w-2xl rounded-2xl border border-warning-200 bg-warning-50 px-4 py-3 text-center text-base font-semibold text-warning-700 md:max-w-3xl">
           ⚠️ Selesaikan semua bagian terlebih dahulu
         </p>
       )}
@@ -38,7 +38,7 @@ export default function LearningBottomNav() {
           onClick={previousStage}
           disabled={isFirst || isSaving}
           aria-label="Stage sebelumnya"
-          className="flex h-11 min-w-[112px] items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 md:h-12 md:min-w-[132px] md:text-base"
+          className="flex min-h-[48px] min-w-[112px] items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 text-base font-semibold text-neutral-600 transition-colors hover:bg-neutral-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -51,7 +51,7 @@ export default function LearningBottomNav() {
           onClick={() => { void nextStage(); }}
           disabled={nextDisabled}
           aria-label={isLastLearningStage ? 'Selesaikan pembelajaran' : 'Stage berikutnya'}
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary-600 px-4 text-sm font-black text-white shadow-sm transition-all hover:bg-primary-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-neutral-300 md:h-12 md:text-base"
+          className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-2xl bg-primary-600 px-4 text-base font-black text-white shadow-sm transition-all hover:bg-primary-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-neutral-300"
         >
           {isSaving ? (
             <>

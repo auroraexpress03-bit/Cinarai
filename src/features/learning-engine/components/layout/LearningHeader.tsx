@@ -37,7 +37,7 @@ export default function LearningHeader() {
         <Link
           href="/dashboard"
           aria-label="Kembali ke dashboard"
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-600 transition-colors hover:bg-neutral-200"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-600 transition-colors hover:bg-neutral-200"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -45,7 +45,7 @@ export default function LearningHeader() {
         </Link>
 
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-black leading-tight text-neutral-800 md:text-base lg:text-lg">
+          <h1 className="truncate text-base font-black leading-tight text-neutral-800 md:text-lg">
             {comic.title}
           </h1>
         </div>
@@ -55,7 +55,7 @@ export default function LearningHeader() {
             type="button"
             onClick={handleReset}
             disabled={isResetting}
-            className="flex h-10 items-center justify-center gap-1.5 rounded-2xl border border-warning-200 bg-warning-50 px-3 text-sm font-bold text-warning-700 transition-colors hover:bg-warning-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-2xl border border-warning-200 bg-warning-50 px-3 text-base font-bold text-warning-700 transition-colors hover:bg-warning-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isResetting ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-warning-300 border-t-warning-700" />
@@ -66,7 +66,7 @@ export default function LearningHeader() {
           </button>
 
           <div className="flex flex-col items-end gap-1.5">
-            <span className="text-[11px] font-semibold text-neutral-500 sm:text-xs">
+            <span className="text-xs font-semibold text-neutral-500">
               {stepNumber} / {visibleStages.length}
             </span>
             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-neutral-100 sm:w-20">
