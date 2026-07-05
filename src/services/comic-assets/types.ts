@@ -126,7 +126,9 @@ export interface ComicAssetEntry {
   page: number;
   title: string;
   buttonLabel: string;
+  provider?: string;
   url: string;
+  qrUrl?: string;
 }
 
 export interface ComicAssetGroup {

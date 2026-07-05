@@ -30,11 +30,25 @@ const ASSET_TITLES = {
 
 function toEntry(qr: ClassifiedQr): ComicAssetEntry | null {
   if (qr.category === 'UNKNOWN') return null;
+
+  const provider = qr.category === 'MODEL_3D' ? 'sketchfab' : qr.category === 'VIDEO' ? 'video' : qr.category === 'QUIZ' ? 'quiz' : 'website';
+  const qrUrl = qr.category === 'MODEL_3D'
+    ? qr.page === 5
+      ? '/qr/komik-1/page-5.png'
+      : qr.page === 13
+        ? '/qr/komik-1/page-13.png'
+        : qr.page === 16
+          ? '/qr/komik-1/page-16.png'
+          : undefined
+    : undefined;
+
   return {
     page: qr.page,
     title: ASSET_TITLES[qr.category],
     buttonLabel: BUTTON_LABELS[qr.category],
+    provider,
     url: qr.value,
+    qrUrl,
   };
 }
 
