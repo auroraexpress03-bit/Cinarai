@@ -2,6 +2,7 @@
 // Perbarui via: npm run seed
 // Data bersumber dari isi PDF masing-masing komik.
 
+import { buildComicAssetFromComic } from '@/lib/comicAsset';
 import type { Comic, ComicStage } from '@/types/comic';
 
 const BASE = '/comics';
@@ -47,6 +48,20 @@ export const COMICS: Comic[] = [
     ],
     estimatedMinutes: 30,
     pdfPath: `${BASE}/komik-1/comic.pdf`,
+    asset: {
+      ...buildComicAssetFromComic({
+        id: 1,
+        slug: 'komik-1',
+        title: 'Petualangan Bangun Ruang Candi Jawi',
+        pdfPath: `${BASE}/komik-1/comic.pdf`,
+        thumbnail: `${BASE}/komik-1/thumbnail.png`,
+      }),
+      qrMetadata: [],
+      stageMetadata: [
+        { stage: 'Contextualization', title: 'Membaca Komik' },
+        { stage: 'Navigation', title: 'Navigasi Cerita' },
+      ],
+    },
     cover: `${BASE}/komik-1/cover.png`,
     thumbnail: `${BASE}/komik-1/thumbnail.png`,
     stages: DEFAULT_STAGES,
@@ -90,6 +105,20 @@ export const COMICS: Comic[] = [
     ],
     estimatedMinutes: 30,
     pdfPath: `${BASE}/komik-2/comic.pdf`,
+    asset: {
+      ...buildComicAssetFromComic({
+        id: 2,
+        slug: 'komik-2',
+        title: 'Petualangan Simetri Candi Penataran',
+        pdfPath: `${BASE}/komik-2/comic.pdf`,
+        thumbnail: `${BASE}/komik-2/thumbnail.png`,
+      }),
+      qrMetadata: [],
+      stageMetadata: [
+        { stage: 'Contextualization', title: 'Membaca Komik' },
+        { stage: 'Navigation', title: 'Navigasi Cerita' },
+      ],
+    },
     cover: `${BASE}/komik-2/cover.png`,
     thumbnail: `${BASE}/komik-2/thumbnail.png`,
     stages: DEFAULT_STAGES,
@@ -139,6 +168,20 @@ export const COMICS: Comic[] = [
     ],
     estimatedMinutes: 25,
     pdfPath: `${BASE}/komik-3/comic.pdf`,
+    asset: {
+      ...buildComicAssetFromComic({
+        id: 3,
+        slug: 'komik-3',
+        title: 'Petualangan di Rumah Gajah Mungkur',
+        pdfPath: `${BASE}/komik-3/comic.pdf`,
+        thumbnail: `${BASE}/komik-3/thumbnail.png`,
+      }),
+      qrMetadata: [],
+      stageMetadata: [
+        { stage: 'Contextualization', title: 'Membaca Komik' },
+        { stage: 'Navigation', title: 'Navigasi Cerita' },
+      ],
+    },
     cover: `${BASE}/komik-3/cover.png`,
     thumbnail: `${BASE}/komik-3/thumbnail.png`,
     stages: DEFAULT_STAGES,

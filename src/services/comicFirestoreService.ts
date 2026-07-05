@@ -4,6 +4,7 @@ import {
   getFirestoreDocument,
   queryFirestoreCollection,
 } from '@/services/firestore';
+import { buildComicAssetFromComic } from '@/lib/comicAsset';
 import type { ComicDocument } from '@/types/firestore';
 import type { Comic } from '@/types/comic';
 
@@ -25,6 +26,20 @@ function toComic(doc: ComicDocument): Comic {
     learningTargets: doc.learningTargets,
     estimatedMinutes: doc.estimatedMinutes,
     pdfPath: doc.pdfUrl,
+    asset: {
+      ...buildComicAssetFromComic({
+        id: doc.comicId,
+        slug: doc.slug,
+        title: doc.title,
+        pdfPath: doc.pdfUrl,
+        thumbnail: doc.thumbnailUrl,
+      }),
+      qrMetadata: [],
+      stageMetadata: [
+        { stage: 'Contextualization', title: 'Membaca Komik' },
+        { stage: 'Navigation', title: 'Navigasi Cerita' },
+      ],
+    },
     cover: doc.coverUrl,
     thumbnail: doc.thumbnailUrl,
     stages: ['comic', 'quiz', 'ar', 'reflection'],

@@ -21,17 +21,6 @@ const BUTTON_LABELS = {
 
 // ── Core ──────────────────────────────────────────────────────────────────────
 
-const MODEL_QR_URLS: Record<number, string> = {
-  5: '/qr/komik-1/page-5.png',
-  13: '/qr/komik-1/page-13.png',
-  16: '/qr/komik-1/page-16.png',
-  17: '/qr/komik-1/page-17.png',
-  22: '/qr/komik-1/page-22.png',
-  23: '/qr/komik-1/page-23.png',
-  27: '/qr/komik-1/page-27.png',
-  28: '/qr/komik-1/page-28.png',
-};
-
 function toEntry(qr: ClassifiedQr): ComicAssetEntry | null {
   if (qr.category === 'UNKNOWN') return null;
 

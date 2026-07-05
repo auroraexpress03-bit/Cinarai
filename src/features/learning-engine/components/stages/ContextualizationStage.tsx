@@ -1,7 +1,8 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { buildComicAssetFromComic } from '@/lib/comicAsset';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import LearningHeader from '../layout/LearningHeader';
 import LearningStageNav from '../layout/LearningStageNav';
@@ -14,6 +15,8 @@ export default function ContextualizationStage() {
   const alreadyCompleted = progress.sintaksList.some(
     (s) => s.sintaks === 'Contextualization' && s.status === 'COMPLETED'
   );
+
+  const comicAsset = useMemo(() => comic.asset ?? buildComicAssetFromComic(comic), [comic]);
 
   useEffect(() => {
     setCanAdvance(alreadyCompleted);
@@ -52,6 +55,7 @@ export default function ContextualizationStage() {
         ) : (
           <div className="flex-1 min-h-0 min-w-0 bg-neutral-950">
             <PdfReader
+              asset={comicAsset}
               pdfPath={comic.pdfPath}
               onComplete={handlePdfComplete}
               showCompleteButton={!alreadyCompleted}

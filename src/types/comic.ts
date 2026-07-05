@@ -1,3 +1,5 @@
+import type { ComicAsset } from '@/lib/comicAsset';
+
 export type ComicAvailability = "ACTIVE" | "COMING_SOON";
 
 export type ComicStage = "comic" | "quiz" | "ar" | "reflection";
@@ -20,6 +22,7 @@ export interface Comic {
   learningTargets: string[];
   estimatedMinutes: number;
   pdfPath: string | null;
+  asset?: ComicAsset;
   cover: string;
   thumbnail: string;
   stages: ComicStage[];
