@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Document, pdfjs } from "react-pdf";
 import { usePdfSize } from "@/hooks/usePdfSize";
 import PdfError from "./PdfError";
@@ -11,6 +11,7 @@ import PdfToolbar from "./PdfToolbar";
 
 const SWIPE_THRESHOLD = 50;
 const SWIPE_VERTICAL_LIMIT = 80;
+const DESKTOP_MAX_PAGE_WIDTH = 900;
 
 interface PdfViewerProps {
   pdfPath: string;
@@ -35,22 +36,9 @@ export default function PdfViewer({
   const [page, setPage] = useState(1);
   const [workerReady, setWorkerReady] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [devicePixelRatio, setDevicePixelRatio] = useState(1);
 
-  /**
-   * containerRef is attached to the outermost constraint div — the element
-   * that sits OUTSIDE the card (no border, no horizontal padding).
-   *
-   * Why outside the card:
-   *   react-pdf's <Page> renders a div with `minWidth: min-content`.
-   *   If containerRef is inside the card, the Page div can inflate the card's
-   *   width before ResizeObserver fires, causing the measurement to reflect
-   *   the PDF's native width instead of the available viewport width.
-   *
-   *   By placing containerRef on an ancestor that has `overflow: hidden`,
-   *   the browser clips the Page div at the constraint boundary. The
-   *   getBoundingClientRect() / contentRect.width of this element is always
-   *   the true available width, unaffected by the canvas inside.
-   */
   const { containerRef, containerWidth } = usePdfSize<HTMLDivElement>();
 
   const touchStartX = useRef<number | null>(null);
@@ -69,6 +57,22 @@ export default function PdfViewer({
   useEffect(() => {
     if (numPages > 0) onPageChange?.(page, numPages);
   }, [numPages, onPageChange, page]);
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+      setDevicePixelRatio(window.devicePixelRatio || 1);
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    window.addEventListener("orientationchange", updateViewport);
+
+    return () => {
+      window.removeEventListener("resize", updateViewport);
+      window.removeEventListener("orientationchange", updateViewport);
+    };
+  }, []);
 
   const goTo = useCallback(
     (next: number) => setPage(Math.min(Math.max(1, next), numPages || 1)),
@@ -120,6 +124,19 @@ export default function PdfViewer({
     setRetryCount((prev) => prev + 1);
   }, []);
 
+  const pageWidth = useMemo(() => {
+    if (containerWidth <= 0) return 0;
+    return isDesktop ? Math.min(containerWidth, DESKTOP_MAX_PAGE_WIDTH) : containerWidth;
+  }, [containerWidth, isDesktop]);
+
+  const renderScale = useMemo(() => Math.max(1, Math.min(2, devicePixelRatio || 1)), [devicePixelRatio]);
+  const renderWidth = useMemo(() => {
+    if (!pageWidth) return 0;
+    return Math.max(1, Math.floor(pageWidth / renderScale));
+  }, [pageWidth, renderScale]);
+
+  const pageKey = useMemo(() => `${page}-${Math.round(pageWidth)}-${renderScale}`, [page, pageWidth, renderScale]);
+
   const isFirstPage = page <= 1;
   const isLastPage = numPages > 0 && page === numPages;
   const progressPct = numPages > 0 ? Math.round((page / numPages) * 100) : 0;
@@ -142,13 +159,6 @@ export default function PdfViewer({
         isLoading={!workerReady}
       />
 
-      {/*
-        ── Scroll container ────────────────────────────────────────────────────
-        overflow-y-auto  : vertical scroll for tall pages
-        overflow-x-hidden: belt-and-suspenders horizontal clip
-        py-3             : vertical breathing room only — no horizontal padding
-                           so containerRef measures the full available width
-      */}
       <div
         ref={containerRef}
         className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden bg-[#f5f7fa] px-1 py-3 sm:px-2 md:px-3"
@@ -168,12 +178,19 @@ export default function PdfViewer({
             <div className="my-3 w-full max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="flex justify-center overflow-hidden">
                 <div className="w-full max-w-full min-w-0 overflow-hidden">
-                  <PdfPage
-                    key={`${page}-${containerWidth}`}
-                    pageNumber={page}
-                    width={containerWidth}
-                    loading={containerWidth > 0 ? <PdfLoading variant="skeleton" /> : null}
-                  />
+                  {renderWidth > 0 ? (
+                    <div className="mx-auto w-full" style={{ maxWidth: pageWidth > 0 ? `${pageWidth}px` : "100%" }}>
+                      <PdfPage
+                        key={pageKey}
+                        pageNumber={page}
+                        width={renderWidth}
+                        scale={renderScale}
+                        loading={renderWidth > 0 ? <PdfLoading variant="skeleton" /> : null}
+                      />
+                    </div>
+                  ) : (
+                    <PdfLoading variant="skeleton" />
+                  )}
                 </div>
               </div>
             </div>
