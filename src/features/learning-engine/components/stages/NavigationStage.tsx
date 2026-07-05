@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
 import { useSnackbar } from '@/context/SnackbarContext';
@@ -16,8 +17,13 @@ function isValidUrl(url: string): boolean {
   }
 }
 
-function openAssetUrl(url: string): void {
-  window.open(url, '_blank', 'noopener,noreferrer');
+function buildViewerPath(entry: ComicAssetEntry, comicId: number): string {
+  const params = new URLSearchParams();
+  params.set('url', entry.url);
+  params.set('title', entry.title);
+  params.set('comicId', String(comicId));
+  params.set('page', String(entry.page));
+  return `/viewer/3d?${params.toString()}`;
 }
 
 // ── Accordion ──────────────────────────────────────────────────────────────────
@@ -71,7 +77,7 @@ function AccordionItem({ icon, label, count, defaultOpen = false, children }: Ac
 
 // ── Asset row ──────────────────────────────────────────────────────────────────
 
-function AssetRow({ entry, onOpen }: { entry: ComicAssetEntry; onOpen?: (url: string | null | undefined) => void }) {
+function AssetRow({ entry, onOpen }: { entry: ComicAssetEntry; onOpen?: (entry: ComicAssetEntry) => void }) {
   const hasValidUrl = isValidUrl(entry.url);
   const canOpen = Boolean(onOpen) && hasValidUrl;
 
@@ -82,7 +88,7 @@ function AssetRow({ entry, onOpen }: { entry: ComicAssetEntry; onOpen?: (url: st
       <button
         type="button"
         onClick={() => {
-          if (canOpen) onOpen?.(entry.url);
+          if (canOpen) onOpen?.(entry);
         }}
         disabled={!canOpen}
         className={`flex min-h-[48px] w-full min-w-0 items-center justify-center rounded-2xl border px-4 text-base font-semibold touch-manipulation transition ${
@@ -105,6 +111,7 @@ function AssetRow({ entry, onOpen }: { entry: ComicAssetEntry; onOpen?: (url: st
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 export default function NavigationStage() {
+  const router = useRouter();
   const { comic, setCanAdvance } = useLearningEngine();
   const { showSnackbar } = useSnackbar();
   const metadata = useComicMetadata(comic.id);
@@ -115,13 +122,13 @@ export default function NavigationStage() {
     setCanAdvance(true);
   }, [setCanAdvance]);
 
-  function handleOpenUrl(url: string | null | undefined) {
-    if (!isValidUrl(url ?? '')) {
+  function handleOpenModel3D(entry: ComicAssetEntry) {
+    if (!isValidUrl(entry.url)) {
       showSnackbar('Model 3D belum tersedia.', 'info');
       return;
     }
 
-    openAssetUrl(url);
+    router.push(buildViewerPath(entry, comic.id));
   }
 
   return (
@@ -146,7 +153,7 @@ export default function NavigationStage() {
         <AccordionItem icon="🧊" label="Model 3D" count={model3D.length} defaultOpen>
           <div className="flex flex-col gap-3">
             {model3D.map((entry) => (
-              <AssetRow key={`${entry.page}-${entry.url}`} entry={entry} onOpen={handleOpenUrl} />
+              <AssetRow key={`${entry.page}-${entry.url}`} entry={entry} onOpen={handleOpenModel3D} />
             ))}
           </div>
         </AccordionItem>

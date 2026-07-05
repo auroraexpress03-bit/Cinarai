@@ -1,0 +1,137 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+interface Universal3DViewerProps {
+  initialUrl?: string;
+  initialTitle?: string;
+  initialComicId?: string | number | null;
+  initialPage?: string | number | null;
+}
+
+function isValidHttpUrl(value: string): boolean {
+  if (!value) return false;
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+export default function Universal3DViewer({
+  initialUrl,
+  initialTitle,
+  initialComicId,
+  initialPage,
+}: Universal3DViewerProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const resolvedUrl = initialUrl ?? searchParams.get('url') ?? '';
+  const resolvedTitle = initialTitle ?? searchParams.get('title') ?? 'Model 3D';
+  const resolvedComicId = initialComicId ?? searchParams.get('comicId') ?? '';
+  const resolvedPage = initialPage ?? searchParams.get('page') ?? '';
+
+  const [isPreparing, setIsPreparing] = useState(true);
+  const isValidUrl = isValidHttpUrl(resolvedUrl);
+
+  useEffect(() => {
+    setIsPreparing(true);
+    const timer = window.setTimeout(() => setIsPreparing(false), 180);
+    return () => window.clearTimeout(timer);
+  }, [resolvedUrl]);
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push('/');
+  };
+
+  if (!resolvedUrl) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6 py-10 text-center">
+        <div className="w-full max-w-lg rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
+          <p className="text-3xl">🧊</p>
+          <h1 className="mt-4 text-xl font-black text-neutral-900">Model 3D belum tersedia.</h1>
+          <p className="mt-3 text-base leading-relaxed text-neutral-600">
+            Tidak ada tautan model 3D yang dapat dibuka untuk data ini.
+          </p>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="mt-6 inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-primary-600 px-5 py-3 text-base font-semibold text-white"
+          >
+            Kembali ke Navigasi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isValidUrl) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6 py-10 text-center">
+        <div className="w-full max-w-lg rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
+          <p className="text-3xl">⚠️</p>
+          <h1 className="mt-4 text-xl font-black text-neutral-900">URL model 3D tidak valid.</h1>
+          <p className="mt-3 break-all text-base leading-relaxed text-neutral-600">{resolvedUrl}</p>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="mt-6 inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-primary-600 px-5 py-3 text-base font-semibold text-white"
+          >
+            Kembali ke Navigasi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-neutral-50">
+      <header className="border-b border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-600">Universal 3D Viewer</p>
+            <h1 className="text-lg font-black text-neutral-900">{resolvedTitle}</h1>
+            <p className="text-sm text-neutral-500">
+              Komik {resolvedComicId} • Halaman {resolvedPage}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-base font-semibold text-neutral-700"
+          >
+            Kembali ke Navigasi
+          </button>
+        </div>
+      </header>
+
+      <div className="flex-1 bg-neutral-100">
+        {isPreparing ? (
+          <div className="flex h-full min-h-[320px] items-center justify-center px-6 py-10 text-center">
+            <div className="rounded-2xl border border-neutral-200 bg-white px-6 py-8 shadow-sm">
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+              <p className="mt-4 text-base font-semibold text-neutral-700">Menyiapkan viewer model 3D…</p>
+            </div>
+          </div>
+        ) : (
+          <iframe
+            src={resolvedUrl}
+            title={`Model 3D ${resolvedTitle}`}
+            className="h-full min-h-[70vh] w-full border-0"
+            loading="eager"
+            allow="fullscreen"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
