@@ -1,8 +1,9 @@
 import {
   subscribeToComicProgress,
   saveComicProgress,
+  resetComicProgress,
 } from '@/services/comicProgress';
-import { completeSintaks } from '@/lib/progressEngine';
+import { completeSintaks, createInitialProgressState } from '@/lib/progressEngine';
 import type { ComicProgressState, Sintaks } from '@/types/progress';
 import type { Unsubscribe } from 'firebase/firestore';
 
@@ -30,4 +31,19 @@ export async function completeStage(
   const next = completeSintaks(current, stage);
   await saveComicProgress(userId, next);
   return next;
+}
+
+/** Reset the comic's learning progress back to the first stage and clear saved answers. */
+export async function resetLearningProgress(
+  userId: string,
+  comicId: number
+): Promise<ComicProgressState> {
+  if (!userId) {
+    const err = new Error('userId tidak tersedia');
+    console.error('Reset Progress Error', err);
+    throw err;
+  }
+
+  await resetComicProgress(userId, comicId);
+  return createInitialProgressState(comicId);
 }

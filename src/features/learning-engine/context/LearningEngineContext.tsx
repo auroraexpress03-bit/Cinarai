@@ -16,6 +16,7 @@ import type { Comic } from '@/types/comic';
 import {
   subscribeToLearningProgress,
   completeStage as persistCompleteStage,
+  resetLearningProgress,
 } from '../services/learningEngineService';
 import {
   Stage,
@@ -254,6 +255,26 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
     setStageIndex(ALL_STAGES.indexOf(Stage.Finish));
   }, []);
 
+  const resetProgress = useCallback(async () => {
+    if (!user?.uid) {
+      showSnackbar('Gagal mengulang pembelajaran: login diperlukan.', 'error');
+      return;
+    }
+
+    try {
+      const next = await resetLearningProgress(user.uid, comicId);
+      progressRef.current = next;
+      setProgress(next);
+      setStageIndex(0);
+      setCanAdvance(true);
+      showSnackbar('Pembelajaran diulang dari awal ✓', 'success');
+    } catch (error) {
+      const code = extractFirebaseErrorCode(error);
+      console.error('[RESET FAILED] code:', code, '| uid:', user.uid, '| comicId:', comicId, error);
+      showSnackbar(`Gagal mengulang pembelajaran: ${code}`, 'error');
+    }
+  }, [user, comicId, showSnackbar]);
+
   const value = useMemo<LearningContextValue>(
     () => ({
       comicId,
@@ -270,6 +291,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       previousStage,
       goToStage,
       finishLearning,
+      resetProgress,
       canAdvance,
       setCanAdvance,
       isSaving,
@@ -289,6 +311,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       previousStage,
       goToStage,
       finishLearning,
+      resetProgress,
       canAdvance,
       setCanAdvance,
       isSaving,

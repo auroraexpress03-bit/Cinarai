@@ -13,6 +13,7 @@ import {
 import { firestore } from '@/lib/firebase/client';
 import { getAllComics } from '@/lib/comicRepository';
 import { createInitialProgressState, restoreProgressState } from '@/lib/progressEngine';
+import { deleteFirestoreDocument, queryFirestoreCollection } from '@/services/firestore';
 import type { ComicProgressDocument } from '@/types/firestore';
 import type { ComicProgressState } from '@/types/progress';
 
@@ -78,6 +79,19 @@ function fromDocument(comicId: number, data: ComicProgressDocument): ComicProgre
   return createInitialProgressState(comicId);
 }
 
+async function clearIdentificationAnswers(userId: string, comicId: number): Promise<void> {
+  const answers = await queryFirestoreCollection('identification_answers', {
+    filters: [
+      { field: 'userId', operator: '==', value: userId },
+      { field: 'comicId', operator: '==', value: comicId },
+    ],
+  });
+
+  await Promise.all(
+    answers.map((answer) => deleteFirestoreDocument('identification_answers', answer.id ?? `${userId}_${comicId}_${answer.step}`))
+  );
+}
+
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 /** Create initial progress documents for all comics when user first logs in. */
@@ -130,6 +144,28 @@ export async function saveComicProgress(
     const code = extractFirebaseErrorCode(error);
     console.error('[SAVE FAILED] code:', code, '| CURRENT UID:', userId, '| comicId:', state.comicId, error);
     // Re-throw with the Firebase error code as the message so callers can surface it
+    throw new Error(code);
+  }
+}
+
+/** Reset a comic's learning progress back to the initial state and clear saved answers. */
+export async function resetComicProgress(userId: string, comicId: number): Promise<ComicProgressState> {
+  if (!userId) {
+    throw new Error('unauthenticated');
+  }
+
+  const initialState = createInitialProgressState(comicId);
+  const ref = progressDocRef(userId, comicId);
+
+  try {
+    await Promise.all([
+      setDoc(ref, toDocument(initialState), { merge: true }),
+      clearIdentificationAnswers(userId, comicId),
+    ]);
+    return initialState;
+  } catch (error) {
+    const code = extractFirebaseErrorCode(error);
+    console.error('[RESET FAILED] code:', code, '| CURRENT UID:', userId, '| comicId:', comicId, error);
     throw new Error(code);
   }
 }
