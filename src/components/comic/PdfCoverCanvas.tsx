@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { pdfjs } from "react-pdf";
 
@@ -131,13 +130,12 @@ export default function PdfCoverCanvas({ pdfPath, title }: PdfCoverCanvasProps) 
 
       {/* Rendered cover */}
       {cover.phase === "ready" && (
-        <Image
+        <img
           src={cover.src}
           alt={`Cover ${title}`}
-          fill
-          className="object-contain"
-          priority
-          unoptimized
+          className="h-full w-full object-contain"
+          loading="eager"
+          decoding="async"
         />
       )}
 
