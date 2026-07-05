@@ -101,26 +101,42 @@ export class ComicAssetPipelineImpl implements ComicAssetPipeline {
     const pdf = await getDocument({ data }).promise;
     const results: ExtractedQrMetadata[] = [];
 
+    // 300 DPI: PDF native = 72 DPI, scale = 300/72 ≈ 4.17
+    const SCALE = 300 / 72;
+
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);
-      const viewport = page.getViewport({ scale: 2 });
-      const canvas = createCanvas(viewport.width, viewport.height) as unknown as HTMLCanvasElement;
-      const context = canvas.getContext('2d') as unknown as CanvasRenderingContext2D;
+      const viewport = page.getViewport({ scale: SCALE });
+      const canvas = createCanvas(viewport.width, viewport.height);
+      const context = canvas.getContext('2d');
 
       await page.render({
-        canvas,
-        canvasContext: context,
+        canvas: canvas as unknown as HTMLCanvasElement,
+        canvasContext: context as unknown as CanvasRenderingContext2D,
         viewport,
       }).promise;
 
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const qr = jsQR(imageData.data, imageData.width, imageData.height);
+      // Export ke PNG lalu baca ulang pixel sebagai Uint8ClampedArray bersih
+      // agar kompatibel dengan jsQR (node-canvas getImageData bisa menghasilkan
+      // buffer internal yang tidak dikenali jsQR)
+      const pngBuffer = canvas.toBuffer('image/png');
+      const pngDataUrl = `data:image/png;base64,${pngBuffer.toString('base64')}`;
+
+      const { createCanvas: makeCanvas, loadImage } = await import('canvas');
+      const img = await loadImage(pngBuffer);
+      const flat = makeCanvas(canvas.width, canvas.height);
+      const flatCtx = flat.getContext('2d');
+      flatCtx.drawImage(img, 0, 0);
+      const imageData = flatCtx.getImageData(0, 0, flat.width, flat.height);
+      const pixels = new Uint8ClampedArray(imageData.data);
+
+      const qr = jsQR(pixels, flat.width, flat.height);
 
       if (qr) {
         results.push({
           page: pageNumber,
           value: qr.data,
-          image: canvas.toDataURL('image/png'),
+          image: pngDataUrl,
           type: 'UNCLASSIFIED',
         });
       }
