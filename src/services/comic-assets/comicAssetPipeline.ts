@@ -104,11 +104,12 @@ export class ComicAssetPipelineImpl implements ComicAssetPipeline {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);
       const viewport = page.getViewport({ scale: 2 });
-      const canvas = createCanvas(viewport.width, viewport.height);
-      const context = canvas.getContext('2d');
+      const canvas = createCanvas(viewport.width, viewport.height) as unknown as HTMLCanvasElement;
+      const context = canvas.getContext('2d') as unknown as CanvasRenderingContext2D;
 
       await page.render({
-        canvasContext: context as unknown as CanvasRenderingContext2D,
+        canvas,
+        canvasContext: context,
         viewport,
       }).promise;
 

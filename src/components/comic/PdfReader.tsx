@@ -44,18 +44,33 @@ export default function PdfReader({
     setWorkerReady(true);
   }, []);
 
-  // ── ResizeObserver: measure container width ─────────────────────────────────
+  // ── Responsive sizing: measure container width and react to resize/orientation ─
+  const updateContainerWidth = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setContainerWidth(Math.max(0, Math.floor(el.getBoundingClientRect().width)));
+  }, []);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      setContainerWidth(Math.floor(entry.contentRect.width));
+
+    const ro = new ResizeObserver(() => {
+      updateContainerWidth();
     });
     ro.observe(el);
-    // Seed immediately so first render has a width
-    setContainerWidth(Math.floor(el.getBoundingClientRect().width));
-    return () => ro.disconnect();
-  }, []);
+
+    updateContainerWidth();
+
+    window.addEventListener("resize", updateContainerWidth);
+    window.addEventListener("orientationchange", updateContainerWidth);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateContainerWidth);
+      window.removeEventListener("orientationchange", updateContainerWidth);
+    };
+  }, [updateContainerWidth]);
 
   // ── Notify parent ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -109,8 +124,8 @@ export default function PdfReader({
   const isLastPage = numPages > 0 && page === numPages;
   const progressPct = numPages > 0 ? Math.round((page / numPages) * 100) : 0;
 
-  // Fit-width: PDF fills 100% of container, aspect ratio preserved by react-pdf
-  const pageWidth = containerWidth > 0 ? containerWidth : undefined;
+  // Fit-width: PDF fills the available container width while staying centered and responsive.
+  const pageWidth = containerWidth > 0 ? Math.min(containerWidth, 900) : undefined;
 
   if (!workerReady) {
     return (
@@ -159,21 +174,23 @@ export default function PdfReader({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <Document
-          file={pdfPath}
-          onLoadSuccess={onDocumentLoadSuccess}
-          loading={<PdfLoadingSpinner />}
-          error={<PdfErrorMessage />}
-        >
-          <Page
-            key={`page_${page}`}
-            pageNumber={page}
-            width={pageWidth}
-            loading={pageWidth ? <PageSkeleton width={pageWidth} /> : null}
-            renderAnnotationLayer={false}
-            renderTextLayer={false}
-          />
-        </Document>
+        <div className="mx-auto flex w-full max-w-[900px] justify-center px-2 py-2 sm:px-3 sm:py-3">
+          <Document
+            file={pdfPath}
+            onLoadSuccess={onDocumentLoadSuccess}
+            loading={<PdfLoadingSpinner />}
+            error={<PdfErrorMessage />}
+          >
+            <Page
+              key={`page_${page}`}
+              pageNumber={page}
+              width={pageWidth}
+              loading={pageWidth ? <PageSkeleton width={pageWidth} /> : null}
+              renderAnnotationLayer={false}
+              renderTextLayer={false}
+            />
+          </Document>
+        </div>
       </div>
 
       {/* ── Bottom nav ──────────────────────────────────────────────────────── */}

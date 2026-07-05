@@ -219,10 +219,6 @@ export function IdentificationProvider({
     if (unanswered.length > 0) {
       errors.push(`${unanswered.length} pertanyaan belum dipilih jawabannya.`);
     }
-    const noReason = state.items.filter((i) => !i.reason.trim());
-    if (noReason.length > 0) {
-      errors.push(`${noReason.length} pertanyaan belum ditulis alasannya.`);
-    }
     return errors;
   }, [state.observe.note, state.items]);
 
