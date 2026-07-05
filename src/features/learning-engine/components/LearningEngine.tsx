@@ -59,17 +59,6 @@ export function LearningPageSkeleton() {
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="bg-white border-b border-neutral-100">
-        <div className="mx-auto w-full max-w-[1400px] px-4 py-2 md:px-6 lg:px-8">
-          <div className="flex justify-between mb-1.5">
-            <div className="h-2.5 w-24 rounded-full skeleton" />
-            <div className="h-2.5 w-8 rounded-full skeleton" />
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-neutral-100" />
-        </div>
-      </div>
-
       {/* Body */}
       <div className="flex flex-1 min-h-0 w-full overflow-hidden mx-auto max-w-[1400px]">
         {/* Sidebar skeleton — desktop only */}
