@@ -1,11 +1,16 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useRef, useEffect } from "react";
 
 interface PdfNavigationProps {
   onPrev: () => void;
   onNext: () => void;
   isFirstPage: boolean;
   isLastPage: boolean;
-  completeButton?: ReactNode;
+  showCompleteButton?: boolean;
+  completeButtonLabel?: string;
+  completeButtonDisabled?: boolean;
+  onComplete?: () => void;
 }
 
 export default function PdfNavigation({
@@ -13,11 +18,38 @@ export default function PdfNavigation({
   onNext,
   isFirstPage,
   isLastPage,
-  completeButton,
+  showCompleteButton = false,
+  completeButtonLabel = "🎉 Selesai Membaca",
+  completeButtonDisabled = false,
+  onComplete,
 }: PdfNavigationProps) {
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  const completeButton = isLastPage && showCompleteButton && onComplete ? (
+    <button
+      onClick={() => onCompleteRef.current?.()}
+      disabled={completeButtonDisabled}
+      className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-600 px-4 py-3 text-base font-black text-white shadow-md transition-all hover:from-green-600 hover:to-green-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {completeButtonDisabled ? (
+        <>
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          Menyimpan...
+        </>
+      ) : (
+        completeButtonLabel
+      )}
+    </button>
+  ) : null;
+
   if (completeButton) {
     return (
-      <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 pt-2.5"
+      <div
+        className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 pt-2.5"
         style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
       >
         {completeButton}
@@ -26,7 +58,8 @@ export default function PdfNavigation({
   }
 
   return (
-    <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 pt-2.5"
+    <div
+      className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 pt-2.5"
       style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
     >
       <div className="flex items-center gap-2">
@@ -56,3 +89,4 @@ export default function PdfNavigation({
     </div>
   );
 }
+

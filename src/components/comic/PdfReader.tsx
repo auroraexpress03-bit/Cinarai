@@ -4,6 +4,7 @@ import PdfViewer from "@/components/pdf/PdfViewer";
 
 interface PdfReaderProps {
   pdfPath: string;
+  comicTitle?: string;
   onComplete?: () => void;
   showCompleteButton?: boolean;
   completeButtonLabel?: string;

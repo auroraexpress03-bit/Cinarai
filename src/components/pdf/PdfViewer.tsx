@@ -14,6 +14,7 @@ const SWIPE_VERTICAL_LIMIT = 80;
 
 interface PdfViewerProps {
   pdfPath: string;
+  comicTitle?: string;
   onComplete?: () => void;
   showCompleteButton?: boolean;
   completeButtonLabel?: string;
@@ -23,6 +24,7 @@ interface PdfViewerProps {
 
 export default function PdfViewer({
   pdfPath,
+  comicTitle,
   onComplete,
   showCompleteButton = false,
   completeButtonLabel = "🎉 Selesai Membaca",
@@ -32,6 +34,7 @@ export default function PdfViewer({
   const [numPages, setNumPages] = useState(0);
   const [page, setPage] = useState(1);
   const [workerReady, setWorkerReady] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { containerRef, containerWidth } = usePdfSize<HTMLDivElement>();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -90,28 +93,15 @@ export default function PdfViewer({
     setPage(1);
   }, []);
 
+  const handleRetry = useCallback(() => {
+    setRetryCount((prev) => prev + 1);
+  }, []);
+
   const isFirstPage = page <= 1;
   const isLastPage = numPages > 0 && page === numPages;
   const progressPct = numPages > 0 ? Math.round((page / numPages) * 100) : 0;
   const pageWidth = useMemo(() => Math.max(0, containerWidth), [containerWidth]);
   const shouldRenderPage = pageWidth > 0;
-
-  const completeButton = isLastPage && showCompleteButton && onComplete ? (
-    <button
-      onClick={() => onCompleteRef.current?.()}
-      disabled={completeButtonDisabled}
-      className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-600 px-4 py-3 text-base font-black text-white shadow-md transition-all hover:from-green-600 hover:to-green-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {completeButtonDisabled ? (
-        <>
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-          Menyimpan...
-        </>
-      ) : (
-        completeButtonLabel
-      )}
-    </button>
-  ) : null;
 
   if (!workerReady) {
     return (
@@ -123,7 +113,13 @@ export default function PdfViewer({
 
   return (
     <div className="flex h-full flex-col bg-[#f5f7fa]">
-      <PdfToolbar currentPage={page} totalPages={numPages} progress={progressPct} />
+      <PdfToolbar
+        comicTitle={comicTitle}
+        currentPage={page}
+        totalPages={numPages}
+        progress={progressPct}
+        isLoading={!workerReady}
+      />
 
       <div
         ref={containerRef}
@@ -135,10 +131,11 @@ export default function PdfViewer({
       >
         <div className="mx-auto flex w-full max-w-full flex-col items-center">
           <Document
+            key={`pdf-${retryCount}`}
             file={pdfPath}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={<PdfLoading />}
-            error={<PdfError />}
+            error={<PdfError onRetry={handleRetry} />}
           >
             <div className="my-3 w-full max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="flex justify-center overflow-hidden">
@@ -146,7 +143,7 @@ export default function PdfViewer({
                   <PdfPage
                     pageNumber={page}
                     width={pageWidth}
-                    loading={shouldRenderPage ? <PdfLoading /> : null}
+                    loading={shouldRenderPage ? <PdfLoading variant="skeleton" /> : null}
                   />
                 </div>
               </div>
@@ -160,7 +157,10 @@ export default function PdfViewer({
         onNext={() => goTo(page + 1)}
         isFirstPage={isFirstPage}
         isLastPage={isLastPage}
-        completeButton={completeButton}
+        showCompleteButton={showCompleteButton}
+        completeButtonLabel={completeButtonLabel}
+        completeButtonDisabled={completeButtonDisabled}
+        onComplete={onComplete}
       />
     </div>
   );
