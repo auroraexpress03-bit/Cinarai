@@ -14,8 +14,10 @@
     "seed": "npx tsx scripts/seed-comics.ts"
   },
   "dependencies": {
+    "canvas": "^3.2.3",
     "firebase": "^10.12.5",
     "firebase-admin": "^14.1.0",
+    "jsqr": "^1.4.0",
     "next": "^15.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

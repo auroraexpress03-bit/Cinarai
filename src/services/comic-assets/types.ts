@@ -72,6 +72,30 @@ export interface ComicAssetPipeline {
   linkQrQuiz(comicId: number, quizId: string): Promise<PipelineResult<QrLink>>;
 }
 
+// ── Primary repository contract (Comic → ComicAsset) ─────────────────────────
+
+export interface IComicAssetRepository {
+  /** Fetch all assets for a single comic. */
+  getComicAsset(comicId: number): Promise<ComicAsset[]>;
+  /** Fetch assets for every comic. */
+  getAllComicAssets(): Promise<ComicAsset[]>;
+}
+
+// ── Primary pipeline contract ─────────────────────────────────────────────────
+
+export type PipelineState = 'idle' | 'loading' | 'ready' | 'error';
+
+export interface IComicAssetPipeline {
+  /** Current pipeline state. */
+  readonly state: PipelineState;
+  /** Load (or return cached) assets for all comics. */
+  loadComicAssets(): Promise<PipelineResult<ComicAsset[]>>;
+  /** Force re-fetch, bypassing cache. */
+  refresh(): Promise<PipelineResult<ComicAsset[]>>;
+  /** Release resources and reset internal state. */
+  dispose(): void;
+}
+
 // ── QR classifier contracts ───────────────────────────────────────────────────
 
 export interface QrClassifierResult {
