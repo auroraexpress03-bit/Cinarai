@@ -1,4 +1,5 @@
-import type { QrClassifier, QrClassifierResult, QrTargetKind } from './types';
+import type { QrClassifier, QrClassifierResult, QrTargetKind, QrCategory, ClassifiedQr } from './types';
+import type { ExtractedQrMetadata } from './comicAssetPipeline';
 
 /**
  * QR payload format: `cinarai:{comicId}:{targetKind}:{targetId}`
@@ -7,7 +8,47 @@ import type { QrClassifier, QrClassifierResult, QrTargetKind } from './types';
 const QR_PREFIX = 'cinarai';
 const QR_SEPARATOR = ':';
 
-// ── QrClassifier placeholder ──────────────────────────────────────────────────
+// ── URL pattern matchers ───────────────────────────────────────────────────────
+
+const MODEL_3D_PATTERNS = ['sketchfab.com', 'skfb.ly', 'assemblrworld.com', 'app.assemblrworld.com', 'edu.assemblrworld.com', 'asblr.com'];
+const QUIZ_PATTERNS = ['quizizz.com', 'forms.google.com', 'wordwall.net', 'kahoot.com'];
+const VIDEO_PATTERNS = ['youtube.com', 'youtu.be'];
+
+function categorize(value: string): QrCategory {
+  if (!value) return 'UNKNOWN';
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return 'UNKNOWN';
+  }
+
+  const host = url.hostname.toLowerCase();
+
+  if (MODEL_3D_PATTERNS.some((p) => host === p || host.endsWith(`.${p}`))) return 'MODEL_3D';
+  if (QUIZ_PATTERNS.some((p) => host === p || host.endsWith(`.${p}`))) return 'QUIZ';
+  if (VIDEO_PATTERNS.some((p) => host === p || host.endsWith(`.${p}`))) return 'VIDEO';
+
+  return 'WEBSITE';
+}
+
+// ── Public functions ───────────────────────────────────────────────────────────
+
+export function classifyQR(qr: ExtractedQrMetadata): ClassifiedQr {
+  return {
+    page: qr.page,
+    value: qr.value,
+    image: qr.image,
+    category: categorize(qr.value),
+  };
+}
+
+export function classifyComic(qrList: ExtractedQrMetadata[]): ClassifiedQr[] {
+  return qrList.map(classifyQR);
+}
+
+// ── QrClassifierImpl (legacy contract — unchanged) ────────────────────────────
 
 export class QrClassifierImpl implements QrClassifier {
   classify(payload: string): QrClassifierResult | null {

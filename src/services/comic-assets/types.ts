@@ -108,3 +108,14 @@ export interface QrClassifier {
   classify(payload: string): QrClassifierResult | null;
   buildPayload(comicId: number, targetKind: QrTargetKind, targetId: string): string;
 }
+
+// ── QR category ───────────────────────────────────────────────────────────────
+
+export type QrCategory = 'MODEL_3D' | 'QUIZ' | 'VIDEO' | 'WEBSITE' | 'UNKNOWN';
+
+export interface ClassifiedQr {
+  page: number;
+  value: string;
+  image: string;
+  category: QrCategory;
+}

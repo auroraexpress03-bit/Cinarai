@@ -1,11 +1,13 @@
 export type {
   ComicAssetKind,
   QrTargetKind,
+  QrCategory,
   PipelineStatus,
   ComicAsset,
   QrLink,
   PipelineResult,
   QrClassifierResult,
+  ClassifiedQr,
   ComicAssetRepository,
   QrLinkRepository,
   ComicAssetPipeline,
@@ -14,4 +16,4 @@ export type {
 
 export { ComicAssetRepositoryImpl, QrLinkRepositoryImpl } from './comicAssetRepository';
 export { ComicAssetPipelineImpl, makePipelineResult, makeQrLink } from './comicAssetPipeline';
-export { QrClassifierImpl } from './qrClassifier';
+export { QrClassifierImpl, classifyQR, classifyComic } from './qrClassifier';
