@@ -31,9 +31,6 @@ export default function LearningProgress() {
           <span className="text-sm font-bold text-neutral-700 truncate">
             {STAGE_LABELS[currentStage]}
           </span>
-          <span className="text-xs font-semibold text-neutral-400 ml-2 flex-shrink-0">
-            {Math.min(stageNumber, totalVisible)}/{totalVisible}
-          </span>
         </div>
 
         <div className="h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">

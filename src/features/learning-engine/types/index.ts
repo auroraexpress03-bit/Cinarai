@@ -33,6 +33,20 @@ export const ALL_STAGES: Stage[] = [...LEARNING_STAGES, Stage.Finish];
 
 export type LearningStage = Stage;
 
+/**
+ * Slide navigation contract.
+ * A stage registers this when it has internal slides (e.g. Identification: OBSERVE→IDENTIFY→CONFIRM).
+ * LearningBottomNav reads this to navigate slides before crossing stage boundaries.
+ */
+export interface SlideNavState {
+  slideIndex: number;
+  totalSlides: number;
+  canGoNext: boolean;
+  canGoPrev: boolean;
+  goNext: () => void;
+  goPrev: () => void;
+}
+
 /** Full context value exposed to all stages — no prop drilling needed */
 export interface LearningContextValue {
   // Data
@@ -63,4 +77,9 @@ export interface LearningContextValue {
 
   // Save state — true while Firestore write is in-flight
   isSaving: boolean;
+
+  // Slide navigation — registered by stages that have internal slides
+  slideNav: SlideNavState | null;
+  registerSlideNav: (nav: SlideNavState) => void;
+  unregisterSlideNav: () => void;
 }

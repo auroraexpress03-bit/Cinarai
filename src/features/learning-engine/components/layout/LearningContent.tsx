@@ -11,7 +11,7 @@ interface LearningContentProps {
 }
 
 export default function LearningContent({ children }: LearningContentProps) {
-  const { nextStage, previousStage, canAdvance, isSaving, stageIndex } = useLearningEngine();
+  const { nextStage, previousStage, canAdvance, isSaving, stageIndex, slideNav } = useLearningEngine();
   const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -46,12 +46,26 @@ export default function LearningContent({ children }: LearningContentProps) {
     if (Math.abs(dy) > SWIPE_VERT_LIMIT) return;
     if (Math.abs(dx) < SWIPE_THRESHOLD) return;
 
-    if (dx < 0 && canAdvance && !isSaving) {
-      void nextStage();
-    } else if (dx > 0 && stageIndex > 0) {
-      previousStage();
+    const hasSlides = slideNav !== null;
+    const onLastSlide = !hasSlides || slideNav.slideIndex === slideNav.totalSlides - 1;
+    const onFirstSlide = !hasSlides || slideNav.slideIndex === 0;
+
+    if (dx < 0) {
+      // swipe left = next
+      if (hasSlides && !onLastSlide) {
+        slideNav.goNext();
+      } else if (canAdvance && !isSaving) {
+        void nextStage();
+      }
+    } else {
+      // swipe right = prev
+      if (hasSlides && !onFirstSlide) {
+        slideNav.goPrev();
+      } else if (stageIndex > 0) {
+        previousStage();
+      }
     }
-  }, [nextStage, previousStage, canAdvance, isSaving, stageIndex]);
+  }, [nextStage, previousStage, canAdvance, isSaving, stageIndex, slideNav]);
 
   return (
     <main

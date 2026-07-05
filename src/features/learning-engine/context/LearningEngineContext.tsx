@@ -22,6 +22,7 @@ import {
   Stage,
   ALL_STAGES,
   type LearningContextValue,
+  type SlideNavState,
 } from '../types';
 import { extractFirebaseErrorCode } from '@/services/comicProgress';
 
@@ -55,6 +56,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   const [stageIndex, setStageIndex] = useState(0);
   const [canAdvance, setCanAdvance] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [slideNav, setSlideNav] = useState<SlideNavState | null>(null);
   // True after the first Firestore snapshot has been applied — prevents subsequent
   // snapshots from overriding the user's in-session navigation.
   const initialSyncDoneRef = React.useRef(false);
@@ -233,6 +235,14 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
     setStageIndex(ALL_STAGES.indexOf(Stage.Finish));
   }, []);
 
+  const registerSlideNav = useCallback((nav: SlideNavState) => {
+    setSlideNav(nav);
+  }, []);
+
+  const unregisterSlideNav = useCallback(() => {
+    setSlideNav(null);
+  }, []);
+
   const resetProgress = useCallback(async () => {
     if (!user?.uid) {
       showSnackbar('Gagal mengulang pembelajaran: login diperlukan.', 'error');
@@ -272,6 +282,9 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       canAdvance,
       setCanAdvance,
       isSaving,
+      slideNav,
+      registerSlideNav,
+      unregisterSlideNav,
     }),
     [
       comicId,
@@ -292,6 +305,9 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       canAdvance,
       setCanAdvance,
       isSaving,
+      slideNav,
+      registerSlideNav,
+      unregisterSlideNav,
     ]
   );
 
