@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import LearningHeader from '../layout/LearningHeader';
-import LearningProgress from '../layout/LearningProgress';
 import LearningStageNav from '../layout/LearningStageNav';
 
 const PdfReader = dynamic(() => import('@/components/comic/PdfReader'), { ssr: false });
@@ -30,10 +29,9 @@ export default function ContextualizationStage() {
       className="flex flex-col bg-[#f0f7ff]"
       style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)' }}
     >
-      {/* Shared header + progress */}
+      {/* Shared header */}
       <div className="flex-shrink-0">
         <LearningHeader />
-        <LearningProgress />
       </div>
 
       {/* Body: sidebar (lg+) + PDF reader */}
@@ -52,7 +50,7 @@ export default function ContextualizationStage() {
             <p className="text-base md:text-lg text-neutral-400">Komik ini belum memiliki file PDF.</p>
           </div>
         ) : (
-          <div className="flex-1 min-h-0 min-w-0">
+          <div className="flex-1 min-h-0 min-w-0 bg-neutral-950">
             <PdfReader
               pdfPath={comic.pdfPath}
               onComplete={handlePdfComplete}

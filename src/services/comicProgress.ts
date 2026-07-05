@@ -105,8 +105,7 @@ export async function initializeUserProgress(userId: string): Promise<void> {
         if (snap.exists()) return;
         const state = createInitialProgressState(comic.id);
         await setDoc(ref, toDocument(state));
-      } catch (error) {
-        console.error('Save Progress Error', error);
+      } catch {
       }
     })
   );
@@ -119,16 +118,10 @@ export async function saveComicProgress(
   userId: string,
   state: ComicProgressState
 ): Promise<void> {
-  const stage = currentStage(state);
-  const docPath = `users/${userId}/progress/comic-${state.comicId}`;
-
   // ── Auth guard ────────────────────────────────────────────────────────────
   if (!userId) {
-    console.error('[SAVE FAILED] CURRENT UID: null — userId tidak tersedia');
     throw new Error('unauthenticated');
   }
-
-  console.log('[START SAVE] CURRENT UID:', userId, '| comicId:', state.comicId, '| CURRENT STAGE:', stage, '| path:', docPath);
 
   const ref = progressDocRef(userId, state.comicId);
   const payload = {
@@ -139,10 +132,8 @@ export async function saveComicProgress(
   try {
     // merge: true → creates document automatically if it does not exist
     await setDoc(ref, payload, { merge: true });
-    console.log('[SAVE SUCCESS] CURRENT UID:', userId, '| comicId:', state.comicId, '| CURRENT STAGE:', stage);
   } catch (error) {
     const code = extractFirebaseErrorCode(error);
-    console.error('[SAVE FAILED] code:', code, '| CURRENT UID:', userId, '| comicId:', state.comicId, error);
     // Re-throw with the Firebase error code as the message so callers can surface it
     throw new Error(code);
   }
@@ -165,7 +156,6 @@ export async function resetComicProgress(userId: string, comicId: number): Promi
     return initialState;
   } catch (error) {
     const code = extractFirebaseErrorCode(error);
-    console.error('[RESET FAILED] code:', code, '| CURRENT UID:', userId, '| comicId:', comicId, error);
     throw new Error(code);
   }
 }
@@ -189,7 +179,6 @@ export function subscribeToComicProgress(
       );
     },
     (error) => {
-      console.error(`[Firestore] subscribeToComicProgress error — userId: ${userId}, comicId: ${comicId}`, error);
       onError?.(error);
     }
   );

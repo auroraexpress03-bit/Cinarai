@@ -25,7 +25,6 @@ export async function completeStage(
 ): Promise<ComicProgressState> {
   if (!userId) {
     const err = new Error('userId tidak tersedia');
-    console.error('Save Progress Error', err);
     throw err;
   }
   const next = completeSintaks(current, stage);
@@ -40,7 +39,6 @@ export async function resetLearningProgress(
 ): Promise<ComicProgressState> {
   if (!userId) {
     const err = new Error('userId tidak tersedia');
-    console.error('Reset Progress Error', err);
     throw err;
   }
 
