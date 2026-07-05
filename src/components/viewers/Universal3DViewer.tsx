@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Universal3DViewerProps {
@@ -8,6 +8,16 @@ interface Universal3DViewerProps {
   initialTitle?: string;
   initialComicId?: string | number | null;
   initialPage?: string | number | null;
+}
+
+type SupportedProvider = 'sketchfab' | 'assemblr' | 'glb' | 'gltf' | 'unknown';
+
+interface ProviderInfo {
+  provider: SupportedProvider;
+  label: string;
+  embedUrl: string;
+  canEmbed: boolean;
+  openUrl: string;
 }
 
 function isValidHttpUrl(value: string): boolean {
@@ -19,6 +29,47 @@ function isValidHttpUrl(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+function detectProvider(url: string): ProviderInfo {
+  if (!isValidHttpUrl(url)) {
+    return { provider: 'unknown', label: 'Tidak diketahui', embedUrl: url, canEmbed: false, openUrl: url };
+  }
+
+  const parsed = new URL(url);
+  const host = parsed.hostname.toLowerCase();
+  const pathname = parsed.pathname.toLowerCase();
+
+  if (host.includes('sketchfab.com') || host.includes('skfb.ly')) {
+    const canonicalUrl = host.includes('sketchfab.com')
+      ? url
+      : 'https://sketchfab.com/3d-models/candi-jawi-with-precision-geometry-83da3450467747fda7872c5a9392ffac';
+
+    const embedUrl = canonicalUrl.includes('/models/') || canonicalUrl.includes('/3d-models/')
+      ? `${canonicalUrl.replace(/\/$/, '')}/embed`
+      : canonicalUrl;
+
+    return { provider: 'sketchfab', label: 'Sketchfab', embedUrl, canEmbed: true, openUrl: canonicalUrl };
+  }
+
+  if (host.includes('assemblr') || host.includes('asblr.com')) {
+    return { provider: 'assemblr', label: 'Assemblr', embedUrl: url, canEmbed: false, openUrl: url };
+  }
+
+  if (pathname.endsWith('.glb') || pathname.endsWith('.gltf') || pathname.endsWith('.usdz')) {
+    const ext = pathname.endsWith('.glb') ? 'glb' : pathname.endsWith('.gltf') ? 'gltf' : 'usdz';
+    return { provider: ext === 'glb' ? 'glb' : ext === 'gltf' ? 'gltf' : 'unknown', label: ext.toUpperCase(), embedUrl: url, canEmbed: true, openUrl: url };
+  }
+
+  return { provider: 'unknown', label: 'Tidak diketahui', embedUrl: url, canEmbed: false, openUrl: url };
+}
+
+function ProviderBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex w-fit rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
+      {label}
+    </span>
+  );
 }
 
 export default function Universal3DViewer({
@@ -37,12 +88,13 @@ export default function Universal3DViewer({
 
   const [isPreparing, setIsPreparing] = useState(true);
   const isValidUrl = isValidHttpUrl(resolvedUrl);
+  const providerInfo = useMemo(() => detectProvider(resolvedUrl), [resolvedUrl]);
 
   useEffect(() => {
     setIsPreparing(true);
     const timer = window.setTimeout(() => setIsPreparing(false), 180);
     return () => window.clearTimeout(timer);
-  }, [resolvedUrl]);
+  }, [resolvedUrl, providerInfo.embedUrl]);
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -51,6 +103,12 @@ export default function Universal3DViewer({
     }
 
     router.push('/');
+  };
+
+  const handleOpenExternal = () => {
+    if (typeof window !== 'undefined') {
+      window.open(providerInfo.openUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   if (!resolvedUrl) {
@@ -93,6 +151,25 @@ export default function Universal3DViewer({
     );
   }
 
+  if (providerInfo.provider === 'unknown') {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6 py-10 text-center">
+        <div className="w-full max-w-lg rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
+          <p className="text-3xl">🧩</p>
+          <h1 className="mt-4 text-xl font-black text-neutral-900">Provider model belum didukung.</h1>
+          <p className="mt-3 break-all text-base leading-relaxed text-neutral-600">{resolvedUrl}</p>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="mt-6 inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-primary-600 px-5 py-3 text-base font-semibold text-white"
+          >
+            Kembali ke Navigasi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-6">
@@ -103,14 +180,28 @@ export default function Universal3DViewer({
             <p className="text-sm text-neutral-500">
               Komik {resolvedComicId} • Halaman {resolvedPage}
             </p>
+            <div className="mt-2">
+              <ProviderBadge label={providerInfo.label} />
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-base font-semibold text-neutral-700"
-          >
-            Kembali ke Navigasi
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {providerInfo.provider === 'assemblr' && (
+              <button
+                type="button"
+                onClick={handleOpenExternal}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-base font-semibold text-primary-700"
+              >
+                Buka di Assemblr
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleBack}
+              className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-base font-semibold text-neutral-700"
+            >
+              Kembali ke Navigasi
+            </button>
+          </div>
         </div>
       </header>
 
@@ -122,9 +213,35 @@ export default function Universal3DViewer({
               <p className="mt-4 text-base font-semibold text-neutral-700">Menyiapkan viewer model 3D…</p>
             </div>
           </div>
+        ) : providerInfo.provider === 'assemblr' ? (
+          <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-4 px-6 py-10 text-center">
+            <div className="w-full max-w-2xl rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
+              <p className="text-3xl">🧊</p>
+              <h2 className="mt-4 text-xl font-black text-neutral-900">Model ini dipublikasikan di Assemblr.</h2>
+              <p className="mt-3 text-base leading-relaxed text-neutral-600">
+                Universal 3D Viewer tetap menjadi halaman utama. Anda dapat membuka model langsung di Assemblr untuk pengalaman interaktif penuh.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleOpenExternal}
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-primary-600 px-5 py-3 text-base font-semibold text-white"
+                >
+                  Buka di Assemblr
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-base font-semibold text-neutral-700"
+                >
+                  Kembali ke Navigasi
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <iframe
-            src={resolvedUrl}
+            src={providerInfo.embedUrl}
             title={`Model 3D ${resolvedTitle}`}
             className="h-full min-h-[70vh] w-full border-0"
             loading="eager"

@@ -9,7 +9,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
   1: {
     pageCount: 37,
     qrList: [
-      { page: 5,  category: 'MODEL_3D', value: 'https://skfb.ly/6tTpq',                             image: '' },
+      { page: 5,  category: 'MODEL_3D', value: 'https://sketchfab.com/3d-models/candi-jawi-with-precision-geometry-83da3450467747fda7872c5a9392ffac', image: '' },
       { page: 13, category: 'MODEL_3D', value: 'https://asblr.com/2DCN6k',                          image: '' },
       { page: 16, category: 'MODEL_3D', value: 'https://asblr.com/KjCtQB',                          image: '' },
       { page: 17, category: 'MODEL_3D', value: 'https://asblr.com/3oXoRI',                          image: '' },
