@@ -12,7 +12,7 @@ const RATING_OPTIONS = [
 ] as const;
 
 export default function IntrospectionStage() {
-  const { comic, setCanAdvance, nextStage } = useLearningEngine();
+  const { comic, setCanAdvance } = useLearningEngine();
 
   const [checked, setChecked] = useState<boolean[]>(() =>
     comic.learningTargets.map(() => false)
@@ -25,8 +25,8 @@ export default function IntrospectionStage() {
   const canFinish = allChecked && rating !== null && summary.trim().length > 0;
 
   useEffect(() => {
-    setCanAdvance(false);
-  }, [setCanAdvance]);
+    setCanAdvance(canFinish);
+  }, [canFinish, setCanAdvance]);
 
   const handleCheck = (i: number, v: boolean) =>
     setChecked((prev) => prev.map((c, idx) => (idx === i ? v : c)));
@@ -166,25 +166,6 @@ export default function IntrospectionStage() {
           <p className="text-right text-xs text-neutral-400 sm:text-sm">{summary.trim().length} karakter</p>
         </div>
       </div>
-
-      {/* Tombol selesai */}
-      <button
-        type="button"
-        onClick={() => { void nextStage(); }}
-        disabled={!canFinish}
-        className="flex min-h-[64px] w-full items-center justify-center gap-3 rounded-[20px] bg-primary-600 px-5 py-4 text-base font-black text-white shadow-md transition-all hover:bg-primary-700 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 sm:text-lg"
-      >
-        {canFinish ? (
-          <>
-            Selesaikan Pembelajaran 🏆
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </>
-        ) : (
-          'Lengkapi semua bagian dulu ya! ✏️'
-        )}
-      </button>
 
     </div>
   );

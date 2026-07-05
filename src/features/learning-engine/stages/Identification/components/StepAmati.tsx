@@ -3,7 +3,7 @@
 import { useIdentificationContext } from '../context/IdentificationContext';
 
 export default function StepAmati() {
-  const { lokasi, state, setObserveNote, nextStep } = useIdentificationContext();
+  const { lokasi, state, setObserveNote } = useIdentificationContext();
   const canProceed = state.observe.note.trim().length > 0;
 
   return (
@@ -34,24 +34,6 @@ export default function StepAmati() {
           </p>
         )}
       </div>
-
-      <button
-        type="button"
-        onClick={nextStep}
-        disabled={!canProceed}
-        className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[20px] bg-primary-600 px-5 py-3 text-base font-black text-white shadow-sm transition-all hover:bg-primary-700 active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 sm:text-lg"
-      >
-        {canProceed ? (
-          <>
-            Lanjut ke Soal
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </>
-        ) : (
-          'Tulis catatan dulu ya! ✏️'
-        )}
-      </button>
 
     </div>
   );
