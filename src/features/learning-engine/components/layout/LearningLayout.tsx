@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import LearningHeader from './LearningHeader';
-import LearningProgress from './LearningProgress';
 import LearningContent from './LearningContent';
 import LearningBottomNav from './LearningBottomNav';
 import LearningStageNav from './LearningStageNav';
@@ -20,10 +19,9 @@ export default function LearningLayout({ children }: LearningLayoutProps) {
         paddingTop: 'env(safe-area-inset-top)',
       }}
     >
-      {/* ── Top chrome: header + progress ── */}
+      {/* ── Top chrome: simplified header ── */}
       <div className="flex-shrink-0">
         <LearningHeader />
-        <LearningProgress />
       </div>
 
       {/* ── Body: sidebar (lg+) + scrollable content ── */}
