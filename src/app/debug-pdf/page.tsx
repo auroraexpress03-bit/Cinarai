@@ -1,4 +1,8 @@
-import PdfViewer from '@/components/pdf/PdfViewer';
+'use client';
+
+import dynamic from 'next/dynamic';
+
+const PdfViewer = dynamic(() => import('@/components/pdf/PdfViewer'), { ssr: false });
 
 export default function DebugPdfPage() {
   return (
