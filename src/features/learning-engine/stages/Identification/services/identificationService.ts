@@ -25,7 +25,7 @@ function buildStoryQuestions(
   lokasi: string,
   learningTargets: readonly string[],
   title: string
-): Array<{ question: string; options: string[] }> {
+): Array<{ question: string; options: string[]; correctIndex: number; explanation: string }> {
   const conceptHints = learningTargets.slice(0, 4).join(' • ');
 
   const baseQuestions = [
@@ -37,6 +37,8 @@ function buildStoryQuestions(
         'Pada pepohonan di sekitar area',
         'Pada tangga yang menuju pintu masuk',
       ],
+      correctIndex: 0,
+      explanation: 'Susunan batu pada kaki bangunan candi umumnya berbentuk kotak-kotak yang menyerupai kubus, sehingga bagian inilah yang paling tepat untuk mengidentifikasi bentuk kubus.',
     },
     {
       question: `Tokoh menyebut bangun ruang apa ketika mengamati bagian penyangga utama dari ${title}?`,
@@ -46,6 +48,8 @@ function buildStoryQuestions(
         'Lingkaran',
         'Trapesium',
       ],
+      correctIndex: 0,
+      explanation: 'Penyangga utama bangunan biasanya berbentuk balok karena memiliki panjang, lebar, dan tinggi yang berbeda-beda namun sisi-sisinya tetap berbentuk persegi panjang.',
     },
     {
       question: `Bagian mana dari cerita yang membantu tokoh memahami bentuk prisma saat mengamati ${lokasi}?`,
@@ -55,6 +59,8 @@ function buildStoryQuestions(
         'Bagian pohon di halaman',
         'Bagian jalan yang melingkar',
       ],
+      correctIndex: 0,
+      explanation: 'Dinding yang tersusun berjejer membentuk bidang-bidang sejajar yang merupakan ciri khas prisma, yaitu dua alas yang sama dan sisi-sisi tegak berbentuk persegi panjang.',
     },
     {
       question: `Mengapa bagian yang diamati bisa disebut limas menurut tokoh dalam ${title}?`,
@@ -64,6 +70,8 @@ function buildStoryQuestions(
         'Karena tidak memiliki sisi',
         'Karena terbuat dari kaca',
       ],
+      correctIndex: 0,
+      explanation: 'Limas memiliki ciri khas berupa satu titik puncak di atas dan alas berbentuk segi banyak di bawah. Semua sisi tegaknya berbentuk segitiga yang bertemu di satu titik puncak.',
     },
     {
       question: `Objek apa yang tokoh amati saat menemukan bentuk kerucut pada ${lokasi}?`,
@@ -73,6 +81,8 @@ function buildStoryQuestions(
         'Bagian pagar yang panjang',
         'Bagian pohon yang menjulang',
       ],
+      correctIndex: 0,
+      explanation: 'Atap yang meruncing ke atas adalah contoh nyata bentuk kerucut dalam arsitektur, karena memiliki alas lingkaran dan satu titik puncak di bagian atas.',
     },
     {
       question: `Apa alasan tokoh menyebut bagian tersebut sebagai bangun ruang yang berbeda dari kubus?`,
@@ -82,6 +92,8 @@ function buildStoryQuestions(
         'Karena memiliki lebih banyak daun',
         'Karena hanya terlihat dari jauh',
       ],
+      correctIndex: 0,
+      explanation: 'Perbedaan utama kubus dan balok adalah pada panjang sisinya. Kubus memiliki semua sisi sama panjang, sedangkan balok memiliki panjang, lebar, dan tinggi yang berbeda.',
     },
     {
       question: `Bangun ruang apa yang paling banyak membantu tokoh memahami bentuk arsitektur di ${title}?`,
@@ -91,6 +103,8 @@ function buildStoryQuestions(
         'Lingkaran',
         'Segitiga',
       ],
+      correctIndex: 0,
+      explanation: 'Balok adalah bangun ruang yang paling sering ditemukan dalam arsitektur bangunan karena bentuknya yang praktis dan mudah disusun untuk membentuk dinding, lantai, dan atap.',
     },
     {
       question: `Saat membaca ulang cerita, informasi apa yang paling penting untuk menjawab soal tentang ${conceptHints}?`,
@@ -100,6 +114,8 @@ function buildStoryQuestions(
         'Warna pakaian tokoh',
         'Jumlah langkah menuju pintu masuk',
       ],
+      correctIndex: 0,
+      explanation: 'Untuk mengidentifikasi bangun ruang, yang paling penting adalah memperhatikan ciri-ciri bentuk seperti jumlah sisi, bentuk alas, dan apakah ada titik puncak atau tidak.',
     },
   ];
 
@@ -111,6 +127,8 @@ function buildStoryQuestions(
       'Pada pohon yang tumbuh acak',
       'Pada air yang mengalir',
     ];
+    baseQuestions[0].correctIndex = 0;
+    baseQuestions[0].explanation = 'Simetri berarti dua bagian yang sama persis jika dilipat. Relief yang terbagi dua secara seimbang menunjukkan simetri lipat karena kedua sisinya adalah bayangan cermin satu sama lain.';
   }
 
   if (comicId === 3) {
@@ -121,6 +139,8 @@ function buildStoryQuestions(
       'Pada gerakan tumbuhan',
       'Pada suara tokoh',
     ];
+    baseQuestions[0].correctIndex = 0;
+    baseQuestions[0].explanation = 'Sisi dinding dan pola lantai adalah tempat paling mudah menemukan bangun datar seperti persegi dan persegi panjang karena permukaannya rata dan batasnya jelas.';
     baseQuestions[1].question = `Bangun apa yang paling membantu tokoh mengidentifikasi bentuk pada rumah bersejarah di ${lokasi}?`;
     baseQuestions[1].options = [
       'Persegi dan persegi panjang',
@@ -128,6 +148,8 @@ function buildStoryQuestions(
       'Segitiga dan elips',
       'Garis dan titik',
     ];
+    baseQuestions[1].correctIndex = 0;
+    baseQuestions[1].explanation = 'Persegi dan persegi panjang adalah bangun datar yang paling umum ditemukan pada bangunan bersejarah karena digunakan pada pintu, jendela, dinding, dan lantai.';
   }
 
   return shuffle(baseQuestions).slice(0, 8);
@@ -147,12 +169,15 @@ export function createIdentificationState(
   const questions = buildStoryQuestions(comicId, lokasi, learningTargets, title);
   const items: IdentificationItem[] = questions.map((question, index) => {
     const id = `${comicId}-identification-${index}`;
+    const options = buildOptions(id, question.options);
     return {
       id,
       targetIndex: index,
       targetText: question.question,
       question: question.question,
-      options: buildOptions(id, question.options),
+      options,
+      correctOptionId: options[question.correctIndex]?.id ?? options[0].id,
+      explanation: question.explanation,
       status: 'PENDING',
       selectedOptionId: null,
       note: '',

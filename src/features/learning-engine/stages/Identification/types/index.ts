@@ -23,6 +23,8 @@ export interface IdentificationItem {
   readonly targetText: string;
   readonly question: string;
   readonly options: AnswerOption[];
+  readonly correctOptionId: string;
+  readonly explanation: string;
   status: IdentificationItemStatus;
   selectedOptionId: string | null;
   note: string;
