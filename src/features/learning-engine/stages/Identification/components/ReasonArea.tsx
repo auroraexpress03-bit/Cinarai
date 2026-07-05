@@ -17,40 +17,26 @@ export default function ReasonArea({
   onChange,
 }: ReasonAreaProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border-2 border-primary-200 bg-primary-50 p-5">
-      <label htmlFor={`reason-${itemId}`} className="flex items-center gap-3">
-        <span className="text-2xl md:text-4xl">💬</span>
-        <span className="text-base md:text-xl font-black text-primary-800">
-          Kenapa kamu memilih jawaban itu?
-        </span>
+    <div className="flex flex-col gap-2">
+      <label htmlFor={`reason-${itemId}`} className="text-sm font-black text-primary-700">
+        💬 Kenapa kamu memilih jawaban itu?
       </label>
 
-      <textarea
-        id={`reason-${itemId}`}
-        value={value}
-        disabled={isSaved}
-        onChange={(e) => {
-          if (e.target.value.length <= MAX_CHARS) onChange(itemId, e.target.value);
-        }}
-        placeholder="Contoh: Karena saya melihat bentuk kubus pada bangunan candi…"
-        rows={3}
-        className={[
-          'w-full resize-none rounded-2xl border-2 px-5 py-4 text-base md:text-lg leading-relaxed outline-none transition-colors',
-          isSaved
-            ? 'border-neutral-100 bg-neutral-50 text-neutral-500 cursor-default'
-            : 'border-primary-200 bg-white text-neutral-800 placeholder:text-neutral-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100',
-        ].join(' ')}
-      />
-
       {isSaved ? (
-        <div className="flex items-center gap-3 rounded-2xl bg-accent-50 border-2 border-accent-200 px-5 py-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-white text-xl font-black flex-shrink-0">✓</span>
-          <span className="text-xl font-bold text-accent-700">Alasan tersimpan!</span>
-        </div>
+        <p className="text-sm text-neutral-600 bg-accent-50 border border-accent-200 rounded-xl px-3 py-2">
+          {value}
+        </p>
       ) : (
-        <div className="rounded-2xl border border-primary-200 bg-white px-4 py-3 text-sm text-neutral-600">
-          Jawaban dan alasanmu tersimpan otomatis.
-        </div>
+        <textarea
+          id={`reason-${itemId}`}
+          value={value}
+          onChange={(e) => {
+            if (e.target.value.length <= MAX_CHARS) onChange(itemId, e.target.value);
+          }}
+          placeholder="Tulis alasanmu di sini…"
+          rows={3}
+          className="w-full resize-none rounded-xl border-2 border-primary-200 bg-white px-3 py-2 text-base text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-colors"
+        />
       )}
     </div>
   );

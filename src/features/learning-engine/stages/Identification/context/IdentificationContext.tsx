@@ -85,9 +85,15 @@ export function IdentificationProvider({
   const identification = useIdentification({ comicId, lokasi, cover, title, learningTargets });
   const { state, reset: resetIdentification, applyAnswers } = identification;
 
+  // Stable ref so persistItem always reads the latest state without stale closure
+  const stateRef = useRef(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+
   const [autoSaveState, setAutoSaveState] = useState<Record<string, AutoSaveMetadata>>({});
   const saveTimeout = useRef<number | null>(null);
   const pendingSaveRef = useRef<Set<string>>(new Set());
+  const userRef = useRef(user);
+  useEffect(() => { userRef.current = user; }, [user]);
 
   const updateAutoSaveState = useCallback((itemId: string, metadata: AutoSaveMetadata) => {
     setAutoSaveState((prev) => ({
@@ -97,22 +103,17 @@ export function IdentificationProvider({
   }, []);
 
   const persistItem = useCallback(async (item: IdentificationItem) => {
-    if (!user) return;
+    const currentUser = userRef.current;
+    if (!currentUser) return;
 
     updateAutoSaveState(item.id, { status: 'saving', message: 'Menyimpan...' });
 
     try {
-      await saveIdentificationAnswer(user.uid, comicId, item.targetIndex, {
+      await saveIdentificationAnswer(currentUser.uid, comicId, item.targetIndex, {
         selectedAnswer: item.selectedOptionId,
         note: item.note,
         reason: item.reason,
       });
-
-      if (item.reason.trim().length > 0) {
-        identification.saveReason(item.id);
-      } else if (item.selectedOptionId) {
-        identification.save(item.id);
-      }
 
       updateAutoSaveState(item.id, { status: 'saved', message: '✓ Tersimpan' });
       window.setTimeout(() => {
@@ -120,20 +121,22 @@ export function IdentificationProvider({
       }, 2000);
     } catch (error) {
       console.error(
-        `[IdentificationContext] auto-save gagal — userId: ${user?.uid}, comicId: ${comicId}, itemId: ${item.id}`,
+        `[IdentificationContext] auto-save gagal — userId: ${currentUser.uid}, comicId: ${comicId}, itemId: ${item.id}`,
         error
       );
       updateAutoSaveState(item.id, { status: 'error', message: 'Koneksi terputus, mencoba menyimpan kembali...' });
       pendingSaveRef.current.add(item.id);
       if (saveTimeout.current) window.clearTimeout(saveTimeout.current);
       saveTimeout.current = window.setTimeout(() => {
-        pendingSaveRef.current.forEach((id) => {
-          const retryItem = identification.state.items.find((i) => i.id === id);
+        const retryIds = Array.from(pendingSaveRef.current);
+        pendingSaveRef.current.clear();
+        retryIds.forEach((id) => {
+          const retryItem = stateRef.current.items.find((i) => i.id === id);
           if (retryItem) void persistItem(retryItem);
         });
       }, 1000);
     }
-  }, [comicId, identification, updateAutoSaveState, user]);
+  }, [comicId, updateAutoSaveState]);
 
   const scheduleAutoSave = useCallback((itemId: string) => {
     pendingSaveRef.current.add(itemId);
@@ -142,11 +145,11 @@ export function IdentificationProvider({
       const pendingItems = Array.from(pendingSaveRef.current);
       pendingSaveRef.current.clear();
       pendingItems.forEach((id) => {
-        const item = identification.state.items.find((i) => i.id === id);
+        const item = stateRef.current.items.find((i) => i.id === id);
         if (item) void persistItem(item);
       });
     }, 500);
-  }, [identification.state.items, persistItem]);
+  }, [persistItem]);
 
   useEffect(() => {
     if (!user) return;

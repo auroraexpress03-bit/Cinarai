@@ -16,7 +16,7 @@ export default function AnswerOptions({
   onSelect,
 }: AnswerOptionsProps) {
   return (
-    <ul className="flex flex-col gap-3" role="radiogroup">
+    <ul className="flex flex-col gap-2" role="radiogroup">
       {options.map((option) => {
         const isSelected = option.id === selectedOptionId;
         return (
@@ -28,7 +28,7 @@ export default function AnswerOptions({
               disabled={isSaved}
               onClick={() => onSelect(option.id)}
               className={[
-                'w-full flex items-center gap-4 rounded-2xl px-5 py-5 text-left transition-all min-h-[72px] active:scale-[0.98]',
+                'w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all active:scale-[0.98]',
                 isSaved && isSelected
                   ? 'bg-accent-50 border-2 border-accent-400 cursor-default'
                   : isSaved
@@ -38,19 +38,18 @@ export default function AnswerOptions({
                       : 'bg-white border-2 border-neutral-200 hover:border-primary-300 hover:bg-primary-50',
               ].join(' ')}
             >
-              {/* Radio indicator */}
               <span className={[
-                'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-[3px] transition-colors',
+                'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors',
                 isSelected && isSaved
                   ? 'border-accent-500 bg-accent-500'
                   : isSelected
                     ? 'border-primary-600 bg-primary-600'
                     : 'border-neutral-300 bg-white',
               ].join(' ')}>
-                {isSelected && <span className="h-3 w-3 rounded-full bg-white" />}
+                {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
               </span>
               <span className={[
-                'flex-1 text-base md:text-lg font-bold leading-snug',
+                'flex-1 text-base font-bold leading-snug',
                 isSaved && isSelected ? 'text-accent-800' : isSaved ? 'text-neutral-400' : isSelected ? 'text-primary-800' : 'text-neutral-700',
               ].join(' ')}>
                 {option.text}

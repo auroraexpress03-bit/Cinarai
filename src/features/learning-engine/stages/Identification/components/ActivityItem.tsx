@@ -3,7 +3,6 @@
 import type { IdentificationItem } from '../types';
 import { useIdentificationContext } from '../context/IdentificationContext';
 import AnswerOptions from './AnswerOptions';
-import NoteArea from './NoteArea';
 import ReasonArea from './ReasonArea';
 
 interface ActivityItemProps {
@@ -11,7 +10,7 @@ interface ActivityItemProps {
 }
 
 export default function ActivityItem({ item }: ActivityItemProps) {
-  const { selectOption, setNote, setReason, autoSaveState } = useIdentificationContext();
+  const { selectOption, setReason, autoSaveState } = useIdentificationContext();
 
   const isSaved = item.answerStatus === 'SAVED';
   const isReasonSaved = item.reasonStatus === 'SAVED';
@@ -19,23 +18,21 @@ export default function ActivityItem({ item }: ActivityItemProps) {
 
   return (
     <li className={[
-      'flex flex-col gap-5 rounded-3xl border-2 p-5 transition-all',
+      'flex flex-col gap-3 rounded-2xl border-2 p-4 transition-all',
       isReasonSaved
         ? 'border-accent-300 bg-accent-50'
-        : 'border-neutral-200 bg-white shadow-sm',
+        : 'border-neutral-200 bg-white',
     ].join(' ')}>
 
       {/* Nomor soal + pertanyaan */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3">
         <span className={[
-          'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-xl font-black shadow-sm',
-          isReasonSaved
-            ? 'bg-accent-500 text-white'
-            : 'bg-primary-600 text-white',
+          'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-base font-black',
+          isReasonSaved ? 'bg-accent-500 text-white' : 'bg-primary-600 text-white',
         ].join(' ')}>
           {isReasonSaved ? '✓' : item.targetIndex + 1}
         </span>
-        <p className="text-xl md:text-2xl font-black text-neutral-800 leading-snug flex-1 pt-1.5">
+        <p className="text-lg font-black text-neutral-800 leading-snug flex-1 pt-0.5">
           {item.question}
         </p>
       </div>
@@ -48,18 +45,8 @@ export default function ActivityItem({ item }: ActivityItemProps) {
         onSelect={(optionId) => selectOption(item.id, optionId)}
       />
 
-      {/* Catatan */}
-      <NoteArea
-        itemId={item.id}
-        value={item.note}
-        isSaved={isSaved}
-        onChange={setNote}
-      />
-
       {status?.message && (
-        <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-700">
-          {status.message}
-        </div>
+        <p className="text-sm font-semibold text-neutral-500 px-1">{status.message}</p>
       )}
 
       {/* Area alasan — muncul setelah jawaban disimpan */}

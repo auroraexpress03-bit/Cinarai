@@ -99,7 +99,7 @@ export function completeObserve(
   return { ...state, observe: { ...state.observe, isDone: true } };
 }
 
-/** Pilih satu opsi jawaban untuk item tertentu. */
+/** Pilih satu opsi jawaban untuk item tertentu — langsung tandai SAVED karena auto-save. */
 export function selectAnswer(
   state: IdentificationState,
   itemId: string,
@@ -109,7 +109,7 @@ export function selectAnswer(
     ...state,
     items: state.items.map((item) =>
       item.id === itemId
-        ? { ...item, selectedOptionId: optionId, answerStatus: 'ANSWERED' }
+        ? { ...item, selectedOptionId: optionId, answerStatus: 'SAVED' }
         : item
     ),
   };
@@ -193,12 +193,15 @@ export function resetIdentificationState(
 ): IdentificationState {
   return {
     ...state,
+    observe: { note: '', isDone: false },
     items: state.items.map((item) => ({
       ...item,
       status: 'PENDING',
       selectedOptionId: null,
       note: '',
       answerStatus: 'UNANSWERED',
+      reason: '',
+      reasonStatus: 'EMPTY',
     })),
     observedCount: 0,
     isComplete: false,

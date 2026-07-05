@@ -8,23 +8,19 @@ export default function IdentificationActivity() {
   const { items, isComplete } = state;
 
   return (
-    <div className="flex flex-col gap-4">
-      <ul className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-4">
         {items.map((item) => (
           <ActivityItem key={item.id} item={item} />
         ))}
       </ul>
 
       {isComplete && (
-        <div className="rounded-2xl bg-accent-500 px-5 py-5 flex items-center gap-4 mt-1">
-          <span className="text-2xl md:text-4xl flex-shrink-0">🎉</span>
-          <div className="min-w-0">
-            <p className="text-xl md:text-2xl font-black text-white leading-tight">
-              Hebat! Semua soal selesai!
-            </p>
-            <p className="text-base md:text-lg text-accent-100 mt-1 leading-snug">
-              Kamu berhasil di {lokasi}. Tekan Berikutnya!
-            </p>
+        <div className="rounded-xl bg-accent-500 px-4 py-4 flex items-center gap-3">
+          <span className="text-2xl flex-shrink-0">🎉</span>
+          <div>
+            <p className="text-lg font-black text-white leading-tight">Hebat! Semua soal selesai!</p>
+            <p className="text-sm text-accent-100">Kamu berhasil di {lokasi}. Tekan Berikutnya!</p>
           </div>
         </div>
       )}
