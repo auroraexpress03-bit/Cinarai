@@ -125,15 +125,12 @@ export default function PdfViewer({
   }, []);
 
   const pageWidth = useMemo(() => {
-    if (containerWidth <= 0) return 0;
-    return isDesktop ? Math.min(containerWidth, DESKTOP_MAX_PAGE_WIDTH) : containerWidth;
+    const base = containerWidth > 0 ? containerWidth : (isDesktop ? 800 : 360);
+    return isDesktop ? Math.min(base, DESKTOP_MAX_PAGE_WIDTH) : base;
   }, [containerWidth, isDesktop]);
 
   const renderScale = useMemo(() => Math.max(1, Math.min(2, devicePixelRatio || 1)), [devicePixelRatio]);
-  const renderWidth = useMemo(() => {
-    if (!pageWidth) return 0;
-    return Math.max(1, Math.floor(pageWidth / renderScale));
-  }, [pageWidth, renderScale]);
+  const renderWidth = useMemo(() => Math.max(1, Math.floor(pageWidth / renderScale)), [pageWidth, renderScale]);
 
   const pageKey = useMemo(() => `${page}-${Math.round(pageWidth)}-${renderScale}`, [page, pageWidth, renderScale]);
 
@@ -178,14 +175,14 @@ export default function PdfViewer({
             <div className="my-3 w-full max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="flex justify-center overflow-hidden">
                 <div className="w-full max-w-full min-w-0 overflow-hidden">
-                  {renderWidth > 0 ? (
-                    <div className="mx-auto w-full" style={{ maxWidth: pageWidth > 0 ? `${pageWidth}px` : "100%" }}>
+                  {numPages > 0 ? (
+                    <div className="mx-auto w-full" style={{ maxWidth: `${pageWidth}px` }}>
                       <PdfPage
                         key={pageKey}
                         pageNumber={page}
                         width={renderWidth}
                         scale={renderScale}
-                        loading={renderWidth > 0 ? <PdfLoading variant="skeleton" /> : null}
+                        loading={<PdfLoading variant="skeleton" />}
                       />
                     </div>
                   ) : (
