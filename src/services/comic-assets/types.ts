@@ -119,3 +119,26 @@ export interface ClassifiedQr {
   image: string;
   category: QrCategory;
 }
+
+// ── Comic metadata ────────────────────────────────────────────────────────────
+
+export interface ComicAssetEntry {
+  page: number;
+  title: string;
+  buttonLabel: string;
+  url: string;
+}
+
+export interface ComicAssetGroup {
+  model3D: ComicAssetEntry[];
+  quiz: ComicAssetEntry[];
+  video: ComicAssetEntry[];
+  website: ComicAssetEntry[];
+}
+
+export interface ComicMetadata {
+  comicId: number;
+  title: string;
+  pageCount: number;
+  assets: ComicAssetGroup;
+}

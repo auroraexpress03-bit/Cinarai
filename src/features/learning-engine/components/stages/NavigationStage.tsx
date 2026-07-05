@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
+import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
+import type { ComicAssetEntry } from '@/services/comic-assets/types';
 
 const progressSteps = [
   { label: 'Contextualization', status: '✓' },
@@ -13,8 +15,58 @@ const progressSteps = [
   { label: 'Introspection', status: 'LOCK' },
 ];
 
+const CATEGORY_ICON: Record<string, string> = {
+  model3D: '🧊',
+  video: '🎬',
+  quiz: '📝',
+  website: '🌐',
+};
+
+function AssetButton({ entry }: { entry: ComicAssetEntry }) {
+  return (
+    <div className="flex flex-col rounded-[20px] border border-neutral-200 bg-white p-4 shadow-sm">
+      <p className="text-sm font-semibold text-neutral-700">Halaman {entry.page}</p>
+      <div className="mt-auto pt-3">
+        <button
+          type="button"
+          disabled
+          className="w-full rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {entry.buttonLabel}
+        </button>
+      </div>
+      <span className="mt-2 inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-sm font-bold text-warning-700">
+        Coming Soon
+      </span>
+    </div>
+  );
+}
+
+function AssetSection({ label, icon, entries }: { label: string; icon: string; entries: ComicAssetEntry[] }) {
+  if (entries.length === 0) return null;
+  return (
+    <div className="rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-2xl">{icon}</span>
+        <h3 className="text-lg font-black text-neutral-900">{label}</h3>
+        <span className="ml-auto rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-bold text-primary-700">
+          {entries.length}
+        </span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {entries.map((entry) => (
+          <AssetButton key={`${entry.page}-${entry.url}`} entry={entry} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function NavigationStage() {
   const { comic, setCanAdvance } = useLearningEngine();
+  const metadata = useComicMetadata(comic.id);
+  const { model3D, video, quiz, website } = metadata.assets;
+  const hasAnyAsset = model3D.length > 0 || video.length > 0 || quiz.length > 0 || website.length > 0;
 
   useEffect(() => {
     setCanAdvance(true);
@@ -82,30 +134,21 @@ export default function NavigationStage() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="flex min-h-[260px] flex-col rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-black text-neutral-900">Eksplorasi Bangun Ruang</h3>
-            <span className="text-2xl">🧊</span>
-          </div>
-          <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-            Jelajahi bentuk dan karakteristik bangun ruang melalui visual sederhana.
-          </p>
-          <div className="mt-auto pt-4">
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              🧊 Lihat Model 3D
-            </button>
-          </div>
-          <span className="mt-3 inline-flex w-fit rounded-full bg-warning-100 px-3 py-1 text-sm font-bold text-warning-700">
-            Coming Soon
-          </span>
+      {hasAnyAsset ? (
+        <div className="flex flex-col gap-4">
+          <AssetSection label="Model 3D" icon={CATEGORY_ICON.model3D} entries={model3D} />
+          <AssetSection label="Video" icon={CATEGORY_ICON.video} entries={video} />
+          <AssetSection label="Kuis" icon={CATEGORY_ICON.quiz} entries={quiz} />
+          <AssetSection label="Website" icon={CATEGORY_ICON.website} entries={website} />
         </div>
+      ) : (
+        <div className="rounded-[24px] border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500 shadow-sm">
+          Belum ada aset interaktif untuk komik ini.
+        </div>
+      )}
 
-        <div className="flex min-h-[260px] flex-col rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="flex min-h-[200px] flex-col rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-black text-neutral-900">QR Model</h3>
             <span className="text-2xl">📱</span>
@@ -127,7 +170,7 @@ export default function NavigationStage() {
           </span>
         </div>
 
-        <div className="flex min-h-[260px] flex-col rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
+        <div className="flex min-h-[200px] flex-col rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-black text-neutral-900">AI Assistant</h3>
             <span className="text-2xl">🤖</span>
@@ -138,7 +181,7 @@ export default function NavigationStage() {
           <textarea
             disabled
             placeholder="Tulis pertanyaanmu..."
-            className="mt-4 min-h-[96px] w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-500 outline-none"
+            className="mt-4 min-h-[80px] w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-500 outline-none"
           />
           <div className="mt-3">
             <button

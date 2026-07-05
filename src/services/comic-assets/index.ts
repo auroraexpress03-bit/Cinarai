@@ -8,6 +8,9 @@ export type {
   PipelineResult,
   QrClassifierResult,
   ClassifiedQr,
+  ComicAssetEntry,
+  ComicAssetGroup,
+  ComicMetadata,
   ComicAssetRepository,
   QrLinkRepository,
   ComicAssetPipeline,
@@ -17,3 +20,4 @@ export type {
 export { ComicAssetRepositoryImpl, QrLinkRepositoryImpl } from './comicAssetRepository';
 export { ComicAssetPipelineImpl, makePipelineResult, makeQrLink } from './comicAssetPipeline';
 export { QrClassifierImpl, classifyQR, classifyComic } from './qrClassifier';
+export { generateComicMetadata, generateAllMetadata } from './metadataGenerator';
