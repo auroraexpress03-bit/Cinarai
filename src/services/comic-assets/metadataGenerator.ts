@@ -32,7 +32,6 @@ function toEntry(qr: ClassifiedQr): ComicAssetEntry | null {
     buttonLabel: BUTTON_LABELS[qr.category],
     provider,
     url: qr.value,
-    qrUrl: qr.qrUrl,
   };
 }
 
