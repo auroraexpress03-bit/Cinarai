@@ -129,7 +129,6 @@ export default function ObservasiClient({ comicId }: ObservasiClientProps) {
       className="flex min-h-dvh flex-col bg-[#f0f7ff]"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      {/* Header */}
       <header
         className="flex-shrink-0 border-b border-neutral-100 bg-white shadow-sm"
         style={{ paddingTop: 'max(0px, env(safe-area-inset-top))' }}
@@ -153,11 +152,8 @@ export default function ObservasiClient({ comicId }: ObservasiClientProps) {
         </div>
       </header>
 
-      {/* Body */}
       <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f0f7ff]">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-3 pb-24 pt-3 sm:px-4 md:max-w-3xl md:px-6 md:pb-28 md:pt-5 lg:px-8 lg:pb-32 lg:pt-6">
-
-          {/* Hero card */}
           <div className="rounded-[24px] bg-white px-4 py-6 text-center shadow-sm sm:px-6 sm:py-8 animate-fade-in-up">
             <div className="mb-4 text-3xl sm:text-5xl">🔭</div>
             <h2 className="text-xl font-black leading-snug text-neutral-900 sm:text-2xl">Observasi</h2>
@@ -167,7 +163,6 @@ export default function ObservasiClient({ comicId }: ObservasiClientProps) {
             </p>
           </div>
 
-          {/* Meta */}
           <div className="rounded-[24px] bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5 animate-fade-in-up">
             <div className="mb-3 flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-3 py-1.5 text-sm font-bold text-primary-700">
@@ -181,7 +176,6 @@ export default function ObservasiClient({ comicId }: ObservasiClientProps) {
             <p className="mt-2 text-sm leading-relaxed text-neutral-500 sm:text-base">{comic.subtitle}</p>
           </div>
 
-          {/* Konten observasi */}
           <div className="overflow-hidden rounded-[24px] border border-neutral-200 bg-white shadow-sm animate-fade-in-up">
             <div className="flex items-start gap-3 border-b border-neutral-100 px-4 py-4 sm:px-5 sm:py-5">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-100 text-2xl">
@@ -302,7 +296,6 @@ export default function ObservasiClient({ comicId }: ObservasiClientProps) {
               </div>
             </div>
           </div>
-
         </div>
       </main>
     </div>
