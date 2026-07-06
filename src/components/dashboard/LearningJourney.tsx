@@ -250,11 +250,7 @@ function CtaButton({
   const continueHref = `/comic/${comicId}/learn`;
 
   if (isComingSoon) {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-xl bg-warning-100 px-4 py-2 text-xs font-bold text-warning-700 cursor-not-allowed">
-        🚧 Segera Hadir
-      </span>
-    );
+    return null;
   }
   if (isLocked) {
     return (

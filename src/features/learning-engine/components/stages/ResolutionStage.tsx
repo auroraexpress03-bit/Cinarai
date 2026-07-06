@@ -103,22 +103,6 @@ export default function ResolutionStage() {
         </div>
       </div>
 
-      {/* Feedback AI placeholder */}
-      <div className="overflow-hidden rounded-[24px] bg-white shadow-sm">
-        <div className="border-b border-neutral-100 px-4 py-4 sm:px-5">
-          <h3 className="text-base font-black text-neutral-700 sm:text-lg">🤖 Feedback AI</h3>
-        </div>
-        <div className="flex items-start gap-3 px-4 py-5 sm:px-5 sm:gap-4">
-          <span className="flex-shrink-0 text-2xl sm:text-3xl">🚧</span>
-          <div>
-            <p className="text-base font-black text-neutral-700 sm:text-lg">Segera Hadir!</p>
-            <p className="mt-1 text-sm leading-relaxed text-neutral-400 sm:text-base">
-              Setelah kamu menulis jawaban, AI akan memberikan umpan balik dan saran perbaikan.
-            </p>
-          </div>
-        </div>
-      </div>
-
     </div>
   );
 }

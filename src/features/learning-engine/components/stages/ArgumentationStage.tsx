@@ -58,23 +58,6 @@ export default function ArgumentationStage() {
         </ul>
       </div>
 
-      {/* Aktivitas placeholder */}
-      <div className="overflow-hidden rounded-[24px] bg-white shadow-sm">
-        <div className="border-b border-neutral-100 px-4 py-4 sm:px-5">
-          <h3 className="text-base font-black text-neutral-700 sm:text-lg">🎯 Aktivitas Argumentasi</h3>
-        </div>
-        <div className="flex flex-col items-center gap-3 px-4 py-8 text-center sm:px-5 sm:py-10">
-          <span className="text-2xl sm:text-4xl">🚧</span>
-          <p className="text-base font-black text-neutral-700 sm:text-lg">Segera Hadir!</p>
-          <p className="max-w-xs text-sm leading-relaxed text-neutral-400 sm:text-base">
-            Aktivitas diskusi dan argumentasi interaktif akan segera tersedia di sini.
-          </p>
-          <span className="rounded-full bg-warning-100 px-4 py-2 text-sm md:text-base font-bold text-warning-700">
-            Dalam Pengembangan
-          </span>
-        </div>
-      </div>
-
     </div>
   );
 }
