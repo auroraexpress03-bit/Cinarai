@@ -25,7 +25,7 @@ import {
   type WhereFilterOp,
   type WithFieldValue,
 } from 'firebase/firestore';
-import { getFirebaseFirestore } from '@/lib/firebase/client';
+import { firestore } from '@/lib/firebase/client';
 import type { FirestoreCollectionMap, UserDocument } from '@/types/firestore';
 
 export const FIRESTORE_COLLECTIONS = {
@@ -76,7 +76,7 @@ const firestoreConverter = <TDocument extends DocumentData>(): FirestoreDataConv
 const getTypedCollection = <TCollectionName extends FirestoreCollectionName>(
   collectionName: TCollectionName
 ) => {
-  return collection(getFirebaseFirestore(), collectionName).withConverter(
+  return collection(firestore, collectionName).withConverter(
     firestoreConverter<FirestoreCollectionMap[TCollectionName]>()
   );
 };
@@ -85,7 +85,7 @@ const getTypedDoc = <TCollectionName extends FirestoreCollectionName>(
   collectionName: TCollectionName,
   docId: string
 ) => {
-  return doc(getFirebaseFirestore(), collectionName, docId).withConverter(
+  return doc(firestore, collectionName, docId).withConverter(
     firestoreConverter<FirestoreCollectionMap[TCollectionName]>()
   );
 };

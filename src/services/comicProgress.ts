@@ -10,7 +10,7 @@ import {
   query,
   type Unsubscribe,
 } from 'firebase/firestore';
-import { getFirebaseFirestore } from '@/lib/firebase/client';
+import { firestore } from '@/lib/firebase/client';
 import { getAllComics } from '@/lib/comicRepository';
 import { createInitialProgressState, restoreProgressState } from '@/lib/progressEngine';
 import { deleteFirestoreDocument, queryFirestoreCollection } from '@/services/firestore';
@@ -40,12 +40,12 @@ function comicDocId(comicId: number): string {
 
 /** Firestore ref: users/{uid}/progress/comic-{comicId} */
 function progressDocRef(userId: string, comicId: number) {
-  return doc(getFirebaseFirestore(), 'users', userId, 'progress', comicDocId(comicId));
+  return doc(firestore, 'users', userId, 'progress', comicDocId(comicId));
 }
 
 /** Firestore ref: users/{uid}/progress (collection) */
 function progressColRef(userId: string) {
-  return collection(getFirebaseFirestore(), 'users', userId, 'progress');
+  return collection(firestore, 'users', userId, 'progress');
 }
 
 // ─── Mapping ──────────────────────────────────────────────────────────────────
