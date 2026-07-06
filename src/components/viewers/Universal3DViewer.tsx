@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { toDataURL } from 'qrcode';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
 
@@ -89,6 +90,7 @@ export default function Universal3DViewer({
 
   const [isPreparing, setIsPreparing] = useState(true);
   const [isQrOpen, setIsQrOpen] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const isValidUrl = isValidHttpUrl(resolvedUrl);
   const providerInfo = useMemo(() => detectProvider(resolvedUrl), [resolvedUrl]);
   const metadata = useComicMetadata(Number(resolvedComicId) || 0);
@@ -100,14 +102,25 @@ export default function Universal3DViewer({
     }
     return metadata.assets.model3D[0];
   }, [currentPage, metadata]);
-  const qrPayload = heroEntry?.qrUrl?.trim() ?? '';
-  const showQrButton = Boolean(qrPayload);
+  const qrSource = heroEntry?.url?.trim() ?? '';
+  const showQrButton = Boolean(qrSource);
 
   useEffect(() => {
     setIsPreparing(true);
     const timer = window.setTimeout(() => setIsPreparing(false), 180);
     return () => window.clearTimeout(timer);
   }, [resolvedUrl, providerInfo.embedUrl]);
+
+  useEffect(() => {
+    if (!qrSource) {
+      setQrDataUrl('');
+      return;
+    }
+
+    toDataURL(qrSource, { margin: 1, scale: 10 })
+      .then((dataUrl) => setQrDataUrl(dataUrl))
+      .catch(() => setQrDataUrl(''));
+  }, [qrSource]);
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -251,7 +264,7 @@ export default function Universal3DViewer({
 
               <div className="mt-5 flex flex-col items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
                 <img
-                  src={qrPayload}
+                  src={qrDataUrl || undefined}
                   alt={`QR untuk ${resolvedTitle}`}
                   className="h-60 w-60 rounded-2xl bg-white p-3 object-contain"
                 />
