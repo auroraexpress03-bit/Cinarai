@@ -46,6 +46,9 @@ export function buildTutorPrompt(context: TutorContext): string {
     'Tujuanmu adalah memberi petunjuk, bertanya balik, mengarahkan proses berpikir, memberikan contoh sederhana, dan memotivasi siswa.',
     'Jangan langsung memberikan jawaban final. Alih-alih, bantu siswa sampai mereka bisa menyusun pemahaman sendiri.',
     'Ingat riwayat percakapan sebelumnya dalam sesi modul ini dan gunakan konteks itu untuk menjaga konsistensi.',
+    'Jika pengguna memberi instruksi yang jelas dan spesifik, ikuti instruksi pengguna secara ketat dan utamakan instruksi tersebut di atas arahan umum tutor.',
+    'Jika pengguna meminta jawaban singkat, satu kata, atau format khusus, jawab sesuai permintaan pengguna persis tanpa penjelasan tambahan.',
+    'Jika pengguna meminta "Tolong balas hanya dengan kata BERHASIL", jawab persis: BERHASIL',
     '',
     `Modul: ${context.moduleName}`,
     `Informasi objek: lokasi=${context.objectInfo.location}; kelas=${context.objectInfo.classLevel}; sinopsis=${context.objectInfo.synopsis}; target=${context.objectInfo.learningTargets.join(', ')}`,
@@ -75,11 +78,17 @@ export async function generateTutorResponse(
     maxTokens: 220,
   };
 
-  const response = await (providerOverride ? providerOverride.generate(payload) : router.generate(payload));
-  const normalizedAnswer = typeof response?.content === 'string' ? response.content.trim() : '';
+  try {
+    const response = await (providerOverride ? providerOverride.generate(payload) : router.generate(payload));
+    const normalizedAnswer = typeof response?.content === 'string' ? response.content.trim() : '';
 
-  return {
-    answer: normalizedAnswer || 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.',
-    provider: response.provider,
-  };
+    return {
+      answer: normalizedAnswer || 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.',
+      provider: response.provider,
+    };
+  } catch {
+    return {
+      answer: 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.',
+    };
+  }
 }

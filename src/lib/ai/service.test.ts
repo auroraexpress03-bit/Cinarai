@@ -52,3 +52,21 @@ test('generateTutorResponse falls back to a friendly message when AI returns no 
 
   assert.equal(response.answer, 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.');
 });
+
+test('buildTutorPrompt prioritizes explicit short-answer instructions from the user', () => {
+  const prompt = buildTutorPrompt({
+    moduleName: 'Bangun Ruang',
+    identification: [],
+    objectInfo: {
+      location: 'Kelas',
+      classLevel: '5',
+      synopsis: 'Belajar bangun ruang',
+      learningTargets: ['Mengamati'],
+    },
+    observationAnswers: {},
+    question: 'Tolong balas hanya dengan kata BERHASIL',
+  });
+
+  assert.match(prompt, /Tolong balas hanya dengan kata BERHASIL/i);
+  assert.match(prompt, /ikuti instruksi pengguna secara ketat/i);
+});
