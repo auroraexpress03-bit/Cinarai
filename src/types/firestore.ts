@@ -57,12 +57,16 @@ export interface ComicProgressDocument {
 }
 
 export interface ReflectionDocument extends FirestoreBaseDocument {
-  userId: string;
+  userId?: string;
+  studentId?: string;
   moduleId?: string;
   comicId?: string;
-  prompt: string;
-  response: string;
-  submittedAt: FirestoreTimestamp;
+  prompt?: string;
+  response?: string;
+  jawaban?: Record<string, string>;
+  timestamp?: FirestoreTimestamp | FieldValue;
+  status?: 'completed' | string;
+  submittedAt?: FirestoreTimestamp | FieldValue;
 }
 
 export interface LeaderboardDocument extends FirestoreBaseDocument {

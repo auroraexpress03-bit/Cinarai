@@ -183,6 +183,19 @@ export default function NavigationStage() {
           {slide.entries.map((entry) => (
             <AssetRow key={`${entry.page}-${entry.url}`} entry={entry} onOpen={handleOpenModel3D} />
           ))}
+
+          <div className="rounded-2xl border border-primary-100 bg-primary-50/80 p-4 shadow-sm">
+            <p className="text-sm font-semibold text-primary-800">
+              Kamu sudah melihat model 3D atau QR? Lanjutkan ke halaman observasi untuk menuliskan temuanmu.
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push(`/observasi/${comic.id}`)}
+              className="mt-3 flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-primary-600 px-4 text-base font-semibold text-white transition hover:bg-primary-700"
+            >
+              📝 Lanjut ke Observasi
+            </button>
+          </div>
         </div>
       )}
 
