@@ -332,94 +332,133 @@ export default function NavigationStage() {
           </div>
         </section>
 
-        <aside className="rounded-[24px] border border-primary-100 bg-gradient-to-br from-white via-primary-50 to-secondary-50 p-4 shadow-sm sm:p-5">
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative flex w-full flex-col items-center">
-              <div className="mb-2 rounded-full border border-primary-200 bg-white/90 px-4 py-2 text-center text-sm font-semibold text-primary-700 shadow-sm">
-                Tanyakan apa saja tentang bangun ruang atau Candi Jawi!
-              </div>
-              <div
-                className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white/80 p-2 shadow-[0_12px_36px_rgba(43,140,255,0.18)]"
-                style={{
-                  animation: isResponding ? 'aiBlink 1.2s ease-in-out infinite' : 'aiFloat 2s ease-in-out infinite',
-                }}
-              >
-                <img src="/images/ai/robot.svg" alt="AI Assistant robot" className="h-20 w-20" />
-              </div>
+        <aside
+          aria-label="AI Assistant"
+          className="flex flex-col gap-0 overflow-hidden rounded-[24px] border border-primary-100 bg-gradient-to-b from-[#F5FBFF] to-white shadow-[0_8px_32px_rgba(47,128,237,0.10)]"
+        >
+          {/* Robot hero area */}
+          <div className="relative flex flex-col items-center bg-gradient-to-b from-[#EBF5FF] to-[#F5FBFF] px-5 pb-4 pt-6">
+            {/* Bubble chat */}
+            <div className="relative mb-3 max-w-[240px] rounded-[18px] border border-primary-100 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-snug text-primary-700 shadow-[0_4px_16px_rgba(47,128,237,0.12)]">
+              Tanyakan apa saja tentang bangun ruang atau Candi Jawi!
+              {/* Bubble tail */}
+              <span className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 h-0 w-0 border-l-[9px] border-r-[9px] border-t-[9px] border-l-transparent border-r-transparent border-t-white" />
+              <span className="absolute -bottom-[11px] left-1/2 -translate-x-1/2 h-0 w-0 border-l-[10px] border-r-[10px] border-t-[10px] border-l-transparent border-r-transparent border-t-primary-100" style={{ zIndex: -1 }} />
             </div>
 
-            <div className="w-full rounded-[22px] border border-primary-100 bg-white/90 p-3 shadow-sm">
-              <div className="flex flex-wrap gap-2">
-                {quickQuestions.map((q) => (
-                  <button key={q} type="button" onClick={() => void handleSend(q)} disabled={isResponding} className="rounded-full border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-primary-700">
-                    {q}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-3">
-                <textarea
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault();
-                      void handleSend();
-                    }
-                  }}
-                  rows={3}
-                  placeholder="Tulis pertanyaanmu..."
-                  className="w-full resize-none rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700"
+            {/* Robot */}
+            <button
+              type="button"
+              aria-label="AI Assistant"
+              className="group mt-1 cursor-pointer select-none rounded-full border-0 bg-transparent p-0 focus:outline-none"
+            >
+              <div className={[
+                'flex h-28 w-28 items-center justify-center rounded-full bg-white/70 shadow-[0_12px_40px_rgba(47,128,237,0.18)] transition-transform duration-150 ease-out',
+                'group-hover:scale-105 group-active:scale-95',
+                isResponding ? 'animate-ai-blink' : 'animate-ai-float',
+              ].join(' ')}>
+                <img
+                  src="/images/ai/robot.svg"
+                  alt="Robot AI CINARAI"
+                  width={96}
+                  height={96}
+                  className="h-24 w-24 drop-shadow-md"
                 />
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-xs text-neutral-500">
-                    {isResponding ? 'Robot sedang berpikir...' : 'Robot siap membantu'}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void handleSend()}
-                    disabled={isResponding || !draft.trim()}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
-                    aria-label="Kirim pertanyaan"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
-                      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                </div>
               </div>
+            </button>
 
-              {aiError && (
-                <div className="mt-3 rounded-2xl border border-error-200 bg-error-50 px-4 py-3 text-sm font-semibold text-error-700">
-                  Terjadi error pada layanan AI: {aiError}
-                </div>
-              )}
+            {/* Status badge */}
+            <div className="mt-3 flex items-center gap-1.5">
+              <span className={['h-2 w-2 rounded-full', isResponding ? 'animate-pulse bg-secondary-500' : 'bg-accent-500'].join(' ')} />
+              <span className="text-xs font-semibold text-neutral-500">
+                {isResponding ? 'Sedang berpikir...' : 'Siap membantu!'}
+              </span>
             </div>
+          </div>
+
+          {/* Chat + input area */}
+          <div className="flex flex-col gap-3 p-4">
+            {/* Chat messages */}
+            {messages.length > 0 && (
+              <div className="flex max-h-48 flex-col gap-2 overflow-y-auto pr-1">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={['flex', msg.role === 'user' ? 'justify-end' : 'justify-start'].join(' ')}
+                  >
+                    <div className={[
+                      'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
+                      msg.role === 'user'
+                        ? 'rounded-br-sm bg-primary-600 text-white'
+                        : 'rounded-bl-sm border border-primary-100 bg-[#F5FBFF] text-neutral-800',
+                    ].join(' ')}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {isResponding && (
+                  <div className="flex justify-start">
+                    <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm border border-primary-100 bg-[#F5FBFF] px-4 py-3">
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-primary-400" style={{ animationDelay: '0ms' }} />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-primary-400" style={{ animationDelay: '150ms' }} />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-primary-400" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Quick questions */}
+            <div className="flex flex-wrap gap-1.5">
+              {quickQuestions.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => void handleSend(q)}
+                  disabled={isResponding}
+                  className="rounded-full border border-primary-200 bg-white px-3 py-1.5 text-xs font-semibold text-primary-700 shadow-sm transition hover:border-primary-400 hover:bg-primary-50 disabled:opacity-50"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+
+            {/* Input row */}
+            <div className="flex items-end gap-2">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    void handleSend();
+                  }
+                }}
+                rows={2}
+                placeholder="Tulis pertanyaanmu..."
+                className="flex-1 resize-none rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+              />
+              <button
+                type="button"
+                onClick={() => void handleSend()}
+                disabled={isResponding || !draft.trim()}
+                className="mb-0.5 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary-600 text-white shadow-[0_4px_16px_rgba(47,128,237,0.30)] transition hover:bg-primary-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:shadow-none"
+                aria-label="Kirim pertanyaan"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            {aiError && (
+              <div className="rounded-2xl border border-error-200 bg-error-50 px-4 py-3 text-sm font-semibold text-error-700">
+                Terjadi error: {aiError}
+              </div>
+            )}
           </div>
         </aside>
       </div>
-
-      <style jsx global>{`
-        @keyframes aiFloat {
-          0%,
-          100% {
-            transform: translateY(-4px);
-          }
-          50% {
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes aiBlink {
-          0%,
-          100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.03);
-          }
-        }
-      `}</style>
     </div>
   );
 }

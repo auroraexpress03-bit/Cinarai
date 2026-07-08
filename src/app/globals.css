@@ -105,6 +105,24 @@ a, button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ── AI Robot animations ───────────────────────────────────────────────── */
+@keyframes aiFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-7px); }
+}
+.animate-ai-float {
+  animation: aiFloat 3s ease-in-out infinite;
+}
+
+@keyframes aiBlink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.08); }
+}
+.animate-ai-blink {
+  animation: aiBlink 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
 /* ── PoC overlay animations ────────────────────────────────────────────── */
 @keyframes pocOverlayIn {
   from { opacity: 0; }
