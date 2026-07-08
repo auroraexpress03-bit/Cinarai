@@ -68,6 +68,35 @@ test('skips providers that do not have an API key configured', () => {
   }
 });
 
+test('createDefault uses the requested provider priority order', () => {
+  const previousEnv = {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GROQ_API_KEY: process.env.GROQ_API_KEY,
+    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  };
+
+  process.env.GEMINI_API_KEY = 'gemini-key';
+  process.env.OPENAI_API_KEY = 'openai-key';
+  process.env.GROQ_API_KEY = 'groq-key';
+  process.env.OPENROUTER_API_KEY = 'openrouter-key';
+
+  try {
+    const router = AiRouter.createDefault();
+    const providers = (router as unknown as { providers: AiProvider[] }).providers;
+
+    assert.deepEqual(providers.map((provider) => provider.name), ['gemini', 'openai', 'groq', 'openrouter']);
+  } finally {
+    Object.entries(previousEnv).forEach(([key, value]) => {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    });
+  }
+});
+
 test('returns a friendly error when every provider fails', async () => {
   const router = new AiRouter([
     new StubProvider('gemini', 'timeout'),
@@ -80,7 +109,7 @@ test('returns a friendly error when every provider fails', async () => {
     () => router.generate({ prompt: 'Halo' }),
     (error: unknown) => {
       assert.ok(error instanceof AiRouterError);
-      assert.match(error.message, /maaf/i);
+      assert.match(error.message, /semua provider ai gagal/i);
       assert.equal(error.logs.length, 4);
       return true;
     },

@@ -92,7 +92,10 @@ export async function generateTutorResponse(
   };
 
   try {
-    const response = await (providerOverride ? providerOverride.generate(payload) : router.generate(payload));
+    const routingRouter = providerOverride
+      ? new AiRouter([{ name: 'gemini', generate: providerOverride.generate }])
+      : router;
+    const response = await routingRouter.generate(payload);
     const normalizedAnswer = typeof response?.content === 'string' ? response.content.trim() : '';
 
     if (!normalizedAnswer) {

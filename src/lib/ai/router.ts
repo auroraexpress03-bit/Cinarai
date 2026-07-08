@@ -11,9 +11,12 @@ const PROVIDER_ENV_KEYS: Record<AiProviderName, string> = {
   openai: 'OPENAI_API_KEY',
 };
 
-const RETRYABLE_STATUS_CODES = [429, 500, 502, 503, 504];
-const RETRYABLE_ERROR_PATTERNS = [/quota/i, /timeout/i, /network/i, /rate limit/i, /rate-limit/i, /too many requests/i, /429/i, /5\d\d/i];
-const NON_RETRYABLE_ERROR_PATTERNS = [/prompt/i, /invalid/i, /bad request/i, /400/i, /401/i, /403/i, /404/i, /unsupported/i, /format/i, /malformed/i];
+const PROVIDER_DISPLAY_NAMES: Record<AiProviderName, string> = {
+  gemini: 'Gemini',
+  groq: 'Groq',
+  openrouter: 'OpenRouter',
+  openai: 'OpenAI',
+};
 
 export interface AiRouterLogEntry {
   provider: AiProviderName;
@@ -40,9 +43,9 @@ export class AiRouter {
   static createDefault(configs: Partial<Record<AiProviderName, AiProviderConfig>> = {}): AiRouter {
     const providers: AiProvider[] = [
       this.createProviderIfConfigured('gemini', configs.gemini),
+      this.createProviderIfConfigured('openai', configs.openai),
       this.createProviderIfConfigured('groq', configs.groq),
       this.createProviderIfConfigured('openrouter', configs.openrouter),
-      this.createProviderIfConfigured('openai', configs.openai),
     ].filter((provider): provider is AiProvider => Boolean(provider));
 
     return new AiRouter(providers);
@@ -81,7 +84,8 @@ export class AiRouter {
     }
 
     for (const provider of this.providers) {
-      this.logger.info(`[ai-router] provider selected: ${provider.name}`);
+      const displayName = PROVIDER_DISPLAY_NAMES[provider.name] ?? provider.name;
+      this.logger.info(`[ai-router] Trying ${displayName}`);
 
       try {
         const response = await provider.generate(payload);
@@ -90,43 +94,17 @@ export class AiRouter {
         }
 
         logs.push({ provider: provider.name, status: 'success' });
-        this.logger.info(`[ai-router] provider success: ${provider.name}`);
+        this.logger.info(`[ai-router] Provider success: ${provider.name}`);
         return response;
       } catch (error) {
         const reason = error instanceof Error ? error.message : 'unknown error';
         logs.push({ provider: provider.name, status: 'failed', reason });
-        this.logger.warn(`[ai-router] provider failed: ${provider.name} | reason=${reason}`);
-
-        if (this.isRetryableError(error)) {
-          this.logger.info(`[ai-router] trying next provider after ${provider.name}`);
-          continue;
-        }
-
-        this.logger.warn(`[ai-router] stopping router because ${provider.name} failed with a non-retryable error`);
-        break;
+        this.logger.warn(`[ai-router] Provider failed: ${provider.name} | reason=${reason}`);
       }
     }
 
-    const friendlyMessage =
-      'Maaf, layanan AI sedang tidak tersedia saat ini. Silakan coba lagi sebentar lagi.';
+    this.logger.warn('[ai-router] All providers failed.');
 
-    throw new AiRouterError(friendlyMessage, logs);
-  }
-
-  private isRetryableError(error: unknown): boolean {
-    const reason = error instanceof Error ? error.message : String(error);
-    const statusCode = typeof (error as { statusCode?: unknown }).statusCode === 'number'
-      ? (error as { statusCode: number }).statusCode
-      : undefined;
-
-    if (statusCode && RETRYABLE_STATUS_CODES.includes(statusCode)) {
-      return true;
-    }
-
-    if (NON_RETRYABLE_ERROR_PATTERNS.some((pattern) => pattern.test(reason))) {
-      return false;
-    }
-
-    return RETRYABLE_ERROR_PATTERNS.some((pattern) => pattern.test(reason));
+    throw new AiRouterError('Semua provider AI gagal.', logs);
   }
 }
