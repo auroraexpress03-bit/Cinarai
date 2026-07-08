@@ -5,22 +5,34 @@ import type { AiProvider, AiRequestPayload, AiResponse } from './provider';
 
 class StubProvider implements AiProvider {
   public readonly name: 'gemini' | 'groq' | 'openrouter' | 'openai';
-  private readonly behavior: 'success' | 'quota' | 'timeout' | 'network' | 'rate-limit' | 'generic';
+  private readonly behavior: 'success' | 'quota' | 'timeout' | 'network' | 'rate-limit' | 'generic' | 'hang';
   private readonly content: string;
+  private readonly delayMs: number;
 
   constructor(
     name: 'gemini' | 'groq' | 'openrouter' | 'openai',
-    behavior: 'success' | 'quota' | 'timeout' | 'network' | 'rate-limit' | 'generic',
+    behavior: 'success' | 'quota' | 'timeout' | 'network' | 'rate-limit' | 'generic' | 'hang',
     content = 'ok',
+    delayMs = 0,
   ) {
     this.name = name;
     this.behavior = behavior;
     this.content = content;
+    this.delayMs = delayMs;
   }
 
   async generate(_payload: AiRequestPayload): Promise<AiResponse> {
+    if (this.delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, this.delayMs));
+    }
+
     if (this.behavior === 'success') {
       return { provider: this.name, content: this.content };
+    }
+
+    if (this.behavior === 'hang') {
+      // Never resolves — simulates a provider that hangs indefinitely
+      await new Promise<never>(() => {});
     }
 
     throw new Error(this.behavior);
@@ -111,6 +123,79 @@ test('returns a friendly error when every provider fails', async () => {
       assert.ok(error instanceof AiRouterError);
       assert.match(error.message, /seluruh layanan ai sedang tidak tersedia/i);
       assert.equal(error.logs.length, 4);
+      return true;
+    },
+  );
+});
+
+test('falls back to next provider when first provider times out', async () => {
+  // Use a very short timeout so the test runs fast
+  const SHORT_TIMEOUT = 80;
+  const router = new AiRouter(
+    [
+      // hangs indefinitely — will be killed by timeout
+      new StubProvider('gemini', 'hang'),
+      new StubProvider('openai', 'success', 'fallback after timeout'),
+    ],
+    console,
+    SHORT_TIMEOUT,
+  );
+
+  const response = await router.generate({ prompt: 'Halo' });
+
+  assert.equal(response.provider, 'openai');
+  assert.equal(response.content, 'fallback after timeout');
+});
+
+test('logs timeout with provider name, elapsed time, and reason', async () => {
+  const SHORT_TIMEOUT = 80;
+  const logs: Array<{ level: string; args: unknown[] }> = [];
+  const mockLogger = {
+    info:  (...args: unknown[]) => logs.push({ level: 'info',  args }),
+    warn:  (...args: unknown[]) => logs.push({ level: 'warn',  args }),
+    error: (...args: unknown[]) => logs.push({ level: 'error', args }),
+  };
+
+  const router = new AiRouter(
+    [
+      new StubProvider('gemini', 'hang'),
+      new StubProvider('groq', 'success', 'ok'),
+    ],
+    mockLogger,
+    SHORT_TIMEOUT,
+  );
+
+  await router.generate({ prompt: 'Halo' });
+
+  const warnMessages = logs.filter((l) => l.level === 'warn').map((l) => String(l.args[0]));
+  assert.ok(warnMessages.some((m) => m.includes('Timeout')), 'Expected a Timeout warn log');
+  assert.ok(warnMessages.some((m) => m.includes('Gemini')), 'Expected provider name in warn log');
+  assert.ok(warnMessages.some((m) => m.includes('Elapsed')), 'Expected elapsed time in warn log');
+});
+
+test('throws AiRouterError when all providers time out', async () => {
+  const SHORT_TIMEOUT = 80;
+  const router = new AiRouter(
+    [
+      new StubProvider('gemini',     'hang'),
+      new StubProvider('openai',     'hang'),
+      new StubProvider('groq',       'hang'),
+      new StubProvider('openrouter', 'hang'),
+    ],
+    console,
+    SHORT_TIMEOUT,
+  );
+
+  await assert.rejects(
+    () => router.generate({ prompt: 'Halo' }),
+    (error: unknown) => {
+      assert.ok(error instanceof AiRouterError);
+      assert.match(error.message, /seluruh layanan ai sedang tidak tersedia/i);
+      assert.equal(error.logs.length, 4);
+      assert.ok(
+        error.logs.every((l) => l.reason?.startsWith('Timeout after')),
+        'All log entries should have a Timeout reason',
+      );
       return true;
     },
   );

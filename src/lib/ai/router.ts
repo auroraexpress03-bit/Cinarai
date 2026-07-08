@@ -4,6 +4,8 @@ import { OpenRouterProvider } from './openrouter';
 import { OpenAIProvider } from './openai';
 import type { AiProvider, AiProviderConfig, AiProviderName, AiRequestPayload, AiResponse } from './provider';
 
+const PROVIDER_TIMEOUT_MS = 8_000;
+
 const PROVIDER_ENV_KEYS: Record<AiProviderName, string> = {
   gemini: 'GEMINI_API_KEY',
   groq: 'GROQ_API_KEY',
@@ -38,6 +40,7 @@ export class AiRouter {
   constructor(
     private readonly providers: AiProvider[],
     private readonly logger: Pick<Console, 'info' | 'warn' | 'error'> = console,
+    private readonly timeoutMs: number = PROVIDER_TIMEOUT_MS,
   ) {}
 
   static createDefault(configs: Partial<Record<AiProviderName, AiProviderConfig>> = {}): AiRouter {
@@ -76,6 +79,25 @@ export class AiRouter {
     }
   }
 
+  private generateWithTimeout(
+    provider: AiProvider,
+    payload: AiRequestPayload,
+    timeoutMs: number,
+  ): Promise<AiResponse> {
+    const controller = new AbortController();
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      const id = setTimeout(() => {
+        controller.abort();
+        reject(new Error(`Timeout after ${timeoutMs}ms`));
+      }, timeoutMs);
+      // Allow Node.js to exit even if this timer is still pending
+      if (typeof id === 'object' && 'unref' in id) (id as NodeJS.Timeout).unref();
+    });
+
+    return Promise.race([provider.generate(payload), timeoutPromise]);
+  }
+
   async generate(payload: AiRequestPayload): Promise<AiResponse> {
     const logs: AiRouterLogEntry[] = [];
 
@@ -91,8 +113,10 @@ export class AiRouter {
       this.logger.info(`[AI Router] router -> ${providerLabel}`);
       this.logger.info(`[AI Router] Trying ${providerLabel}...`);
 
+      const startMs = Date.now();
+
       try {
-        const response = await provider.generate(payload);
+        const response = await this.generateWithTimeout(provider, payload, this.timeoutMs);
         if (!response?.content?.trim()) {
           throw new Error(`Provider ${provider.name} returned empty content`);
         }
@@ -105,16 +129,27 @@ export class AiRouter {
         this.logger.info(`[AI Router] router returned provider: ${providerLabel}`);
         return response;
       } catch (error) {
+        const elapsedMs = Date.now() - startMs;
         const reason = error instanceof Error ? error.message : 'unknown error';
+        const isTimeout = reason.startsWith('Timeout after');
         const statusCode = typeof (error as { statusCode?: unknown }).statusCode === 'number'
           ? (error as { statusCode: number }).statusCode
           : undefined;
+
         logs.push({ provider: provider.name, status: 'failed', reason });
-        this.logger.error(`[AI Router] Provider = ${providerLabel}`);
-        this.logger.error('[AI Router] Status = failed');
-        this.logger.error(`[AI Router] HTTP Status = ${statusCode ?? 'n/a'}`);
-        this.logger.error(`[AI Router] Message = ${reason}`);
-        this.logger.error(error);
+
+        if (isTimeout) {
+          this.logger.warn(`[AI Router] Provider = ${providerLabel}`);
+          this.logger.warn(`[AI Router] Elapsed = ${elapsedMs}ms`);
+          this.logger.warn(`[AI Router] Reason = Timeout`);
+          this.logger.warn(`[AI Router] Timeout after ${this.timeoutMs}ms`);
+        } else {
+          this.logger.error(`[AI Router] Provider = ${providerLabel}`);
+          this.logger.error('[AI Router] Status = failed');
+          this.logger.error(`[AI Router] HTTP Status = ${statusCode ?? 'n/a'}`);
+          this.logger.error(`[AI Router] Message = ${reason}`);
+          this.logger.error(error);
+        }
 
         const nextProvider = this.providers[index + 1];
         if (nextProvider) {

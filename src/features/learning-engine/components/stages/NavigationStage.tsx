@@ -140,10 +140,15 @@ export default function NavigationStage() {
 
   useEffect(() => {
     setCanAdvance(canAdvanceToArgumentation);
-    return () => {
-      unregisterSlideNav();
-    };
-  }, [canAdvanceToArgumentation, setCanAdvance, unregisterSlideNav]);
+    console.info('[Navigation] Navigation State — canAdvance:', canAdvanceToArgumentation, 'hasAskedAi:', hasAskedAi, 'hasVisitedAR:', hasOpenedAr);
+  }, [canAdvanceToArgumentation, hasAskedAi, hasOpenedAr, setCanAdvance]);
+
+  // Separate cleanup effect: unregister slide nav only on unmount.
+  // Must not be co-located with setCanAdvance — otherwise the cleanup fires
+  // on every canAdvanceToArgumentation change, not just on unmount.
+  useEffect(() => {
+    return () => { unregisterSlideNav(); };
+  }, [unregisterSlideNav]);
 
   // Auto-load Sketchfab embeds when the primary entry is a Sketchfab model
   useEffect(() => {
@@ -165,19 +170,16 @@ export default function NavigationStage() {
     const trimmed = (rawText ?? draft).trim();
     if (!trimmed || isResponding || !comic) return;
 
-    console.info('[Navigation] Question =', trimmed);
+    console.info('[Navigation] AI Request Start — question:', trimmed);
 
     const userMessage: ChatMessage = { id: Date.now(), role: 'user', content: trimmed };
     const nextMessages = [...messages, userMessage];
-    setHasAskedAi(true);
     const historyForPrompt = nextMessages.map(({ role, content }) => ({ role, content }));
 
     setMessages(nextMessages);
     setDraft('');
     setIsResponding(true);
     setAiError(null);
-
-    console.info('[Navigation] Waiting response...');
 
     try {
       console.info('[NavigationStage] Navigation -> /api/ai/chat', {
@@ -215,12 +217,16 @@ export default function NavigationStage() {
         throw new Error(payload.error ?? 'AI response was not available.');
       }
 
+      // Mark AI as asked only after a confirmed successful response.
+      // Setting this before the fetch would prematurely enable the "Lanjut" button
+      // and allow the stage to advance before the AI has actually answered (BUG 1 & 3).
+      setHasAskedAi(true);
+
+      console.info('[Navigation] AI Response Success — provider:', payload.provider, 'length:', payload.answer.length);
       console.info('[NavigationStage] Navigation received:', {
         provider: payload.provider,
         answerLength: payload.answer.length,
       });
-
-      console.info('[Navigation] Response received:', payload.answer.slice(0, 100));
 
       const assistantMessage: ChatMessage = {
         id: Date.now() + 1,
@@ -231,9 +237,7 @@ export default function NavigationStage() {
     } catch (error) {
       console.error('[NavigationStage] Gagal memanggil AI', error);
       const msg = error instanceof Error ? error.message : String(error);
-      console.error('[Navigation] Error:');
-      console.error(error instanceof Error ? error.stack : '');
-      console.error('[Navigation] Message:', msg);
+      console.error('[Navigation] Error:', msg);
       setAiError(msg);
       const fallbackMessage: ChatMessage = {
         id: Date.now() + 2,
@@ -243,8 +247,9 @@ export default function NavigationStage() {
       setMessages((prev) => [...prev, fallbackMessage]);
     } finally {
       setIsResponding(false);
+      console.info('[Navigation] Navigation State — canAdvance:', hasOpenedAr && hasAskedAi, 'hasAskedAi:', hasAskedAi, 'hasVisitedAR:', hasOpenedAr);
     }
-  }, [activeObjectName, comic, draft, isResponding, messages, primaryEntry]);
+  }, [activeObjectName, comic, draft, hasAskedAi, hasOpenedAr, isResponding, messages, primaryEntry]);
 
   function handleOpenAr(entry: ComicAssetEntry) {
     if (!isValidUrl(entry.url)) {

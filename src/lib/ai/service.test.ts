@@ -24,9 +24,9 @@ test('buildTutorPrompt includes learning context and coaching instructions', () 
 
   assert.match(prompt, /Bangun Ruang/i);
   assert.match(prompt, /identifikasi/i);
-  assert.match(prompt, /petunjuk/i);
-  assert.match(prompt, /Socratic/i);
-  assert.match(prompt, /contoh sederhana/i);
+  assert.match(prompt, /SELALU jawab pertanyaan siswa/i);
+  assert.match(prompt, /pertanyaan reflektif/i);
+  assert.match(prompt, /120 kata/i);
 });
 
 test('generateTutorResponse falls back to a friendly message when AI returns no content', async () => {
@@ -120,4 +120,31 @@ test('buildTutorPrompt includes navigation context and topic boundaries', () => 
   assert.match(prompt, /Kubus/i);
   assert.match(prompt, /Navigation/i);
   assert.match(prompt, /hanya berdasarkan/i);
+});
+
+test('buildTutorPrompt enforces answer-first rule and forbids Socratic-only responses', () => {
+  const prompt = buildTutorPrompt({
+    moduleName: 'Bangun Ruang',
+    identification: [],
+    objectInfo: {
+      location: 'Candi Jawi',
+      classLevel: '6',
+      synopsis: 'Belajar bangun ruang',
+      learningTargets: ['Mengidentifikasi bangun ruang'],
+    },
+    observationAnswers: {},
+    question: 'Apa nama bangun ruang ini?',
+    objectName: 'Kubus',
+    learningStage: 'Navigation',
+  });
+
+  // Must instruct AI to answer first
+  assert.match(prompt, /SELALU jawab pertanyaan siswa/i);
+  // Must allow a follow-up reflective question only after answering
+  assert.match(prompt, /pertanyaan reflektif/i);
+  // Must NOT contain the old Socratic-only instruction
+  assert.doesNotMatch(prompt, /Tidak langsung memberi jawaban/i);
+  assert.doesNotMatch(prompt, /pertanyaan Socratic/i);
+  // Must cap response length
+  assert.match(prompt, /120 kata/i);
 });
