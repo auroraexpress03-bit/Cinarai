@@ -32,3 +32,16 @@ export function createAiProviderConfig(overrides: Partial<AiProviderConfig> = {}
     baseUrl: overrides.baseUrl,
   };
 }
+
+export function summarizeResponseBody(body: unknown): string {
+  if (typeof body === 'string') {
+    return body.length > 400 ? `${body.slice(0, 400)}…` : body;
+  }
+
+  try {
+    const value = JSON.stringify(body);
+    return value.length > 400 ? `${value.slice(0, 400)}…` : value;
+  } catch {
+    return '[unserializable]';
+  }
+}

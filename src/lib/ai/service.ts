@@ -1,5 +1,5 @@
 import { AiRouter } from './router';
-import type { AiProvider, AiRequestPayload } from './provider';
+import type { AiProvider, AiRequestPayload, AiResponse } from './provider';
 import { buildTutorSystemPrompt } from './prompts/tutor';
 
 export interface TutorContext {
@@ -31,6 +31,11 @@ export interface TutorContext {
 export interface TutorResponse {
   answer: string;
   provider?: string;
+}
+
+interface GenerateTutorResponseOptions {
+  throwOnError?: boolean;
+  router?: Pick<AiRouter, 'generate'>;
 }
 
 export function buildTutorPrompt(context: TutorContext): string {
@@ -69,8 +74,14 @@ export function buildTutorPrompt(context: TutorContext): string {
 export async function generateTutorResponse(
   context: TutorContext,
   providerOverride?: Pick<AiProvider, 'generate'>,
-  options?: { throwOnError?: boolean },
+  options?: GenerateTutorResponseOptions,
 ): Promise<TutorResponse> {
+  console.info('[generateTutorResponse] generateTutorResponse() start');
+  console.info('[generateTutorResponse] Navigation -> generateTutorResponse()', {
+    moduleName: context.moduleName,
+    question: context.question,
+  });
+
   const router = AiRouter.createDefault();
   const payload: AiRequestPayload = {
     prompt: buildTutorPrompt(context),
@@ -92,34 +103,51 @@ export async function generateTutorResponse(
   };
 
   try {
-    const routingRouter = providerOverride
-      ? new AiRouter([{ name: 'gemini', generate: providerOverride.generate }])
-      : router;
-    const response = await routingRouter.generate(payload);
+    console.info('[generateTutorResponse] generateTutorResponse() -> router');
+    const routingRouter = options?.router
+      ? options.router
+      : providerOverride
+        ? new AiRouter([{ name: 'gemini', generate: providerOverride.generate }])
+        : router;
+    const response = await routingRouter.generate(payload) as AiResponse;
     const normalizedAnswer = typeof response?.content === 'string' ? response.content.trim() : '';
 
+    console.info('[generateTutorResponse] provider used:', response?.provider);
+    console.info('[generateTutorResponse] response length:', normalizedAnswer.length);
+    console.info('[generateTutorResponse] service returned:', {
+      provider: response?.provider,
+      answerLength: normalizedAnswer.length,
+    });
+
     if (!normalizedAnswer) {
-      const fallback = 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.';
+      const fallback = 'Seluruh layanan AI sedang tidak tersedia.';
       if (options?.throwOnError) {
         throw new Error(fallback);
       }
       return { answer: fallback };
     }
 
+    console.info('[generateTutorResponse] generateTutorResponse() end');
     return {
       answer: normalizedAnswer,
       provider: response.provider,
     };
   } catch (error) {
+    console.info('[generateTutorResponse] generateTutorResponse() end with error');
     const message = error instanceof Error ? error.message : 'Unknown AI error';
+    const friendlyMessage = message.includes('Seluruh layanan AI sedang tidak tersedia')
+      ? 'Seluruh layanan AI sedang tidak tersedia.'
+      : 'Seluruh layanan AI sedang tidak tersedia.';
     console.error('[generateTutorResponse] AI request failed', error);
 
     if (options?.throwOnError) {
-      throw new Error(message);
+      throw new Error(friendlyMessage);
     }
 
     return {
-      answer: 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.',
+      answer: friendlyMessage,
     };
   }
+
+  console.info('[generateTutorResponse] generateTutorResponse() end');
 }

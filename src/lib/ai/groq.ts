@@ -1,3 +1,4 @@
+import { summarizeResponseBody } from './provider';
 import type { AiProvider, AiProviderConfig, AiRequestPayload, AiResponse } from './provider';
 
 function createProviderError(message: string, statusCode?: number): Error & { statusCode?: number } {
@@ -15,50 +16,76 @@ export class GroqProvider implements AiProvider {
 
   async generate(payload: AiRequestPayload): Promise<AiResponse> {
     const apiKey = this.config.apiKey?.trim();
+    console.info('[AI Provider] Trying Groq...');
+    console.info(`[AI Provider] API Key = ${apiKey ? 'FOUND' : 'NOT FOUND'}`);
+
     if (!apiKey) {
+      console.error('[AI Provider] Groq failed: GROQ_API_KEY is not configured');
       throw createProviderError('GROQ_API_KEY is not configured');
     }
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.config.model ?? 'llama-3.3-70b-versatile',
-        temperature: payload.temperature ?? 0.7,
-        max_tokens: payload.maxTokens ?? 220,
-        messages: [
-          ...(payload.systemPrompt ? [{ role: 'system', content: payload.systemPrompt }] : []),
-          { role: 'user', content: payload.prompt },
-        ],
-      }),
-    });
+    try {
+      console.info('[AI Provider] Request sent');
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.config.model ?? 'llama-3.3-70b-versatile',
+          temperature: payload.temperature ?? 0.7,
+          max_tokens: payload.maxTokens ?? 220,
+          messages: [
+            ...(payload.systemPrompt ? [{ role: 'system', content: payload.systemPrompt }] : []),
+            { role: 'user', content: payload.prompt },
+          ],
+        }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw createProviderError(`HTTP ${response.status}: ${errorText || response.statusText}`, response.status);
+      console.info('[AI Provider] Response received');
+      console.info(`[AI Provider] Status Code = ${response.status}`);
+
+      const rawBody = await response.text();
+      console.info(`[AI Provider] Response Body = ${summarizeResponseBody(rawBody)}`);
+
+      if (!response.ok) {
+        console.error(`[AI Provider] Groq failed: ${rawBody}`);
+        throw createProviderError(`HTTP ${response.status}: ${rawBody || response.statusText}`, response.status);
+      }
+
+      let data: unknown;
+      try {
+        data = JSON.parse(rawBody) as {
+          choices?: Array<{ message?: { content?: string | Array<{ text?: string }> } }>;
+        };
+      } catch (error) {
+        console.error('[AI Provider] Groq parsing failed', error);
+        throw createProviderError(`Parsing failed. Expected response with chat completion. Actual response: ${summarizeResponseBody(rawBody)}`);
+      }
+
+      console.info('[AI Provider] Parsing Result = success');
+      const parsed = data as { choices?: Array<{ message?: { content?: string | Array<{ text?: string }> } }> };
+      const content = typeof parsed.choices?.[0]?.message?.content === 'string'
+        ? parsed.choices[0].message.content
+        : Array.isArray(parsed.choices?.[0]?.message?.content)
+          ? parsed.choices[0].message.content.map((part) => part.text ?? '').join('')
+          : '';
+
+      if (!content?.trim()) {
+        console.error('[AI Provider] Groq failed: empty content after parsing');
+        throw createProviderError(`Parsing failed. Expected response with text content. Actual response: ${summarizeResponseBody(parsed)}`);
+      }
+
+      console.info('[AI Provider] Success');
+      return {
+        provider: this.name,
+        content,
+        raw: parsed,
+      };
+    } catch (error) {
+      console.error('[AI Provider] Groq failed', error);
+      throw error;
     }
-
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string | Array<{ text?: string }> } }>;
-    };
-
-    const content = typeof data.choices?.[0]?.message?.content === 'string'
-      ? data.choices[0].message.content
-      : Array.isArray(data.choices?.[0]?.message?.content)
-        ? data.choices[0].message.content.map((part) => part.text ?? '').join('')
-        : '';
-
-    if (!content?.trim()) {
-      throw createProviderError('Groq returned empty content');
-    }
-
-    return {
-      provider: this.name,
-      content,
-      raw: data,
-    };
   }
 }

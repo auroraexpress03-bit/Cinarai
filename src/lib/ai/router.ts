@@ -80,13 +80,16 @@ export class AiRouter {
     const logs: AiRouterLogEntry[] = [];
 
     if (this.providers.length === 0) {
-      throw new AiRouterError('Maaf, layanan AI sedang tidak tersedia saat ini. Silakan coba lagi sebentar lagi.', logs);
+      this.logger.error('[ai-router] No AI providers configured.');
+      this.logger.error('[ai-router] Checked environment variables: GEMINI_API_KEY, OPENAI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY');
+      throw new AiRouterError('Seluruh layanan AI sedang tidak tersedia.', logs);
     }
 
-    for (const provider of this.providers) {
+    for (const [index, provider] of this.providers.entries()) {
       const displayName = PROVIDER_DISPLAY_NAMES[provider.name] ?? provider.name;
       const providerLabel = displayName;
-      this.logger.info(`[ai-router] Trying ${providerLabel}...`);
+      this.logger.info(`[AI Router] router -> ${providerLabel}`);
+      this.logger.info(`[AI Router] Trying ${providerLabel}...`);
 
       try {
         const response = await provider.generate(payload);
@@ -95,8 +98,11 @@ export class AiRouter {
         }
 
         logs.push({ provider: provider.name, status: 'success' });
-        this.logger.info(`[ai-router] Provider success: ${providerLabel}`);
-        this.logger.info(`[ai-router] Response length: ${response.content.length}`);
+        this.logger.info(`[AI Router] Provider = ${providerLabel}`);
+        this.logger.info('[AI Router] Status = success');
+        this.logger.info(`[AI Router] Provider used = ${providerLabel}`);
+        this.logger.info(`[AI Router] Response length = ${response.content.length}`);
+        this.logger.info(`[AI Router] router returned provider: ${providerLabel}`);
         return response;
       } catch (error) {
         const reason = error instanceof Error ? error.message : 'unknown error';
@@ -104,16 +110,22 @@ export class AiRouter {
           ? (error as { statusCode: number }).statusCode
           : undefined;
         logs.push({ provider: provider.name, status: 'failed', reason });
-        this.logger.error(`[ai-router] Provider: ${providerLabel}`);
-        this.logger.error(`[ai-router] Status: failed`);
-        this.logger.error(`[ai-router] Error message: ${reason}`);
-        this.logger.error(`[ai-router] HTTP status: ${statusCode ?? 'n/a'}`);
+        this.logger.error(`[AI Router] Provider = ${providerLabel}`);
+        this.logger.error('[AI Router] Status = failed');
+        this.logger.error(`[AI Router] HTTP Status = ${statusCode ?? 'n/a'}`);
+        this.logger.error(`[AI Router] Message = ${reason}`);
         this.logger.error(error);
+
+        const nextProvider = this.providers[index + 1];
+        if (nextProvider) {
+          const nextLabel = PROVIDER_DISPLAY_NAMES[nextProvider.name] ?? nextProvider.name;
+          this.logger.info(`[AI Router] Switching to ${nextLabel}...`);
+        }
       }
     }
 
-    this.logger.error('[ai-router] All providers failed.');
+    this.logger.error('[AI Router] All providers failed.');
 
-    throw new AiRouterError('Semua provider AI gagal.', logs);
+    throw new AiRouterError('Seluruh layanan AI sedang tidak tersedia.', logs);
   }
 }

@@ -5,7 +5,6 @@ import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
 import { useSnackbar } from '@/context/SnackbarContext';
 // `useAuth` intentionally not used here (kept authentication & data flows intact elsewhere)
-import { generateTutorResponse } from '@/lib/ai';
 import type { ComicAssetEntry } from '@/services/comic-assets/types';
 
 function isValidUrl(url: string): boolean {
@@ -166,6 +165,8 @@ export default function NavigationStage() {
     const trimmed = (rawText ?? draft).trim();
     if (!trimmed || isResponding || !comic) return;
 
+    console.info('[Navigation] Question =', trimmed);
+
     const userMessage: ChatMessage = { id: Date.now(), role: 'user', content: trimmed };
     const nextMessages = [...messages, userMessage];
     setHasAskedAi(true);
@@ -176,38 +177,63 @@ export default function NavigationStage() {
     setIsResponding(true);
     setAiError(null);
 
+    console.info('[Navigation] Waiting response...');
+
     try {
-      const response = await generateTutorResponse(
-        {
-          moduleName: comic.title,
-          identification: [],
-          objectInfo: {
-            location: comic.lokasi,
-            classLevel: comic.kelas,
-            synopsis: comic.synopsis,
-            learningTargets: comic.learningTargets,
-          },
-          observationAnswers: {},
+      console.info('[NavigationStage] Navigation -> /api/ai/chat', {
+        question: trimmed,
+        objectName: activeObjectName,
+      });
+
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           question: trimmed,
-          sessionHistory: historyForPrompt,
-          comicTitle: comic.title,
-          pageLabel: primaryEntry ? `Halaman ${primaryEntry.page}` : undefined,
-          objectName: activeObjectName,
-          learningStage: 'Navigation',
-        },
-        undefined,
-        { throwOnError: true },
-      );
+          context: {
+            moduleName: comic.title,
+            identification: [],
+            objectInfo: {
+              location: comic.lokasi,
+              classLevel: comic.kelas,
+              synopsis: comic.synopsis,
+              learningTargets: comic.learningTargets,
+            },
+            observationAnswers: {},
+            sessionHistory: historyForPrompt,
+            comicTitle: comic.title,
+            pageLabel: primaryEntry ? `Halaman ${primaryEntry.page}` : undefined,
+            objectName: activeObjectName,
+            learningStage: 'Navigation',
+          },
+        }),
+      });
+
+      const payload = await response.json() as { answer?: string; provider?: string; error?: string };
+
+      if (!response.ok || !payload.answer) {
+        throw new Error(payload.error ?? 'AI response was not available.');
+      }
+
+      console.info('[NavigationStage] Navigation received:', {
+        provider: payload.provider,
+        answerLength: payload.answer.length,
+      });
+
+      console.info('[Navigation] Response received:', payload.answer.slice(0, 100));
 
       const assistantMessage: ChatMessage = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: response.answer,
+        content: payload.answer,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('[NavigationStage] Gagal memanggil AI', error);
       const msg = error instanceof Error ? error.message : String(error);
+      console.error('[Navigation] Error:');
+      console.error(error instanceof Error ? error.stack : '');
+      console.error('[Navigation] Message:', msg);
       setAiError(msg);
       const fallbackMessage: ChatMessage = {
         id: Date.now() + 2,

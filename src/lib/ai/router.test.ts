@@ -109,7 +109,7 @@ test('returns a friendly error when every provider fails', async () => {
     () => router.generate({ prompt: 'Halo' }),
     (error: unknown) => {
       assert.ok(error instanceof AiRouterError);
-      assert.match(error.message, /semua provider ai gagal/i);
+      assert.match(error.message, /seluruh layanan ai sedang tidak tersedia/i);
       assert.equal(error.logs.length, 4);
       return true;
     },

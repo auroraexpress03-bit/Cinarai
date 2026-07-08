@@ -50,7 +50,34 @@ test('generateTutorResponse falls back to a friendly message when AI returns no 
     provider,
   );
 
-  assert.equal(response.answer, 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.');
+  assert.equal(response.answer, 'Seluruh layanan AI sedang tidak tersedia.');
+});
+
+test('generateTutorResponse uses an injected router result when provided', async () => {
+  const response = await generateTutorResponse(
+    {
+      moduleName: 'Bangun Ruang',
+      identification: [],
+      objectInfo: {
+        location: 'Kelas',
+        classLevel: '5',
+        synopsis: 'Belajar bangun ruang',
+        learningTargets: ['Mengamati'],
+      },
+      observationAnswers: {},
+      question: 'Apa arti rusuk?',
+    },
+    undefined,
+    {
+      throwOnError: false,
+      router: {
+        generate: async () => ({ provider: 'groq', content: 'Jawaban dari router' }),
+      },
+    },
+  );
+
+  assert.equal(response.answer, 'Jawaban dari router');
+  assert.equal(response.provider, 'groq');
 });
 
 test('buildTutorPrompt prioritizes explicit short-answer instructions from the user', () => {

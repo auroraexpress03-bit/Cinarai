@@ -2,11 +2,14 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { SnackbarProvider } from '@/context/SnackbarContext';
+import { logAiProviderStartupStatus } from '@/lib/ai/debug';
 
 export const metadata: Metadata = {
   title: 'CINARAI - Critical Numeracy with AR & AI',
   description: 'Platform pembelajaran numerasi berbasis etnomatematika',
 };
+
+logAiProviderStartupStatus();
 
 export const viewport: Viewport = {
   width: 'device-width',
