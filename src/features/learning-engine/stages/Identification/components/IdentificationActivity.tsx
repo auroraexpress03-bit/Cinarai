@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useIdentificationContext } from '../context/IdentificationContext';
 import IdentificationQuestion from './IdentificationQuestion';
 
 export default function IdentificationActivity() {
   const { state, lokasi } = useIdentificationContext();
-  const { items, observedCount, isComplete } = state;
+  const { items, isComplete } = state;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
@@ -18,30 +18,15 @@ export default function IdentificationActivity() {
   const canGoPrev = currentIndex > 0;
   const canGoNext = currentIndex < items.length - 1 && currentChecked;
 
-  const progressLabel = useMemo(() => `${currentIndex + 1} dari ${items.length}`, [currentIndex, items.length]);
-  const progressPercent = useMemo(() => Math.round((observedCount / items.length) * 100), [observedCount, items.length]);
-
   if (!currentItem) return null;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-base font-semibold uppercase tracking-[0.2em] text-neutral-400">Soal</p>
-            <p className="mt-1 text-xl font-black text-neutral-900">{progressLabel}</p>
-          </div>
-          <div className="inline-flex rounded-full bg-neutral-100 px-4 py-2 text-base font-semibold text-neutral-600">
-            {progressPercent}% selesai
-          </div>
-        </div>
-
-        <IdentificationQuestion
-          item={currentItem}
-          isChecked={currentChecked}
-          onCheck={() => setCheckedItems((prev) => ({ ...prev, [currentItem.id]: true }))}
-        />
-      </div>
+      <IdentificationQuestion
+        item={currentItem}
+        isChecked={currentChecked}
+        onCheck={() => setCheckedItems((prev) => ({ ...prev, [currentItem.id]: true }))}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <button

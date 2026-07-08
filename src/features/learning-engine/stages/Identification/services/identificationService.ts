@@ -4,15 +4,6 @@ import type {
   IdentificationState,
 } from '../types';
 
-function shuffle<T>(items: T[]): T[] {
-  const next = [...items];
-  for (let index = next.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
-  }
-  return next;
-}
-
 function buildOptions(itemId: string, texts: string[]): AnswerOption[] {
   return texts.map((text, index) => ({
     id: `${itemId}-opt-${index}`,
@@ -20,162 +11,127 @@ function buildOptions(itemId: string, texts: string[]): AnswerOption[] {
   }));
 }
 
-function buildStoryQuestions(
+type RawQuestion = {
+  question: string;
+  imageAlt: string;
+  image: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+};
+
+/**
+ * Soal Komik 1 — Candi Jawi, Pasuruan
+ * Setiap soal memiliki gambar berbeda yang relevan dengan objek yang diamati.
+ * Foto dari Wikimedia Commons (lisensi bebas / CC).
+ */
+const KOMIK_1_QUESTIONS: RawQuestion[] = [
+  {
+    question: 'Perhatikan bagian tubuh utama Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan bentuknya?',
+    imageAlt: 'Tubuh utama Candi Jawi tampak dari depan',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Candi_Jawi.jpg/800px-Candi_Jawi.jpg',
+    options: ['Balok', 'Kerucut', 'Bola', 'Tabung'],
+    correctIndex: 0,
+    explanation: 'Tubuh utama candi berbentuk balok karena memiliki panjang, lebar, dan tinggi yang berbeda, dengan enam sisi berbentuk persegi panjang.',
+  },
+  {
+    question: 'Amati susunan batu pada bagian kaki Candi Jawi ini. Bangun ruang apa yang paling mirip dengan setiap batu penyusunnya?',
+    imageAlt: 'Susunan batu kaki Candi Jawi',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Candi_Jawi_base.jpg/800px-Candi_Jawi_base.jpg',
+    options: ['Kubus', 'Limas', 'Kerucut', 'Prisma'],
+    correctIndex: 0,
+    explanation: 'Batu penyusun kaki candi berbentuk kubus karena semua sisinya sama panjang dan membentuk sudut siku-siku di setiap sudutnya.',
+  },
+  {
+    question: 'Lihat bagian puncak Candi Jawi yang meruncing ini. Bangun ruang apa yang paling sesuai dengan bentuk puncaknya?',
+    imageAlt: 'Puncak Candi Jawi yang meruncing',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Candi_Jawi.jpg/400px-Candi_Jawi.jpg',
+    options: ['Kerucut', 'Kubus', 'Balok', 'Prisma segi empat'],
+    correctIndex: 0,
+    explanation: 'Puncak candi yang meruncing ke satu titik di atas dengan alas berbentuk lingkaran adalah ciri khas bangun ruang kerucut.',
+  },
+  {
+    question: 'Perhatikan bagian atap bertingkat Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan setiap tingkatan atapnya?',
+    imageAlt: 'Atap bertingkat Candi Jawi',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Candi_Jawi.jpg/600px-Candi_Jawi.jpg',
+    options: ['Limas segi empat', 'Tabung', 'Bola', 'Kubus'],
+    correctIndex: 0,
+    explanation: 'Setiap tingkatan atap candi berbentuk limas segi empat karena memiliki alas berbentuk persegi dan empat sisi segitiga yang bertemu di satu titik puncak.',
+  },
+  {
+    question: 'Amati bagian dinding sisi Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan bentuk keseluruhan dinding tersebut?',
+    imageAlt: 'Dinding sisi Candi Jawi tampak samping',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Candi_Jawi.jpg/500px-Candi_Jawi.jpg',
+    options: ['Prisma segi empat', 'Limas', 'Kerucut', 'Tabung'],
+    correctIndex: 0,
+    explanation: 'Dinding sisi candi yang memiliki dua alas sejajar berbentuk persegi panjang dan sisi-sisi tegak berbentuk persegi panjang adalah ciri khas prisma segi empat.',
+  },
+];
+
+function getQuestionsForComic(
   comicId: number,
   lokasi: string,
-  learningTargets: readonly string[],
-  title: string,
   cover: string,
-): Array<{ question: string; image: string; options: string[]; correctIndex: number; explanation: string }> {
-  const conceptHints = learningTargets.slice(0, 4).join(' • ');
+): RawQuestion[] {
+  if (comicId === 1) return KOMIK_1_QUESTIONS;
 
-  const baseQuestions = [
+  // Fallback untuk komik lain — gunakan cover sebagai placeholder
+  return [
     {
-      question: `Di bagian mana tokoh menemukan bentuk yang paling dekat dengan kubus saat mengamati ${title} di ${lokasi}?`,
+      question: `Bangun ruang apa yang paling banyak kamu temukan saat mengamati ${lokasi}?`,
+      imageAlt: `Gambar ${lokasi}`,
       image: cover,
-      options: [
-        'Pada susunan batu bagian kaki bangunan',
-        'Pada atap yang melengkung',
-        'Pada pepohonan di sekitar area',
-        'Pada tangga yang menuju pintu masuk',
-      ],
+      options: ['Balok', 'Kerucut', 'Limas', 'Prisma'],
       correctIndex: 0,
-      explanation: 'Susunan batu pada kaki bangunan candi umumnya berbentuk kotak-kotak yang menyerupai kubus, sehingga bagian inilah yang paling tepat untuk mengidentifikasi bentuk kubus.',
+      explanation: 'Balok adalah bangun ruang yang paling umum ditemukan pada bangunan bersejarah.',
     },
     {
-      question: `Tokoh menyebut bangun ruang apa ketika mengamati bagian penyangga utama dari ${title}?`,
+      question: `Bagian mana dari ${lokasi} yang paling mirip dengan bentuk kubus?`,
+      imageAlt: `Gambar ${lokasi}`,
       image: cover,
-      options: [
-        'Balok',
-        'Kerucut',
-        'Lingkaran',
-        'Trapesium',
-      ],
+      options: ['Susunan batu kaki bangunan', 'Atap yang meruncing', 'Puncak menara', 'Tangga masuk'],
       correctIndex: 0,
-      explanation: 'Penyangga utama bangunan biasanya berbentuk balok karena memiliki panjang, lebar, dan tinggi yang berbeda-beda namun sisi-sisinya tetap berbentuk persegi panjang.',
+      explanation: 'Susunan batu pada kaki bangunan umumnya berbentuk kotak-kotak yang menyerupai kubus.',
     },
     {
-      question: `Bagian mana dari cerita yang membantu tokoh memahami bentuk prisma saat mengamati ${lokasi}?`,
+      question: `Bangun ruang apa yang paling tepat menggambarkan puncak ${lokasi}?`,
+      imageAlt: `Gambar ${lokasi}`,
       image: cover,
-      options: [
-        'Bagian dinding yang tersusun berjejer',
-        'Bagian langit-langit yang membentuk puncak',
-        'Bagian pohon di halaman',
-        'Bagian jalan yang melingkar',
-      ],
+      options: ['Limas segi empat', 'Kubus', 'Balok', 'Tabung'],
       correctIndex: 0,
-      explanation: 'Dinding yang tersusun berjejer membentuk bidang-bidang sejajar yang merupakan ciri khas prisma, yaitu dua alas yang sama dan sisi-sisi tegak berbentuk persegi panjang.',
+      explanation: 'Puncak bangunan yang meruncing ke satu titik dengan alas berbentuk persegi adalah ciri khas limas segi empat.',
     },
     {
-      question: `Mengapa bagian yang diamati bisa disebut limas menurut tokoh dalam ${title}?`,
+      question: `Bagian dinding ${lokasi} paling mirip dengan bangun ruang apa?`,
+      imageAlt: `Gambar ${lokasi}`,
       image: cover,
-      options: [
-        'Karena bentuknya bertumpu pada satu titik puncak',
-        'Karena bentuknya selalu membulat',
-        'Karena tidak memiliki sisi',
-        'Karena terbuat dari kaca',
-      ],
+      options: ['Prisma segi empat', 'Kerucut', 'Bola', 'Limas'],
       correctIndex: 0,
-      explanation: 'Limas memiliki ciri khas berupa satu titik puncak di atas dan alas berbentuk segi banyak di bawah. Semua sisi tegaknya berbentuk segitiga yang bertemu di satu titik puncak.',
+      explanation: 'Dinding bangunan yang memiliki dua alas sejajar dan sisi-sisi tegak adalah ciri khas prisma segi empat.',
     },
     {
-      question: `Objek apa yang tokoh amati saat menemukan bentuk kerucut pada ${lokasi}?`,
+      question: `Bangun ruang apa yang paling tepat menggambarkan atap ${lokasi}?`,
+      imageAlt: `Gambar ${lokasi}`,
       image: cover,
-      options: [
-        'Bagian atap yang meruncing',
-        'Bagian lantai yang rata',
-        'Bagian pagar yang panjang',
-        'Bagian pohon yang menjulang',
-      ],
+      options: ['Kerucut', 'Kubus', 'Balok', 'Prisma'],
       correctIndex: 0,
-      explanation: 'Atap yang meruncing ke atas adalah contoh nyata bentuk kerucut dalam arsitektur, karena memiliki alas lingkaran dan satu titik puncak di bagian atas.',
-    },
-    {
-      question: `Apa alasan tokoh menyebut bagian tersebut sebagai bangun ruang yang berbeda dari kubus?`,
-      image: cover,
-      options: [
-        'Karena sisi-sisinya tidak sama panjang dan bentuknya lebih panjang',
-        'Karena warnanya lebih gelap',
-        'Karena memiliki lebih banyak daun',
-        'Karena hanya terlihat dari jauh',
-      ],
-      correctIndex: 0,
-      explanation: 'Perbedaan utama kubus dan balok adalah pada panjang sisinya. Kubus memiliki semua sisi sama panjang, sedangkan balok memiliki panjang, lebar, dan tinggi yang berbeda.',
-    },
-    {
-      question: `Bangun ruang apa yang paling banyak membantu tokoh memahami bentuk arsitektur di ${title}?`,
-      image: cover,
-      options: [
-        'Balok',
-        'Kerucut',
-        'Lingkaran',
-        'Segitiga',
-      ],
-      correctIndex: 0,
-      explanation: 'Balok adalah bangun ruang yang paling sering ditemukan dalam arsitektur bangunan karena bentuknya yang praktis dan mudah disusun untuk membentuk dinding, lantai, dan atap.',
-    },
-    {
-      question: `Saat membaca ulang cerita, informasi apa yang paling penting untuk menjawab soal tentang ${conceptHints}?`,
-      image: cover,
-      options: [
-        'Ciri bentuk dan bagian objek yang diamati',
-        'Nama tokoh yang paling sering muncul',
-        'Warna pakaian tokoh',
-        'Jumlah langkah menuju pintu masuk',
-      ],
-      correctIndex: 0,
-      explanation: 'Untuk mengidentifikasi bangun ruang, yang paling penting adalah memperhatikan ciri-ciri bentuk seperti jumlah sisi, bentuk alas, dan apakah ada titik puncak atau tidak.',
+      explanation: 'Atap yang meruncing ke satu titik di atas dengan alas berbentuk lingkaran adalah ciri khas kerucut.',
     },
   ];
-
-  if (comicId === 2) {
-    baseQuestions[0].question = `Di bagian mana tokoh menemukan pola simetri saat mengamati ${title} di ${lokasi}?`;
-    baseQuestions[0].options = [
-      'Pada relief yang terbagi dua secara seimbang',
-      'Pada jalan keluar yang tidak rata',
-      'Pada pohon yang tumbuh acak',
-      'Pada air yang mengalir',
-    ];
-    baseQuestions[0].correctIndex = 0;
-    baseQuestions[0].explanation = 'Simetri berarti dua bagian yang sama persis jika dilipat. Relief yang terbagi dua secara seimbang menunjukkan simetri lipat karena kedua sisinya adalah bayangan cermin satu sama lain.';
-  }
-
-  if (comicId === 3) {
-    baseQuestions[0].question = `Di bagian mana tokoh menemukan bentuk datar yang paling mudah diamati di ${title}?`;
-    baseQuestions[0].options = [
-      'Pada sisi dinding dan pola lantai',
-      'Pada awan di langit',
-      'Pada gerakan tumbuhan',
-      'Pada suara tokoh',
-    ];
-    baseQuestions[0].correctIndex = 0;
-    baseQuestions[0].explanation = 'Sisi dinding dan pola lantai adalah tempat paling mudah menemukan bangun datar seperti persegi dan persegi panjang karena permukaannya rata dan batasnya jelas.';
-    baseQuestions[1].question = `Bangun apa yang paling membantu tokoh mengidentifikasi bentuk pada rumah bersejarah di ${lokasi}?`;
-    baseQuestions[1].options = [
-      'Persegi dan persegi panjang',
-      'Bola dan lingkaran',
-      'Segitiga dan elips',
-      'Garis dan titik',
-    ];
-    baseQuestions[1].correctIndex = 0;
-    baseQuestions[1].explanation = 'Persegi dan persegi panjang adalah bangun datar yang paling umum ditemukan pada bangunan bersejarah karena digunakan pada pintu, jendela, dinding, dan lantai.';
-  }
-
-  return shuffle(baseQuestions).slice(0, 8);
 }
 
 /**
  * Buat IdentificationState awal dari data komik.
- * Soal dibuat dari isi cerita agar siswa perlu membaca ulang komik.
+ * Setiap soal memiliki gambar yang berbeda dan relevan dengan objek yang diamati.
  */
 export function createIdentificationState(
   comicId: number,
   lokasi: string,
-  learningTargets: readonly string[],
+  _learningTargets: readonly string[],
   cover: string,
   title: string,
 ): IdentificationState {
-  const questions = buildStoryQuestions(comicId, lokasi, learningTargets, title, cover);
+  const questions = getQuestionsForComic(comicId, lokasi, cover);
   const items: IdentificationItem[] = questions.map((question, index) => {
     const id = `${comicId}-identification-${index}`;
     const options = buildOptions(id, question.options);
@@ -185,6 +141,7 @@ export function createIdentificationState(
       targetText: question.question,
       question: question.question,
       image: question.image,
+      imageAlt: question.imageAlt,
       options,
       correctOptionId: options[question.correctIndex]?.id ?? options[0].id,
       explanation: question.explanation,

@@ -23,6 +23,7 @@ export interface IdentificationItem {
   readonly targetText: string;
   readonly question: string;
   readonly image: string;
+  readonly imageAlt: string;
   readonly options: AnswerOption[];
   readonly correctOptionId: string;
   readonly explanation: string;

@@ -83,7 +83,7 @@ export function IdentificationProvider({
 }: IdentificationProviderProps) {
   const { nextStage } = useLearningEngine();
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState<IdentificationStep>('OBSERVE');
+  const [currentStep, setCurrentStep] = useState<IdentificationStep>('IDENTIFY');
   const [reviewIndex, setReviewIndex] = useState(0);
 
   const identification = useIdentification({ comicId, lokasi, cover, title, learningTargets });
@@ -216,15 +216,12 @@ export function IdentificationProvider({
 
   const validationErrors = useMemo<string[]>(() => {
     const errors: string[] = [];
-    if (!state.observe.note.trim()) {
-      errors.push('Kamu belum menulis catatan pengamatan.');
-    }
     const unanswered = state.items.filter((i) => !i.selectedOptionId);
     if (unanswered.length > 0) {
       errors.push(`${unanswered.length} pertanyaan belum dipilih jawabannya.`);
     }
     return errors;
-  }, [state.observe.note, state.items]);
+  }, [state.items]);
 
   const value = useMemo<IdentificationContextValue>(
     () => ({

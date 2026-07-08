@@ -5,42 +5,25 @@ import { useLearningEngine } from '../../../hooks/useLearningEngine';
 import { useIdentificationContext } from '../context/IdentificationContext';
 
 export default function IdentificationNavigation() {
-  const {
-    currentStep,
-    nextStep,
-    previousStep,
-    state,
-  } = useIdentificationContext();
+  const { state } = useIdentificationContext();
   const { registerSlideNav, unregisterSlideNav } = useLearningEngine();
 
-  const slideIndex = currentStep === 'OBSERVE' ? 0 : 1;
-  const totalSlides = 2;
+  const canGoNext = state.isComplete;
+  const canGoPrev = false;
 
-  const canGoNext =
-    currentStep === 'OBSERVE'
-      ? state.observe.note.trim().length > 0
-      : state.isComplete;
-
-  const canGoPrev = slideIndex > 0;
-
-  const goNext = useCallback(() => {
-    if (currentStep === 'OBSERVE') nextStep();
-  }, [currentStep, nextStep]);
-
-  const goPrev = useCallback(() => {
-    if (currentStep === 'IDENTIFY') previousStep();
-  }, [currentStep, previousStep]);
+  const goNext = useCallback(() => {}, []);
+  const goPrev = useCallback(() => {}, []);
 
   useEffect(() => {
     registerSlideNav({
-      slideIndex,
-      totalSlides,
+      slideIndex: 0,
+      totalSlides: 1,
       canGoNext,
       canGoPrev,
       goNext,
       goPrev,
     });
-  }, [slideIndex, totalSlides, canGoNext, canGoPrev, goNext, goPrev, registerSlideNav]);
+  }, [canGoNext, canGoPrev, goNext, goPrev, registerSlideNav]);
 
   useEffect(() => () => unregisterSlideNav(), [unregisterSlideNav]);
 
