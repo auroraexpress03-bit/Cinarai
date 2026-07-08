@@ -99,10 +99,9 @@ export default function NavigationStage() {
   const [isResponding, setIsResponding] = useState(false);
   const [hasOpenedAr, setHasOpenedAr] = useState(false);
   const [hasAskedAi, setHasAskedAi] = useState(false);
-  const [isRotating, setIsRotating] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false);
   const [showEmbed, setShowEmbed] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const canAdvanceToArgumentation = hasOpenedAr && hasAskedAi;
 
@@ -148,9 +147,21 @@ export default function NavigationStage() {
     };
   }, [canAdvanceToArgumentation, setCanAdvance, unregisterSlideNav]);
 
-  const handleToggleRotate = () => setIsRotating((v) => !v);
-  const handleToggleZoom = () => setIsZoomed((v) => !v);
-  const handleToggleEmbed = () => setShowEmbed((v) => !v);
+  // Auto-load Sketchfab embeds when the primary entry is a Sketchfab model
+  useEffect(() => {
+    if (!primaryEntry || !primaryEntry.url) return;
+    try {
+      const parsed = new URL(primaryEntry.url);
+      const host = parsed.hostname.toLowerCase();
+      if (host.includes('sketchfab.com') || host.includes('skfb.ly')) {
+        setShowEmbed(true);
+      }
+    } catch {
+      // ignore
+    }
+  }, [primaryEntry]);
+
+  // Rotate/Zoom controls removed — Sketchfab provides built-in gestures
 
   const handleSend = useCallback(async (rawText?: string) => {
     const trimmed = (rawText ?? draft).trim();
@@ -164,25 +175,30 @@ export default function NavigationStage() {
     setMessages(nextMessages);
     setDraft('');
     setIsResponding(true);
+    setAiError(null);
 
     try {
-      const response = await generateTutorResponse({
-        moduleName: comic.title,
-        identification: [],
-        objectInfo: {
-          location: comic.lokasi,
-          classLevel: comic.kelas,
-          synopsis: comic.synopsis,
-          learningTargets: comic.learningTargets,
+      const response = await generateTutorResponse(
+        {
+          moduleName: comic.title,
+          identification: [],
+          objectInfo: {
+            location: comic.lokasi,
+            classLevel: comic.kelas,
+            synopsis: comic.synopsis,
+            learningTargets: comic.learningTargets,
+          },
+          observationAnswers: {},
+          question: trimmed,
+          sessionHistory: historyForPrompt,
+          comicTitle: comic.title,
+          pageLabel: primaryEntry ? `Halaman ${primaryEntry.page}` : undefined,
+          objectName: activeObjectName,
+          learningStage: 'Navigation',
         },
-        observationAnswers: {},
-        question: trimmed,
-        sessionHistory: historyForPrompt,
-        comicTitle: comic.title,
-        pageLabel: primaryEntry ? `Halaman ${primaryEntry.page}` : undefined,
-        objectName: activeObjectName,
-        learningStage: 'Navigation',
-      });
+        undefined,
+        { throwOnError: true },
+      );
 
       const assistantMessage: ChatMessage = {
         id: Date.now() + 1,
@@ -192,10 +208,12 @@ export default function NavigationStage() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('[NavigationStage] Gagal memanggil AI', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      setAiError(msg);
       const fallbackMessage: ChatMessage = {
         id: Date.now() + 2,
         role: 'assistant',
-        content: 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.',
+        content: `Maaf, terjadi kesalahan saat menghubungi layanan AI: ${msg}`,
       };
       setMessages((prev) => [...prev, fallbackMessage]);
     } finally {
@@ -255,11 +273,11 @@ export default function NavigationStage() {
                   <iframe src={`${primaryEntry.url.replace(/\/$/, '')}/embed`} title={`Model 3D ${activeObjectName}`} className="h-full w-full border-0" allow="fullscreen" />
                 </div>
               ) : previewSrc ? (
-                <div className={`h-56 w-full overflow-hidden sm:h-72 ${isRotating ? 'animate-spin-slow' : ''}`}>
+                <div className="h-56 w-full overflow-hidden sm:h-72">
                   <img
                     src={previewSrc}
                     alt={`Tampilan ${activeObjectName} dalam AR`}
-                    className={`h-full w-full object-cover transition-transform ${isZoomed ? 'scale-105' : 'scale-100'}`} 
+                    className="h-full w-full object-cover"
                   />
                 </div>
               ) : (
@@ -278,7 +296,7 @@ export default function NavigationStage() {
             <div className="mt-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-neutral-400">Eksplorasi 3D</p>
               <h3 className="mt-1 text-xl font-black text-neutral-900">{activeObjectName}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600">Eksplorasi model 3D, perbesar, putar, dan minta info dari AI.</p>
+              <p className="mt-2 text-sm leading-relaxed text-neutral-600">Eksplorasi model 3D dan ajukan pertanyaan kepada AI untuk memahami objek ini.</p>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -292,32 +310,10 @@ export default function NavigationStage() {
               </button>
               <button
                 type="button"
-                onClick={handleToggleRotate}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700"
-              >
-                Putar
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleZoom}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700"
-              >
-                Perbesar
-              </button>
-              <button
-                type="button"
                 onClick={() => showSnackbar(comic.synopsis || 'Tidak ada info lebih lanjut.', 'info')}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700"
+                className="ml-auto inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700"
               >
                 Info
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleEmbed}
-                disabled={!primaryEntry}
-                className="ml-auto inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm"
-              >
-                {showEmbed ? 'Tutup 3D' : 'View 3D'}
               </button>
             </div>
 
@@ -344,14 +340,14 @@ export default function NavigationStage() {
           <button
             aria-label="Buka AI Assistant"
             onClick={() => setShowAiPanel(true)}
-            className="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-xl"
+            className="fixed bottom-5 right-5 z-50 inline-flex h-16 w-16 items-center justify-center rounded-full border border-primary-200 bg-white p-1 shadow-xl"
           >
-            🤖
+            <img src="/images/robot-smile.svg" alt="AI Assistant" className="h-14 w-14" />
           </button>
         )}
 
         {showAiPanel && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-2xl rounded-t-3xl border border-neutral-200 bg-white p-4 shadow-xl sm:rounded-3xl">
+          <div className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-2xl rounded-t-3xl border border-neutral-200 bg-white/95 p-4 shadow-xl backdrop-blur-sm sm:rounded-3xl" style={{ height: '45vh' }}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h4 className="text-base font-black text-neutral-900">Halo — AI Assistant</h4>
@@ -374,6 +370,11 @@ export default function NavigationStage() {
                 <button onClick={() => void handleSend()} disabled={isResponding || !draft.trim()} className="inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white">{isResponding ? 'Memproses...' : 'Kirim'}</button>
                 <button onClick={() => { setDraft(''); setMessages(starterMessages); }} className="inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700">Reset</button>
               </div>
+              {aiError && (
+                <div className="mt-3 rounded-2xl border border-error-200 bg-error-50 px-4 py-3 text-sm font-semibold text-error-700">
+                  Terjadi error pada layanan AI: {aiError}
+                </div>
+              )}
             </div>
           </div>
         )}

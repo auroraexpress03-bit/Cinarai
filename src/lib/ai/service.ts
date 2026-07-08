@@ -69,6 +69,7 @@ export function buildTutorPrompt(context: TutorContext): string {
 export async function generateTutorResponse(
   context: TutorContext,
   providerOverride?: Pick<AiProvider, 'generate'>,
+  options?: { throwOnError?: boolean },
 ): Promise<TutorResponse> {
   const router = AiRouter.createDefault();
   const payload: AiRequestPayload = {
@@ -94,11 +95,26 @@ export async function generateTutorResponse(
     const response = await (providerOverride ? providerOverride.generate(payload) : router.generate(payload));
     const normalizedAnswer = typeof response?.content === 'string' ? response.content.trim() : '';
 
+    if (!normalizedAnswer) {
+      const fallback = 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.';
+      if (options?.throwOnError) {
+        throw new Error(fallback);
+      }
+      return { answer: fallback };
+    }
+
     return {
-      answer: normalizedAnswer || 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.',
+      answer: normalizedAnswer,
       provider: response.provider,
     };
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown AI error';
+    console.error('[generateTutorResponse] AI request failed', error);
+
+    if (options?.throwOnError) {
+      throw new Error(message);
+    }
+
     return {
       answer: 'Maaf, saya sedang tidak bisa merespons saat ini. Coba lagi sebentar lagi.',
     };
