@@ -30,11 +30,29 @@ export default function IdentificationQuestion({
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-neutral-200 bg-white p-5 shadow-lg shadow-neutral-100 sm:p-6">
       {/* Gambar objek */}
-      <div className="overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50">
-        <div className="relative aspect-[16/10] w-full bg-neutral-100">
+      <figure
+        className="overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50"
+        aria-label={`Gambar soal ${item.targetIndex + 1}: ${item.imageAlt}`}
+      >
+        <div
+          id={`img-desc-${item.id}`}
+          className="relative aspect-[16/10] w-full bg-neutral-900"
+        >
           {imgError ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-100">
-              <svg className="h-12 w-12 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-100"
+              role="alert"
+              aria-live="polite"
+            >
+              <svg
+                className="h-12 w-12 text-neutral-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                aria-hidden="true"
+                focusable="false"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v8l3-3m0 0l3 3m-3-3V4" />
               </svg>
               <p className="text-sm font-semibold text-neutral-400">Gagal memuat gambar — {item.imageAlt}</p>
@@ -45,67 +63,40 @@ export default function IdentificationQuestion({
                 src={item.image}
                 alt={item.imageAlt}
                 fill
-                className="object-cover"
-                sizes="(max-width: 640px) 100vw, 640px"
+                className="object-contain"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
+                loading={item.targetIndex === 0 ? undefined : 'lazy'}
                 priority={item.targetIndex === 0}
+                aria-describedby={`question-${item.id}`}
                 onError={() => setImgError(true)}
               />
 
-              {/* Overlay edukatif: outline, panah, label — rendered by component */}
-              <div className="absolute inset-0 pointer-events-none">
-                <svg className="w-full h-full" viewBox="0 0 100 62" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-                  {/* Simple overlays per type */}
-                  {item.overlayType === 'body' && (
-                    <g>
-                      <rect x="30" y="18" width="40" height="26" fill="none" stroke="#ffb86b" strokeWidth="1.5" rx="2" />
-                      <path d="M70 22 L85 12" stroke="#ffb86b" strokeWidth="1.2" fill="none" markerEnd="url(#arrow)" />
-                      <rect x="74" y="6" width="22" height="8" rx="2" fill="#ffb86b" opacity="0.95" />
-                      <text x="85" y="11" fontSize="6" fontWeight="700" fill="#1f2937" textAnchor="middle">Balok</text>
-                    </g>
-                  )}
-                  {item.overlayType === 'kaki' && (
-                    <g>
-                      <rect x="28" y="36" width="44" height="14" fill="none" stroke="#7ee787" strokeWidth="1.5" rx="1" />
-                      <path d="M45 34 L55 26" stroke="#7ee787" strokeWidth="1.2" fill="none" />
-                      <rect x="18" y="18" width="28" height="8" rx="2" fill="#7ee787" opacity="0.95" />
-                      <text x="32" y="24" fontSize="5" fontWeight="700" fill="#064e3b">Kubus</text>
-                    </g>
-                  )}
-                  {item.overlayType === 'puncak' && (
-                    <g>
-                      <path d="M50 6 L60 26 L40 26 Z" fill="none" stroke="#60a5fa" strokeWidth="1.5" />
-                      <path d="M62 20 L78 12" stroke="#60a5fa" strokeWidth="1.2" />
-                      <rect x="72" y="6" width="24" height="8" rx="2" fill="#60a5fa" opacity="0.95" />
-                      <text x="84" y="11" fontSize="5.5" fontWeight="700" fill="#0f172a">Kerucut</text>
-                    </g>
-                  )}
-                  {item.overlayType === 'atap' && (
-                    <g>
-                      <path d="M30 14 L70 14 L50 34 Z" fill="none" stroke="#f472b6" strokeWidth="1.5" />
-                      <path d="M72 18 L86 12" stroke="#f472b6" strokeWidth="1.2" />
-                      <rect x="74" y="6" width="28" height="8" rx="2" fill="#f472b6" opacity="0.95" />
-                      <text x="88" y="11" fontSize="5" fontWeight="700" fill="#5b1055">Limas</text>
-                    </g>
-                  )}
-                  {item.overlayType === 'dinding' && (
-                    <g>
-                      <rect x="20" y="18" width="60" height="28" fill="none" stroke="#f97316" strokeWidth="1.5" />
-                      <path d="M82 22 L94 14" stroke="#f97316" strokeWidth="1.2" />
-                      <rect x="86" y="6" width="28" height="8" rx="2" fill="#f97316" opacity="0.95" />
-                      <text x="100" y="11" fontSize="5" fontWeight="700" fill="#7c2d12">Prisma</text>
-                    </g>
-                  )}
-                  <defs>
-                    <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                      <path d="M0 0 L6 3 L0 6 z" fill="#ffb86b" />
-                    </marker>
-                  </defs>
-                </svg>
+              <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                {item.highlight && (
+                  <Image
+                    src={item.highlight}
+                    alt=""
+                    fill
+                    className="object-contain opacity-90 mix-blend-screen"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
+                  />
+                )}
+                {item.crop && (
+                  <div className="absolute bottom-3 right-3 h-20 w-28 overflow-hidden rounded-xl border border-white/70 bg-white/80 shadow-lg backdrop-blur-sm">
+                    <Image
+                      src={item.crop}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="112px"
+                    />
+                  </div>
+                )}
               </div>
             </>
           )}
         </div>
-      </div>
+      </figure>
 
       {/* Nomor soal + pertanyaan */}
       <div className="flex items-start gap-3">
@@ -116,7 +107,10 @@ export default function IdentificationQuestion({
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-600">
             Soal {item.targetIndex + 1} dari {totalItems}
           </p>
-          <p className="mt-1 text-base font-black leading-snug text-neutral-900 sm:text-lg">
+          <p
+            id={`question-${item.id}`}
+            className="mt-1 text-base font-black leading-snug text-neutral-900 sm:text-lg"
+          >
             {item.question}
           </p>
         </div>

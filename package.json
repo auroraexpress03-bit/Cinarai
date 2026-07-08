@@ -27,6 +27,7 @@
     "typescript": "^5.3.3"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
     "@types/node": "^20.10.6",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^18.2.46",
@@ -36,6 +37,11 @@
     "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
     "eslint-config-next": "^15.0.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "json-stable-stringify-without-jsonify": "^1.0.1",
+    "lodash.merge": "^4.6.2",
     "playwright": "^1.61.1",
     "postcss": "^8.4.32",
     "prettier": "^3.1.1",

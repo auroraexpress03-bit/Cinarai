@@ -20,22 +20,25 @@ type RawQuestion = {
   question: string;
   imageAlt: string;
   image: string;
-  overlayType?: 'body' | 'kaki' | 'puncak' | 'atap' | 'dinding' | string;
+  overlayType?: string;
+  crop?: string;
+  highlight?: string;
   options: RawOption[];
   explanation: string;
 };
 
 /**
- * Soal Komik 1 — Candi Jawi, Pasuruan
- * Foto asli dari Wikimedia Commons (CC-licensed).
- * Setiap soal menggunakan foto nyata dengan overlay bangun ruang.
+ * Soal Komik 1 — Candi Jawi, Pasuruan.
+ * Semua aset kini memakai foto lokal yang tersedia di folder publik.
  */
 const KOMIK_1_QUESTIONS: RawQuestion[] = [
   {
     question: 'Perhatikan bagian tubuh utama Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan bentuknya?',
-    imageAlt: 'Tubuh utama Candi Jawi tampak dari depan',
-    image: '/images/identification/komik1-soal1-tubuh-candi.svg',
-    overlayType: 'body',
+    imageAlt: 'Foto lokal tubuh utama Candi Jawi, Pasuruan — tampak depan, berbentuk balok',
+    image: '/images/identification/komik1-soal1.jpg',
+    overlayType: '/images/identification/komik1-soal1-tubuh-candi.svg',
+    crop: '/images/identification/komik1-soal1.jpg',
+    highlight: '/images/identification/komik1-soal1-tubuh-candi.svg',
     options: [
       { text: 'Balok', correct: true },
       { text: 'Kerucut', correct: false },
@@ -46,9 +49,11 @@ const KOMIK_1_QUESTIONS: RawQuestion[] = [
   },
   {
     question: 'Amati susunan batu pada bagian kaki Candi Jawi ini. Bangun ruang apa yang paling mirip dengan setiap batu penyusunnya?',
-    imageAlt: 'Susunan batu kaki Candi Jawi',
-    image: '/images/identification/komik1-soal2-kaki-candi.svg',
-    overlayType: 'kaki',
+    imageAlt: 'Foto lokal susunan batu penyusun kaki Candi Jawi — batu-batu berbentuk kubus',
+    image: '/images/identification/komik1-soal2.jpg',
+    overlayType: '/images/identification/komik1-soal2-kaki-candi.svg',
+    crop: '/images/identification/komik1-soal2.jpg',
+    highlight: '/images/identification/komik1-soal2-kaki-candi.svg',
     options: [
       { text: 'Kubus', correct: true },
       { text: 'Limas', correct: false },
@@ -59,9 +64,11 @@ const KOMIK_1_QUESTIONS: RawQuestion[] = [
   },
   {
     question: 'Lihat bagian puncak Candi Jawi yang meruncing ini. Bangun ruang apa yang paling sesuai dengan bentuk puncaknya?',
-    imageAlt: 'Puncak Candi Jawi yang meruncing',
-    image: '/images/identification/komik1-soal3-puncak-candi.svg',
-    overlayType: 'puncak',
+    imageAlt: 'Foto lokal puncak Candi Jawi yang meruncing ke atas — berbentuk kerucut',
+    image: '/images/identification/komik1-soal3.jpg',
+    overlayType: '/images/identification/komik1-soal3-puncak-candi.svg',
+    crop: '/images/identification/komik1-soal3.jpg',
+    highlight: '/images/identification/komik1-soal3-puncak-candi.svg',
     options: [
       { text: 'Kerucut', correct: true },
       { text: 'Kubus', correct: false },
@@ -72,9 +79,11 @@ const KOMIK_1_QUESTIONS: RawQuestion[] = [
   },
   {
     question: 'Perhatikan bagian atap bertingkat Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan setiap tingkatan atapnya?',
-    imageAlt: 'Atap bertingkat Candi Jawi',
-    image: '/images/identification/komik1-soal4-atap-candi.svg',
-    overlayType: 'atap',
+    imageAlt: 'Foto lokal atap bertingkat Candi Jawi tampak samping — setiap tingkat berbentuk limas segi empat',
+    image: '/images/identification/komik1-soal4.jpg',
+    overlayType: '/images/identification/komik1-soal4-atap-candi.svg',
+    crop: '/images/identification/komik1-soal4.jpg',
+    highlight: '/images/identification/komik1-soal4-atap-candi.svg',
     options: [
       { text: 'Limas segi empat', correct: true },
       { text: 'Tabung', correct: false },
@@ -85,9 +94,11 @@ const KOMIK_1_QUESTIONS: RawQuestion[] = [
   },
   {
     question: 'Amati bagian dinding sisi Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan bentuk keseluruhan dinding tersebut?',
-    imageAlt: 'Dinding sisi Candi Jawi tampak samping',
-    image: '/images/identification/komik1-soal5-dinding-candi.svg',
-    overlayType: 'dinding',
+    imageAlt: 'Foto lokal dinding sisi Candi Jawi dengan relief ukiran — berbentuk prisma segi empat',
+    image: '/images/identification/komik1-soal5.jpg',
+    overlayType: '/images/identification/komik1-soal5-dinding-candi.svg',
+    crop: '/images/identification/komik1-soal5.jpg',
+    highlight: '/images/identification/komik1-soal5-dinding-candi.svg',
     options: [
       { text: 'Prisma segi empat', correct: true },
       { text: 'Limas', correct: false },
@@ -102,8 +113,11 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
   return [
     {
       question: `Bangun ruang apa yang paling banyak kamu temukan saat mengamati ${lokasi}?`,
-      imageAlt: `Gambar ${lokasi}`,
+      imageAlt: `Foto lokal ${lokasi}`,
       image: cover,
+      overlayType: cover,
+      crop: cover,
+      highlight: cover,
       options: [
         { text: 'Balok', correct: true },
         { text: 'Kerucut', correct: false },
@@ -114,8 +128,11 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bagian mana dari ${lokasi} yang paling mirip dengan bentuk kubus?`,
-      imageAlt: `Gambar ${lokasi}`,
+      imageAlt: `Foto lokal ${lokasi}`,
       image: cover,
+      overlayType: cover,
+      crop: cover,
+      highlight: cover,
       options: [
         { text: 'Susunan batu kaki bangunan', correct: true },
         { text: 'Atap yang meruncing', correct: false },
@@ -126,8 +143,11 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bangun ruang apa yang paling tepat menggambarkan puncak ${lokasi}?`,
-      imageAlt: `Gambar ${lokasi}`,
+      imageAlt: `Foto lokal ${lokasi}`,
       image: cover,
+      overlayType: cover,
+      crop: cover,
+      highlight: cover,
       options: [
         { text: 'Limas segi empat', correct: true },
         { text: 'Kubus', correct: false },
@@ -138,8 +158,11 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bagian dinding ${lokasi} paling mirip dengan bangun ruang apa?`,
-      imageAlt: `Gambar ${lokasi}`,
+      imageAlt: `Foto lokal ${lokasi}`,
       image: cover,
+      overlayType: cover,
+      crop: cover,
+      highlight: cover,
       options: [
         { text: 'Prisma segi empat', correct: true },
         { text: 'Kerucut', correct: false },
@@ -150,8 +173,11 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bangun ruang apa yang paling tepat menggambarkan atap ${lokasi}?`,
-      imageAlt: `Gambar ${lokasi}`,
+      imageAlt: `Foto lokal ${lokasi}`,
       image: cover,
+      overlayType: cover,
+      crop: cover,
+      highlight: cover,
       options: [
         { text: 'Kerucut', correct: true },
         { text: 'Kubus', correct: false },
@@ -201,6 +227,9 @@ export function createIdentificationState(
       question: question.question,
       image: question.image,
       imageAlt: question.imageAlt,
+      overlayType: question.overlayType,
+      crop: question.crop,
+      highlight: question.highlight,
       options,
       correctOptionId: correctOption?.id ?? options[0].id,
       explanation: question.explanation,
@@ -251,6 +280,12 @@ export function completeObserve(state: IdentificationState): IdentificationState
 }
 
 /** Pilih satu opsi jawaban — tandai selesai setelah memilih. */
+export function resolveSelectedOptionId(item: IdentificationItem, selectedAnswer: string | null): string | null {
+  if (!selectedAnswer) return null;
+  const matchedOption = item.options.find((option) => option.text === selectedAnswer);
+  return matchedOption?.id ?? null;
+}
+
 export function selectAnswer(
   state: IdentificationState,
   itemId: string,

@@ -13,6 +13,7 @@ import {
   completeObserve,
   updateReason,
   saveReason,
+  resolveSelectedOptionId,
 } from '../services/identificationService';
 
 export interface UseIdentificationReturn {
@@ -88,7 +89,7 @@ export function useIdentification({
             i.targetIndex === answer.step
               ? {
                   ...i,
-                  selectedOptionId: answer.selectedAnswer,
+                  selectedOptionId: resolveSelectedOptionId(i, answer.selectedAnswer),
                   note: answer.note,
                   reason: answer.reason,
                   answerStatus: answer.selectedAnswer ? 'SAVED' : 'UNANSWERED',

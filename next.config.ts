@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [360, 414, 768, 1024, 1280, 1600],
+    imageSizes: [320, 480, 640, 800, 1200, 1600],
     remotePatterns: [
       {
         protocol: 'https',
