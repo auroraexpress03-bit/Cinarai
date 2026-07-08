@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="sky4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#bfdbfe"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="800" height="500" fill="url(#sky4)"/>
+  <!-- Ground -->
+  <rect x="0" y="420" width="800" height="80" fill="#86efac"/>
+
+  <!-- Candi body (tidak di-highlight) -->
+  <rect x="220" y="310" width="360" height="110" fill="#c7c3c0" rx="4"/>
+
+  <!-- Atap bertingkat — LIMAS SEGI EMPAT (highlighted) -->
+  <!-- Tingkat 3 (bawah) -->
+  <rect x="240" y="270" width="320" height="42" fill="#a8a29e" rx="3"/>
+  <polygon points="400,230 240,270 560,270" fill="#94908a"/>
+  <!-- Highlight tingkat 3 -->
+  <rect x="240" y="270" width="320" height="42" fill="none" stroke="#f97316" stroke-width="4" rx="3"/>
+  <polygon points="400,230 240,270 560,270" fill="none" stroke="#f97316" stroke-width="4"/>
+
+  <!-- Tingkat 2 -->
+  <rect x="280" y="235" width="240" height="38" fill="#9e9892" rx="3"/>
+  <polygon points="400,200 280,235 520,235" fill="#8a8680"/>
+  <!-- Highlight tingkat 2 -->
+  <rect x="280" y="235" width="240" height="38" fill="none" stroke="#f97316" stroke-width="4" rx="3"/>
+  <polygon points="400,200 280,235 520,235" fill="none" stroke="#f97316" stroke-width="4"/>
+
+  <!-- Tingkat 1 (atas) -->
+  <rect x="320" y="168" width="160" height="35" fill="#94908a" rx="3"/>
+  <polygon points="400,130 320,168 480,168" fill="#78716c"/>
+  <!-- Highlight tingkat 1 -->
+  <rect x="320" y="168" width="160" height="35" fill="none" stroke="#f97316" stroke-width="4" rx="3"/>
+  <polygon points="400,130 320,168 480,168" fill="none" stroke="#f97316" stroke-width="4"/>
+
+  <!-- Puncak -->
+  <polygon points="400,80 360,130 440,130" fill="#57534e"/>
+
+  <!-- Label -->
+  <rect x="530" y="200" width="220" height="55" rx="12" fill="#f97316"/>
+  <text x="640" y="223" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">Atap Bertingkat</text>
+  <text x="640" y="243" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">Candi</text>
+  <!-- Arrow -->
+  <line x1="530" y1="227" x2="500" y2="250" stroke="#f97316" stroke-width="3"/>
+  <polygon points="500,250 510,244 508,255" fill="#f97316"/>
+
+  <!-- Zoom limas -->
+  <circle cx="140" cy="200" r="90" fill="#fff7ed" stroke="#f97316" stroke-width="4"/>
+  <!-- Limas 3D -->
+  <polygon points="140,120 80,240 200,240" fill="#fb923c"/>
+  <polygon points="140,120 200,240 210,220 150,115" fill="#fed7aa"/>
+  <rect x="80" y="240" width="120" height="18" fill="#fdba74" rx="2"/>
+  <text x="140" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#c2410c">Limas Segi Empat</text>
+
+  <!-- Label bawah -->
+  <rect x="270" y="460" width="260" height="32" rx="8" fill="#1e40af" opacity="0.85"/>
+  <text x="400" y="481" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="white">Candi Jawi — Pasuruan</text>
+</svg>

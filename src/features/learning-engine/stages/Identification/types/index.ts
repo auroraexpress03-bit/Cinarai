@@ -14,6 +14,7 @@ export type ReasonStatus = 'EMPTY' | 'DRAFT' | 'SAVED';
 export interface AnswerOption {
   readonly id: string;
   readonly text: string;
+  readonly correct: boolean;
 }
 
 /** Satu item identifikasi — merepresentasikan satu learning target */

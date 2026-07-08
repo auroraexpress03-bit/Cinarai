@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import type { IdentificationItem } from '../types';
 import { useIdentificationContext } from '../context/IdentificationContext';
@@ -18,11 +19,12 @@ export default function IdentificationQuestion({
   onCheck,
 }: IdentificationQuestionProps) {
   const { selectOption, state } = useIdentificationContext();
+  const [imgError, setImgError] = useState(false);
 
   const hasSelection = item.selectedOptionId !== null;
   const isCorrect = item.selectedOptionId === item.correctOptionId;
-  const selectedOption = item.options.find((option) => option.id === item.selectedOptionId) ?? null;
-  const correctOption = item.options.find((option) => option.id === item.correctOptionId) ?? null;
+  const selectedOption = item.options.find((o) => o.id === item.selectedOptionId) ?? null;
+  const correctOption = item.options.find((o) => o.id === item.correctOptionId) ?? null;
   const totalItems = state.items.length;
 
   return (
@@ -30,14 +32,24 @@ export default function IdentificationQuestion({
       {/* Gambar objek */}
       <div className="overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50">
         <div className="relative aspect-[16/10] w-full bg-neutral-100">
-          <Image
-            src={item.image}
-            alt={item.imageAlt}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, 640px"
-            priority={item.targetIndex === 0}
-          />
+          {imgError ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-100">
+              <svg className="h-12 w-12 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3l18 18M9.75 9.75a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+              </svg>
+              <p className="text-sm font-semibold text-neutral-400">{item.imageAlt}</p>
+            </div>
+          ) : (
+            <Image
+              src={item.image}
+              alt={item.imageAlt}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 640px"
+              priority={item.targetIndex === 0}
+              onError={() => setImgError(true)}
+            />
+          )}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import {
+import React, {
   createContext,
   useCallback,
   useContext,
@@ -55,6 +55,11 @@ export interface IdentificationContextValue
   // Review pagination (CONFIRM step)
   reviewIndex: number;
   setReviewIndex: (index: number) => void;
+  // Navigasi soal (digunakan oleh IdentificationNavigation → BottomNav)
+  currentQuestionIndex: number;
+  setCurrentQuestionIndex: (index: number) => void;
+  checkedItems: Record<string, boolean>;
+  setCheckedItems: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 const IdentificationContext = createContext<IdentificationContextValue | null>(null);
@@ -85,6 +90,8 @@ export function IdentificationProvider({
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<IdentificationStep>('IDENTIFY');
   const [reviewIndex, setReviewIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
   const identification = useIdentification({ comicId, lokasi, cover, title, learningTargets });
   const { state, reset: resetIdentification, applyAnswers } = identification;
@@ -113,8 +120,9 @@ export function IdentificationProvider({
     updateAutoSaveState(item.id, { status: 'saving', message: 'Menyimpan...' });
 
     try {
-      await saveIdentificationAnswer(currentUser.uid, comicId, item.targetIndex, {
-        selectedAnswer: item.selectedOptionId,
+      const selectedOption = item.options.find((option) => option.id === item.selectedOptionId);
+    await saveIdentificationAnswer(currentUser.uid, comicId, item.targetIndex, {
+        selectedAnswer: selectedOption?.text ?? null,
         note: item.note,
         reason: item.reason,
       });
@@ -241,6 +249,10 @@ export function IdentificationProvider({
       autoSaveState,
       reviewIndex,
       setReviewIndex,
+      currentQuestionIndex,
+      setCurrentQuestionIndex,
+      checkedItems,
+      setCheckedItems,
       selectOption: (itemId: string, optionId: string) => {
         identification.selectOption(itemId, optionId);
         scheduleAutoSave(itemId);
@@ -254,7 +266,7 @@ export function IdentificationProvider({
         scheduleAutoSave(itemId);
       },
     }),
-    [identification, saveReasonWithPersist, lokasi, subtitle, kelas, cover, title, currentStep, nextStep, previousStep, reset, advance, validationErrors, autoSaveState, scheduleAutoSave, reviewIndex, setReviewIndex]
+    [identification, saveReasonWithPersist, lokasi, subtitle, kelas, cover, title, currentStep, nextStep, previousStep, reset, advance, validationErrors, autoSaveState, scheduleAutoSave, reviewIndex, setReviewIndex, currentQuestionIndex, setCurrentQuestionIndex, checkedItems, setCheckedItems]
   );
 
   return (
