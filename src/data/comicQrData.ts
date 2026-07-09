@@ -26,6 +26,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         title: 'Kubus',
         description: 'Bangun ruang dengan 6 sisi persegi yang sama besar. Temukan bagian Candi Jawi yang menyerupai kubus.',
         previewImage: '/images/identification/komik1-soal2.jpg',
+        qrUrl: 'https://asblr.com/2DCN6k',
       },
       {
         page: 16,
@@ -35,6 +36,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         title: 'Balok',
         description: 'Bangun ruang dengan 6 sisi persegi panjang. Tubuh utama Candi Jawi dapat dimodelkan sebagai balok.',
         previewImage: '/images/identification/komik1-soal1.jpg',
+        qrUrl: 'https://asblr.com/KjCtQB',
       },
       {
         page: 17,
@@ -44,6 +46,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         title: 'Limas',
         description: 'Bangun ruang dengan alas persegi dan 4 sisi segitiga yang bertemu di satu titik puncak. Mirip dengan atap bertingkat candi.',
         previewImage: '/images/identification/komik1-soal4.jpg',
+        qrUrl: 'https://asblr.com/3oXoRI',
       },
       {
         page: 22,
@@ -53,6 +56,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         title: 'Prisma',
         description: 'Bangun ruang dengan dua alas sejajar berbentuk segitiga dan tiga sisi persegi panjang. Ditemukan pada bagian dinding candi.',
         previewImage: '/images/identification/komik1-soal5.jpg',
+        qrUrl: 'https://asblr.com/pxMwEe',
       },
       {
         page: 23,
@@ -62,6 +66,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         title: 'Balok Selasar',
         description: 'Balok yang membentuk selasar atau lorong pada Candi Jawi. Perhatikan perbedaan ukuran panjang, lebar, dan tingginya.',
         previewImage: '/images/identification/komik1-soal1.jpg',
+        qrUrl: 'https://asblr.com/UyBHgG',
       },
       {
         page: 27,
@@ -71,6 +76,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         title: 'Limas Tepi',
         description: 'Limas yang berada di bagian tepi atau sudut Candi Jawi. Amati bentuk alasnya dan jumlah sisi segitiganya.',
         previewImage: '/images/identification/komik1-soal4.jpg',
+        qrUrl: 'https://asblr.com/xCZJvU',
       },
       {
         page: 28,
@@ -80,6 +86,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         title: 'Kerucut',
         description: 'Bangun ruang dengan alas lingkaran dan meruncing ke satu titik puncak. Puncak Candi Jawi menyerupai kerucut.',
         previewImage: '/images/identification/komik1-soal3.jpg',
+        qrUrl: 'https://asblr.com/G3F41T',
       },
       { page: 36, category: 'VIDEO', value: 'https://youtu.be/I0lhxppFlsc?si=Vd68k8UyfsenJ1rj', image: '' },
     ],
