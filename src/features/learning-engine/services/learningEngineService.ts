@@ -21,14 +21,15 @@ export function subscribeToLearningProgress(
 export async function completeStage(
   userId: string,
   current: ComicProgressState,
-  stage: Sintaks
+  stage: Sintaks,
+  extraData?: Record<string, unknown>
 ): Promise<ComicProgressState> {
   if (!userId) {
     const err = new Error('userId tidak tersedia');
     throw err;
   }
   const next = completeSintaks(current, stage);
-  await saveComicProgress(userId, next);
+  await saveComicProgress(userId, next, extraData);
   return next;
 }
 

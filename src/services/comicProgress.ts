@@ -116,7 +116,8 @@ export async function initializeUserProgress(userId: string): Promise<void> {
 /** Persist updated progress state to Firestore. Creates the document if it does not exist (merge: true). */
 export async function saveComicProgress(
   userId: string,
-  state: ComicProgressState
+  state: ComicProgressState,
+  extraData?: Record<string, unknown>
 ): Promise<void> {
   // ── Auth guard ────────────────────────────────────────────────────────────
   if (!userId) {
@@ -127,6 +128,7 @@ export async function saveComicProgress(
   const payload = {
     ...toDocument(state),
     ...(state.isCompleted ? { completedAt: serverTimestamp() } : {}),
+    ...(extraData ?? {}),
   };
 
   try {

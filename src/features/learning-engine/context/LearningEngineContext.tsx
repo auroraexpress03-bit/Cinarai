@@ -185,27 +185,29 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   }, [user, showSnackbar]);
 
   /** Complete current stage in Firestore then advance to next stage. */
-  const completeCurrentStage = useCallback(async () => {
-    if (isSavingRef.current) return;
+  const completeCurrentStage = useCallback(async (metadata?: Record<string, unknown>) => {
+    if (isSavingRef.current) return false;
 
     const sintaks = stageToSintaks(currentStage);
-    if (!sintaks) return;
+    if (!sintaks) return false;
 
     if (!user?.uid) {
       showSnackbar('Gagal menyimpan progress: login diperlukan.', 'error');
-      return;
+      return false;
     }
 
     isSavingRef.current = true;
     setIsSaving(true);
     try {
-      const next = await persistCompleteStage(user.uid, progressRef.current, sintaks);
+      const next = await persistCompleteStage(user.uid, progressRef.current, sintaks, metadata);
       progressRef.current = next;
       setProgress(next);
       showSnackbar('Progress berhasil disimpan ✓', 'success');
+      return true;
     } catch (error) {
       const code = extractFirebaseErrorCode(error);
       showSnackbar(`Gagal menyimpan progress: ${code}`, 'error');
+      return false;
     } finally {
       isSavingRef.current = false;
       setIsSaving(false);

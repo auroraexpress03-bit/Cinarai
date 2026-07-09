@@ -70,7 +70,7 @@ export interface LearningContextValue {
   // Actions
   finishLearning: () => void;
   resetProgress: () => Promise<void>;
-  completeCurrentStage: () => Promise<void>;
+  completeCurrentStage: (metadata?: Record<string, unknown>) => Promise<boolean>;
 
   // Stage gate — stage dapat mengunci/membuka tombol Next
   canAdvance: boolean;
