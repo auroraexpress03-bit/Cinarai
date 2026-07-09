@@ -7,6 +7,7 @@ import { useLearningEngine } from '../../hooks/useLearningEngine';
 export default function ResolutionStage() {
   const { comic, setCanAdvance } = useLearningEngine();
   const [misiStarted, setMisiStarted] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
 
   // Cover screen: advance is locked until student presses Mulai Misi
   useEffect(() => {
@@ -17,7 +18,6 @@ export default function ResolutionStage() {
     return <ResolutionCover comic={comic} onStart={() => setMisiStarted(true)} />;
   }
 
-  // ── Placeholder: soal akan dibangun di sini ──
   return (
     <div className="flex flex-col gap-4 animate-fade-in-up">
 
@@ -28,24 +28,126 @@ export default function ResolutionStage() {
             <span className="text-lg font-black text-white">6</span>
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/70">
-              Resolution
-            </p>
-            <h2 className="mt-0.5 text-base font-black text-white sm:text-lg">
-              Misi Bangun Ruang
-            </h2>
+            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/70">Resolution</p>
+            <h2 className="mt-0.5 text-base font-black text-white sm:text-lg">Misi Bangun Ruang</h2>
           </div>
         </div>
       </header>
 
-      {/* Placeholder content */}
-      <div className="rounded-[24px] border-2 border-dashed border-neutral-200 bg-white px-5 py-10 text-center">
-        <p className="text-3xl">🚧</p>
-        <p className="mt-3 text-sm font-black text-neutral-500">
-          Soal misi akan ditampilkan di sini.
+      <MisiKubus selected={selected} onSelect={setSelected} />
+
+    </div>
+  );
+}
+
+// ─── KubusSvg ────────────────────────────────────────────────────────────────
+
+function KubusSvg() {
+  return (
+    <svg
+      viewBox="0 0 160 140"
+      className="w-full max-w-[180px]"
+      aria-label="Ilustrasi kubus dengan rusuk 8 cm"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Front face */}
+      <rect x="30" y="50" width="80" height="80" rx="2"
+        fill="#e0f0ff" stroke="#1875cc" strokeWidth="2" />
+      {/* Top face */}
+      <polygon points="30,50 70,20 150,20 110,50"
+        fill="#c1e1ff" stroke="#1875cc" strokeWidth="2" />
+      {/* Right face */}
+      <polygon points="110,50 150,20 150,100 110,130"
+        fill="#a1d2ff" stroke="#1875cc" strokeWidth="2" />
+      {/* Dashed back edges */}
+      <line x1="30" y1="50" x2="70" y2="20" stroke="#1875cc" strokeWidth="1.5" strokeDasharray="4 3" />
+      {/* Dimension label — rusuk */}
+      <text x="68" y="145" textAnchor="middle" fontSize="11" fontWeight="700" fill="#1875cc">s = 8 cm</text>
+      {/* Tick marks on front bottom edge */}
+      <line x1="30" y1="132" x2="110" y2="132" stroke="#1875cc" strokeWidth="1" />
+      <line x1="30" y1="129" x2="30" y2="135" stroke="#1875cc" strokeWidth="1.5" />
+      <line x1="110" y1="129" x2="110" y2="135" stroke="#1875cc" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+// ─── MisiKubus ────────────────────────────────────────────────────────────────
+
+const OPTIONS = [
+  { key: 'A', label: '256 cm³' },
+  { key: 'B', label: '384 cm³' },
+  { key: 'C', label: '512 cm³' },
+  { key: 'D', label: '640 cm³' },
+];
+
+function MisiKubus({
+  selected,
+  onSelect,
+}: {
+  selected: string | null;
+  onSelect: (key: string) => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[24px] bg-white shadow-sm">
+      {/* Card header */}
+      <div className="border-b border-neutral-100 bg-primary-50 px-5 py-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary-500">
+          Tantangan Numerasi
         </p>
+        <h3 className="mt-1 text-lg font-black text-neutral-900">Misi Kubus</h3>
       </div>
 
+      <div className="flex flex-col gap-5 px-5 py-5">
+        {/* Soal */}
+        <div className="rounded-2xl border border-primary-100 bg-primary-50 px-4 py-4">
+          <p className="text-sm leading-relaxed text-neutral-700 sm:text-base">
+            Jika panjang rusuk kubus pada bagian alas Candi Jawi adalah{' '}
+            <span className="font-black text-primary-700">8 cm</span>, berapakah volumenya?
+          </p>
+        </div>
+
+        {/* SVG illustration */}
+        <div className="flex justify-center py-2">
+          <KubusSvg />
+        </div>
+
+        {/* Answer options */}
+        <div className="flex flex-col gap-3">
+          {OPTIONS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelect(key)}
+              className={[
+                'flex min-h-[52px] w-full items-center gap-4 rounded-2xl border-2 px-4 py-3 text-left transition active:scale-[0.98]',
+                selected === key
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-neutral-200 bg-white hover:border-primary-200 hover:bg-primary-50/50',
+              ].join(' ')}
+            >
+              <span
+                className={[
+                  'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-black',
+                  selected === key
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-neutral-100 text-neutral-600',
+                ].join(' ')}
+              >
+                {key}
+              </span>
+              <span
+                className={[
+                  'text-base font-bold',
+                  selected === key ? 'text-primary-700' : 'text-neutral-800',
+                ].join(' ')}
+              >
+                {label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
