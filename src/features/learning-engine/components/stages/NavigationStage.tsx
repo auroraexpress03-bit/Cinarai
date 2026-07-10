@@ -28,46 +28,45 @@ function getObjectDisplayName(entry: ComicAssetEntry | null | undefined): string
   return 'Kubus';
 }
 
-function getQuickQuestions(objectName: string): string[] {
+function getQuickQuestions(objectName: string, location: string): string[] {
   const normalized = objectName.toLowerCase();
-  if (normalized.includes('kubus')) {
+  if (normalized.includes('persegi')) {
     return [
-      'Apa nama bangun ruang ini?',
-      'Berapa jumlah sisinya?',
-      'Berapa jumlah rusuknya?',
-      'Berapa titik sudutnya?',
-      'Mengapa bagian bawah Candi Jawi berbentuk kubus?',
+      'Apa nama bangun datar ini?',
+      'Berapa banyak sisi yang dimiliki?',
+      'Apakah bentuk ini memiliki simetri lipat?',
+      `Bagaimana pola ini terlihat di ${location}?`,
     ];
   }
-  if (normalized.includes('balok')) {
+  if (normalized.includes('persegi panjang')) {
     return [
-      'Apa nama bangun ruang ini?',
-      'Berapa jumlah sisi balok ini?',
-      'Apa perbedaan balok dan kubus?',
-      'Bagaimana bentuk rusuk pada balok?',
+      'Apa nama bangun datar ini?',
+      'Apa ciri sisi-sisinya?',
+      'Apa bedanya dengan persegi?',
+      `Bagaimana bentuk ini membantu memahami pola di ${location}?`,
     ];
   }
-  if (normalized.includes('kerucut')) {
+  if (normalized.includes('segitiga')) {
     return [
-      'Apa nama bangun ruang ini?',
-      'Apa ciri khas alas kerucut?',
-      'Apa perbedaan kerucut dan tabung?',
-      'Mengapa bentuk atap candi mirip kerucut?',
+      'Apa nama bangun datar ini?',
+      'Berapa jumlah sudutnya?',
+      'Apakah bentuk ini dapat digunakan sebagai pola dekoratif?',
+      `Apa kaitannya dengan relief ${location}?`,
     ];
   }
-  if (normalized.includes('tabung')) {
+  if (normalized.includes('trapesium')) {
     return [
-      'Apa nama bangun ruang ini?',
-      'Apa bentuk alas dan tutup tabung?',
-      'Berapa jumlah rusuk tabung?',
-      'Mengapa struktur ini sering muncul pada bangunan?',
+      'Apa nama bangun datar ini?',
+      'Apa ciri khusus sisi yang sejajar?',
+      'Bagaimana bentuk ini berbeda dari persegi panjang?',
+      `Apa hubungannya dengan pola di ${location}?`,
     ];
   }
   return [
-    'Apa nama bangun ruang ini?',
-    'Berapa jumlah rusuknya?',
+    'Apa nama bangun datar ini?',
     'Bagaimana bentuk sisi-sisinya?',
-    'Apa kaitannya dengan Candi Jawi?',
+    'Apakah bentuk ini simetris?',
+    `Apa kaitannya dengan ${location}?`,
   ];
 }
 
@@ -81,7 +80,7 @@ const starterMessages: ChatMessage[] = [
   {
     id: 1,
     role: 'assistant',
-    content: 'Halo! Aku siap membantu kamu mengamati objek ini dan mengaitkannya dengan bangun ruang di Candi Jawi.',
+    content: 'Halo! Aku siap membantu kamu mengamati objek ini dan mengaitkannya dengan bangun datar serta simetri di Candi Penataran.',
   },
 ];
 
@@ -104,7 +103,7 @@ export default function NavigationStage() {
     return primaryEntry;
   }, [activeObjectId, model3D, primaryEntry]);
   const activeObjectName = useMemo(() => getObjectDisplayName(activeEntry), [activeEntry]);
-  const quickQuestions = useMemo(() => getQuickQuestions(activeObjectName), [activeObjectName]);
+  const quickQuestions = useMemo(() => getQuickQuestions(activeObjectName, comic.lokasi), [activeObjectName, comic.lokasi]);
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [draft, setDraft] = useState('');
   const [isResponding, setIsResponding] = useState(false);

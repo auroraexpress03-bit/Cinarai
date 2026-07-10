@@ -6,6 +6,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
+import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
 
 type CoachSummary = {
   mastered: string[];
@@ -19,30 +20,78 @@ type CoachResponse = {
   summary: CoachSummary;
 };
 
-const OPTIONS = ['Kubus', 'Balok', 'Prisma Segi Empat', 'Limas Segi Empat', 'Kerucut', 'Tabung'] as const;
-const APPLICATION_IMAGES = [
-  {
-    src: '/images/identification/komik1-soal1.jpg',
-    alt: 'Replika Candi Jawi tampak depan dengan badan utama yang jelas',
-    label: 'Tampak Depan',
-    description: 'Perhatikan bagaimana tubuh utama replika terlihat dari depan.',
-  },
-  {
-    src: '/images/identification/komik1-soal3.jpg',
-    alt: 'Replika Candi Jawi tampak puncak yang meruncing',
-    label: 'Sudut Puncak',
-    description: 'Amati bentuk puncak replika yang meruncing dan simetris.',
-  },
-  {
-    src: '/images/identification/komik1-soal5.jpg',
-    alt: 'Replika Candi Jawi tampak samping dengan dinding dan reliefnya',
-    label: 'Sudut Dinding',
-    description: 'Lihatlah sisi samping dan kecocokan bentuk dinding replika.',
-  },
-] as const;
+const DEFAULT_OPTIONS = ['Kubus', 'Balok', 'Prisma Segi Empat', 'Limas Segi Empat', 'Kerucut', 'Tabung'] as const;
+const KOMIK_2_OPTIONS = ['Persegi', 'Persegi Panjang', 'Segitiga', 'Trapesium', 'Lingkaran'] as const;
 
-const AR_MODEL_EMBED_URL =
-  'https://sketchfab.com/3d-models/candi-jawi-with-precision-geometry-83da3450467747fda7872c5a9392ffac/embed?autostart=0&ui_infos=0&ui_stop=0&ui_controls=1';
+function getApplicationConfig(comicId: number) {
+  if (comicId === 2) {
+    return {
+      title: 'Terapkan Ilmu di Konteks Baru',
+      intro: 'Amati pola relief dan bentuk bangun datar pada Candi Penataran, lalu pilih bangun datar yang paling cocok.',
+      prompt: 'Relief Candi Penataran menampilkan pola yang simetris dan berulang. Pilih bangun datar yang paling cocok untuk menjelaskan pola tersebut dan jelaskan alasanmu.',
+      context: 'Pola simetri dan bentuk bangun datar pada relief Candi Penataran.',
+      images: [
+        {
+          src: '/assets/qr/komik-2/13-objek-1.jpeg',
+          alt: 'Relief Candi Penataran yang memperlihatkan pola persegi',
+          label: 'Relief Simetris',
+          description: 'Amati pola berulang yang seimbang di kiri dan kanan.',
+        },
+        {
+          src: '/assets/qr/komik-2/15-objek-2.jpeg',
+          alt: 'Bidang panjang pada Candi Penataran',
+          label: 'Bidang Panjang',
+          description: 'Perhatikan sisi panjang dan pendek pada bentuk yang terlihat.',
+        },
+        {
+          src: '/assets/qr/komik-2/17-objek-3.jpeg',
+          alt: 'Ornamen tajam pada Candi Penataran',
+          label: 'Ornamen Tajam',
+          description: 'Lihatlah sudut dan sisi yang membentuk bentuk tajam.',
+        },
+      ] as const,
+      options: KOMIK_2_OPTIONS,
+    };
+  }
+
+  return {
+    title: 'Terapkan Ilmu di Konteks Baru',
+    intro: 'Amati replika baru di museum, jelajahi sudut-sudut berbeda, lalu pilih bangun ruang yang paling cocok.',
+    prompt: 'Replika bangunan di museum menampilkan sudut baru yang belum pernah dilihat sebelumnya. Pilih bangun ruang yang paling cocok untuk menjelaskan bentuk replika ini dan tuliskan alasanmu.',
+    context: 'Replika bangunan dengan sudut pemandangan baru, ditampilkan sebagai objek pembelajaran di museum.',
+    images: [
+      {
+        src: '/images/identification/komik1-soal1.jpg',
+        alt: 'Replika bangunan tampak depan dengan badan utama yang jelas',
+        label: 'Tampak Depan',
+        description: 'Perhatikan bagaimana bentuk utama terlihat dari depan.',
+      },
+      {
+        src: '/images/identification/komik1-soal3.jpg',
+        alt: 'Replika bangunan tampak puncak yang meruncing',
+        label: 'Sudut Puncak',
+        description: 'Amati bentuk puncak replika yang meruncing dan simetris.',
+      },
+      {
+        src: '/images/identification/komik1-soal5.jpg',
+        alt: 'Replika bangunan tampak samping dengan dinding dan reliefnya',
+        label: 'Sudut Dinding',
+        description: 'Lihatlah sisi samping dan kecocokan bentuk dinding replika.',
+      },
+    ] as const,
+    options: DEFAULT_OPTIONS,
+  };
+}
+
+function isValidUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 function shuffle<T>(array: ReadonlyArray<T>): T[] {
   const result = [...array];
@@ -73,6 +122,7 @@ function saveLocalApplicationActivity(comicId: number, payload: Record<string, u
 export default function ApplicationStage() {
   const { comic, setCanAdvance, completeCurrentStage } = useLearningEngine();
   const { user } = useAuth();
+  const metadata = useComicMetadata(comic.id);
   const [selectedAnswer, setSelectedAnswer] = useState<string[]>([]);
   const [studentReason, setStudentReason] = useState('');
   const [arViewed, setArViewed] = useState(false);
@@ -88,7 +138,13 @@ export default function ApplicationStage() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
   const [attemptCount, setAttemptCount] = useState(0);
-  const options = useMemo(() => shuffle(OPTIONS), []);
+  const applicationConfig = useMemo(() => getApplicationConfig(comic.id), [comic.id]);
+  const options = useMemo(() => shuffle(applicationConfig.options), [applicationConfig.options]);
+  const arModelEntry = useMemo(
+    () => metadata.assets.model3D.find((entry) => isValidUrl(entry.arUrl || entry.embedUrl || '')) ?? null,
+    [metadata.assets.model3D],
+  );
+  const arViewerUrl = arModelEntry?.embedUrl || arModelEntry?.arUrl || null;
 
   const hasCompletedPreparation = arViewed && explorationCompleted;
   const minReasonLength = studentReason.trim().length;
@@ -161,9 +217,9 @@ export default function ApplicationStage() {
 
     const currentAttempt = attemptCount + 1;
     const payloadBody = {
-      soal: 'Replika Candi Jawi di museum menampilkan sudut baru yang belum pernah dilihat sebelumnya. Pilih bangun ruang yang paling cocok untuk menjelaskan bentuk replika ini dan tuliskan alasanmu.',
-      konteks: 'Replika Candi Jawi dengan sudut pemandangan baru, ditampilkan sebagai objek pembelajaran di museum.',
-      gambar: APPLICATION_IMAGES.map((image) => image.src),
+      soal: applicationConfig.prompt,
+      konteks: applicationConfig.context,
+      gambar: applicationConfig.images.map((image) => image.src),
       jawabanSiswa: selectedAnswer,
       jawabanAlasan: studentReason,
       attempt: currentAttempt,
@@ -230,14 +286,14 @@ export default function ApplicationStage() {
             <div className="space-y-1">
               <p className="text-xs font-black uppercase tracking-[0.32em] text-primary-600">APPLICATION</p>
               <h1 className="text-2xl font-black leading-snug text-neutral-900 sm:text-3xl">
-                Terapkan Ilmu di Konteks Baru
+                {applicationConfig.title}
               </h1>
             </div>
           </div>
         </div>
 
         <p className="mt-4 text-sm leading-relaxed text-neutral-600 sm:text-base">
-          Amati replika Candi Jawi baru di museum, jelajahi sudut-sudut berbeda, lalu pilih bangun ruang yang paling cocok.
+          {applicationConfig.intro}
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -261,7 +317,7 @@ export default function ApplicationStage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary-500">AR Aktivitas Utama</p>
-            <h2 className="mt-1 text-lg font-black text-neutral-900">Amati Model 3D Candi Jawi</h2>
+            <h2 className="mt-1 text-lg font-black text-neutral-900">Amati Model 3D {comic.lokasi}</h2>
           </div>
           <button
             type="button"
@@ -272,7 +328,7 @@ export default function ApplicationStage() {
           </button>
         </div>
         <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-          Gunakan AR sebagai bagian pertama dari tantanganmu. Putar, zoom, dan perhatikan volume bangun ruang replika.
+          Gunakan AR sebagai bagian pertama dari tantanganmu. Putar, zoom, dan perhatikan pola atau bentuk yang muncul pada objek belajar.
         </p>
       </div>
 
@@ -296,7 +352,7 @@ export default function ApplicationStage() {
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {APPLICATION_IMAGES.map((item) => (
+          {applicationConfig.images.map((item) => (
             <div key={item.src} className="overflow-hidden rounded-[20px] border border-neutral-200 bg-neutral-50">
               <div className="relative aspect-[4/3]">
                 {!imagesLoaded[item.src] && (
@@ -323,7 +379,7 @@ export default function ApplicationStage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary-500">Pertanyaan Aplikasi</p>
-            <h2 className="mt-1 text-lg font-black text-neutral-900">Pilih bangun ruang yang paling sesuai</h2>
+            <h2 className="mt-1 text-lg font-black text-neutral-900">Pilih bangun datar yang paling sesuai</h2>
           </div>
           <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">
             {arViewed ? 'AR sudah dilihat' : 'Buka AR terlebih dahulu'}
@@ -331,7 +387,7 @@ export default function ApplicationStage() {
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-          Perhatikan gambar replika, pilih bangun ruang yang paling cocok, lalu jelaskan alasanmu secara singkat.
+          Perhatikan gambar objek, pilih bangun datar yang paling cocok, lalu jelaskan alasanmu secara singkat.
         </p>
 
         <div className="mt-5 grid gap-3">
@@ -472,7 +528,7 @@ export default function ApplicationStage() {
             <div className="flex flex-col gap-4 border-b border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.32em] text-primary-600">AR Viewer</p>
-                <h2 className="text-xl font-black text-neutral-900">Candi Jawi 3D</h2>
+                <h2 className="text-xl font-black text-neutral-900">{comic.lokasi} 3D</h2>
                 <p className="text-sm text-neutral-600">Putar, zoom, dan amati model sebelum menjawab.</p>
               </div>
               <div className="flex gap-3">
@@ -518,8 +574,8 @@ export default function ApplicationStage() {
                   )}
                   <iframe
                     key={arRetryCount}
-                    src={AR_MODEL_EMBED_URL}
-                    title="Candi Jawi AR Viewer"
+                    src={arViewerUrl ?? ''}
+                    title={`${comic.lokasi} AR Viewer`}
                     className="h-full w-full border-0"
                     allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     onLoad={handleArLoad}

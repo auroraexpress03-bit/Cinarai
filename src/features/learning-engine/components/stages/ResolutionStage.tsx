@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
-import { RESOLUTION_MISSIONS, type ResolutionMission } from './resolutionStage.helpers';
+import { getResolutionMissions, type ResolutionMission } from './resolutionStage.helpers';
 
 function getTutorFallback(mission: ResolutionMission, isCorrect: boolean, attempt: number = 0): string {
   if (isCorrect) {
@@ -18,7 +18,7 @@ function getTutorFallback(mission: ResolutionMission, isCorrect: boolean, attemp
       '',
       `📌 Jadi hasilnya adalah: ${mission.answer}`,
       '',
-      `🏛️ Hubungan dengan Candi Jawi: ${mission.context}`,
+      `🏛️ Hubungan dengan materi: ${mission.context}`,
       '',
       'Kamu sudah memahami konsep yang penting. Sangat bagus! 👏',
     ].join('\n');
@@ -71,7 +71,6 @@ function getTutorFallback(mission: ResolutionMission, isCorrect: boolean, attemp
 }
 
 export default function ResolutionStage() {
-  const { comic, setCanAdvance, nextStage } = useLearningEngine();
   const [misiStarted, setMisiStarted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedUpToIndex, setCompletedUpToIndex] = useState(-1); // Track progress yang ditampilkan
@@ -79,10 +78,12 @@ export default function ResolutionStage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
-  const currentMission = RESOLUTION_MISSIONS[currentIndex];
+  const { comic, setCanAdvance, nextStage } = useLearningEngine();
+  const missions = useMemo(() => getResolutionMissions(comic.id, comic.lokasi), [comic.id, comic.lokasi]);
+  const currentMission = missions[currentIndex];
   const displayedProgress = useMemo(
-    () => `${Math.min(completedUpToIndex + 2, RESOLUTION_MISSIONS.length)}/${RESOLUTION_MISSIONS.length}`,
-    [completedUpToIndex]
+    () => `${Math.min(completedUpToIndex + 2, missions.length)}/${missions.length}`,
+    [completedUpToIndex, missions.length]
   );
 
   useEffect(() => {
@@ -96,7 +97,7 @@ export default function ResolutionStage() {
   }, [currentIndex, misiStarted]);
 
   const handleAdvanceToNextMission = () => {
-    if (currentIndex === RESOLUTION_MISSIONS.length - 1) {
+    if (currentIndex === missions.length - 1) {
       // Ini soal terakhir, mark sebagai finished
       setIsFinished(true);
       setCompletedUpToIndex(currentIndex);
@@ -118,7 +119,7 @@ export default function ResolutionStage() {
   }
 
   if (isFinished) {
-    return <CompletionPage onContinue={() => void nextStage()} />;
+    return <CompletionPage comic={comic} onContinue={() => void nextStage()} />;
   }
 
   return (
@@ -130,7 +131,7 @@ export default function ResolutionStage() {
           </div>
           <div className="min-w-0">
             <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/70">Resolution</p>
-            <h2 className="mt-0.5 text-base font-black text-white sm:text-lg">Misi Numerasi Candi Jawi</h2>
+            <h2 className="mt-0.5 text-base font-black text-white sm:text-lg">Misi Numerasi {comic.lokasi}</h2>
           </div>
         </div>
       </header>
@@ -148,7 +149,7 @@ export default function ResolutionStage() {
           </div>
 
           <div className="mt-3 flex items-center gap-2">
-            {RESOLUTION_MISSIONS.map((_, index) => (
+            {missions.map((_, index) => (
               <span
                 key={index}
                 className={['h-2.5 w-2.5 rounded-full', index <= completedUpToIndex ? 'bg-accent-500' : index === currentIndex ? 'bg-primary-600' : 'bg-neutral-200'].join(' ')}
@@ -158,9 +159,10 @@ export default function ResolutionStage() {
         </div>
 
         <MissionCard
+          comic={comic}
           mission={currentMission}
           missionIndex={currentIndex}
-          totalMissions={RESOLUTION_MISSIONS.length}
+          totalMissions={missions.length}
           selected={selected}
           onSelect={setSelected}
           onReadyToAdvance={handleAdvanceToNextMission}
@@ -171,16 +173,16 @@ export default function ResolutionStage() {
   );
 }
 
-function CompletionPage({ onContinue }: { onContinue: () => void }) {
+function CompletionPage({ comic, onContinue }: { comic: { lokasi: string }; onContinue: () => void }) {
   return (
     <div className="overflow-hidden rounded-[24px] bg-white px-5 py-6 shadow-sm">
       <div className="flex justify-center text-5xl">🎉</div>
       <h3 className="mt-4 text-center text-xl font-black text-neutral-900">Selamat!</h3>
       <p className="mt-2 text-center text-sm leading-relaxed text-neutral-700">
-        Kamu telah menyelesaikan seluruh tantangan numerasi Candi Jawi.
+        Kamu telah menyelesaikan seluruh tantangan numerasi {comic.lokasi}.
       </p>
       <div className="mt-6 rounded-[20px] border border-accent-200 bg-accent-50 px-4 py-4 text-sm text-accent-700">
-        Kamu telah menemukan pola volume dari bangun ruang yang ada pada bagian-bagian Candi Jawi.
+        Kamu telah menemukan pola bangun datar, luas, dan simetri yang ada pada bagian-bagian {comic.lokasi}.
       </div>
       <button
         type="button"
@@ -195,6 +197,7 @@ function CompletionPage({ onContinue }: { onContinue: () => void }) {
 }
 
 function MissionCard({
+  comic,
   mission,
   missionIndex,
   totalMissions,
@@ -203,6 +206,7 @@ function MissionCard({
   onReadyToAdvance,
   isTransitioning,
 }: {
+  comic: { id: number; lokasi: string };
   mission: ResolutionMission;
   missionIndex: number;
   totalMissions: number;
@@ -243,7 +247,7 @@ function MissionCard({
       const response = await fetch('/api/ai/resolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selected, attempt: attempts, missionId: mission.id }),
+        body: JSON.stringify({ selected, attempt: attempts, missionId: mission.id, comicId: comic.id }),
       });
       const data = await response.json();
       const answerIsCorrect = Boolean(data.correct);
@@ -413,7 +417,7 @@ function MissionCard({
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-600 text-lg text-white">🤖</div>
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.25em] text-primary-600">AI Tutor</p>
-              <p className="text-sm font-black text-neutral-800">Guru Matematika Candi Jawi</p>
+              <p className="text-sm font-black text-neutral-800">Guru Matematika {comic.lokasi}</p>
             </div>
           </div>
 
@@ -425,7 +429,7 @@ function MissionCard({
               </>
             ) : (
               <p className="text-neutral-500">
-                Saya akan membimbingmu langkah demi langkah untuk memahami {mission.shape.toLowerCase()} dan menghubungkannya dengan Candi Jawi.
+                Saya akan membimbingmu langkah demi langkah untuk memahami {mission.shape.toLowerCase()} dan menghubungkannya dengan {comic.lokasi}.
               </p>
             )}
           </div>
@@ -521,7 +525,7 @@ function ResolutionCover({ comic, onStart }: { comic: { title: string; lokasi: s
         </div>
         <p className="text-sm leading-relaxed text-neutral-600 sm:text-base">
           Sekarang saatnya menggunakan pengetahuanmu untuk menyelesaikan tantangan matematika
-          berdasarkan bagian-bagian Candi Jawi.
+          berdasarkan bagian-bagian {comic.lokasi}.
         </p>
       </div>
 
@@ -532,8 +536,8 @@ function ResolutionCover({ comic, onStart }: { comic: { title: string; lokasi: s
         </div>
         <ul className="flex flex-col gap-3 px-5 py-4">
           {[
-            { emoji: '🔍', text: 'Membaca soal tantangan berdasarkan bagian Candi Jawi.' },
-            { emoji: '🧮', text: 'Menghitung menggunakan rumus bangun ruang yang sudah kamu pelajari.' },
+            { emoji: '🔍', text: `Membaca soal tantangan berdasarkan bagian ${comic.lokasi}.` },
+            { emoji: '🧮', text: 'Menghitung menggunakan rumus bangun datar dan simetri yang sudah kamu pelajari.' },
             { emoji: '✅', text: 'Menyelesaikan misi dan melanjutkan perjalanan belajarmu.' },
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-3 rounded-2xl bg-primary-50 p-3 sm:p-4">

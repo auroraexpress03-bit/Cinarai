@@ -496,26 +496,26 @@ function NumeracyChallenge() {
     if (selected === 'C') {
       setTutorVariant('positive');
       setTutorMessage([
-        'Kamu berhasil menerapkan rumus volume kubus dengan benar.',
+        'Kamu berhasil menerapkan rumus luas persegi dengan benar.',
         '',
-        'Rumus Volume Kubus = s × s × s',
+        'Rumus Luas Persegi = s × s',
         'Dengan s = 8 cm:',
-        '8 × 8 × 8 = 512 cm³',
+        '8 × 8 = 64 cm²',
         '',
-        'Kenapa bagian alas Candi Jawi dapat dimodelkan sebagai kubus di pembelajaran ini?',
-        'Karena bagian alas yang dimaksud berbentuk persegi (panjang dan lebar sama). Jika kita membayangkan tinggi yang sama dengan panjang rusuk alas, bentuk idealnya adalah kubus — sehingga volume dihitung dengan mengalikan panjang × lebar × tinggi (s × s × s).',
+        'Pola persegi pada relief Candi Penataran terlihat sama di kiri dan kanan.',
+        'Karena sisi-sisinya sama panjang, luasnya bisa dihitung dengan mengalikan panjang sisi dengan dirinya sendiri.',
       ].join('\n'));
     } else {
       setTutorVariant('constructive');
       setTutorMessage([
         'Baik, mari periksa langkah perhitungannya bersama-sama.',
         '',
-        'Konsep penting: Volume kubus = panjang × lebar × tinggi. Untuk kubus semua sisi sama, jadi Volume = s × s × s.',
+        'Konsep penting: Luas persegi = sisi × sisi.',
         'Dengan s = 8 cm, lakukan langkah berturut-turut:',
         '1) 8 × 8 = 64',
-        '2) 64 × 8 = 512 cm³',
+        '2) Hasilnya adalah 64 cm².',
         '',
-        'Perhatikan langkah perkalian berulang di atas — pilihan jawaban biasanya berbeda ketika langkah ketiga tidak dihitung atau dikalikan dengan angka lain. Coba hitung kembali langkah-langkahnya dan bandingkan dengan pilihan yang tersedia.',
+        'Perhatikan bahwa untuk persegi kita tidak menjumlahkan sisi yang berbeda, melainkan mengalikan sisi yang sama.',
       ].join('\n'));
     }
   }, [selected]);
@@ -524,14 +524,14 @@ function NumeracyChallenge() {
     <div className="overflow-hidden rounded-[24px] bg-white shadow-sm">
       <div className="border-b border-neutral-100 bg-primary-50 px-5 py-4">
         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary-500">Tantangan Numerasi</p>
-        <h3 className="mt-1 text-lg font-black text-neutral-900">Misi Kubus</h3>
+        <h3 className="mt-1 text-lg font-black text-neutral-900">Misi Persegi</h3>
       </div>
 
       <div className="flex flex-col gap-5 px-5 py-5">
         <div className="rounded-2xl border border-primary-100 bg-primary-50 px-4 py-4">
           <p className="text-sm leading-relaxed text-neutral-700 sm:text-base">
-            Jika panjang rusuk kubus pada bagian alas Candi Jawi adalah{' '}
-            <span className="font-black text-primary-700">8 cm</span>, berapakah volumenya?
+            Pola persegi pada relief Candi Penataran memiliki panjang sisi{' '}
+            <span className="font-black text-primary-700">8 cm</span>. Berapakah luasnya?
           </p>
         </div>
 
@@ -647,13 +647,13 @@ function NumeracyChallenge() {
             {/* Explanation after animation */}
             <div className="w-full max-w-[360px]">
               {showSimulation && (
-                <p className="text-sm text-neutral-700">Mengisi kubus untuk menunjukkan Volume = panjang × lebar × tinggi</p>
+                <p className="text-sm text-neutral-700">Mengisi persegi untuk menunjukkan Luas = sisi × sisi</p>
               )}
               {showResult && (
                 <div className="mt-2 rounded-2xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-sm text-neutral-800">
-                  <p className="font-black">Mengapa volume 512 cm³?</p>
-                  <p>Rumus Volume Kubus = s × s × s</p>
-                  <p className="mt-1">8 × 8 × 8 = 512 cm³</p>
+                  <p className="font-black">Mengapa luas 64 cm²?</p>
+                  <p>Rumus Luas Persegi = s × s</p>
+                  <p className="mt-1">8 × 8 = 64 cm²</p>
                 </div>
               )}
             </div>

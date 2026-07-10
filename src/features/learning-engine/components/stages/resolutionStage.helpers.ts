@@ -15,7 +15,7 @@ export interface ResolutionMission {
   illustration: string;
 }
 
-export const RESOLUTION_MISSIONS: ResolutionMission[] = [
+const LEGACY_RESOLUTION_MISSIONS: ResolutionMission[] = [
   {
     id: 1,
     title: 'Misi 1 · Alas Candi',
@@ -33,14 +33,14 @@ export const RESOLUTION_MISSIONS: ResolutionMission[] = [
     formula: 'V = s × s × s = 8 × 8 × 8 = 512 cm³',
     explanation: 'Kubus memiliki panjang, lebar, dan tinggi yang sama. Karena rusuknya 8 cm, volume didapat dari perkalian tiga sisi yang sama.',
     aiHint: 'Ingat rumus volume kubus: V = s³. Nilai s adalah 8 cm.',
-    context: 'Bagian alas Candi Jawi dapat dibayangkan sebagai susunan kubus yang padat.',
+    context: 'Bagian alas bangunan dapat dibayangkan sebagai susunan kubus yang padat.',
     accent: 'from-primary-600 to-primary-700',
     illustration: '/images/navigation/kubus.svg',
   },
   {
     id: 2,
-    title: 'Misi 2 · Badan Candi',
-    part: 'Badan Candi',
+    title: 'Misi 2 · Badan Bangunan',
+    part: 'Badan Bangunan',
     shape: 'Balok',
     prompt: 'Sebuah balok mempunyai panjang = 10 cm, lebar = 6 cm, dan tinggi = 8 cm. Berapa volumenya?',
     options: [
@@ -54,14 +54,14 @@ export const RESOLUTION_MISSIONS: ResolutionMission[] = [
     formula: 'V = p × l × t = 10 × 6 × 8 = 480 cm³',
     explanation: 'Balok memiliki tiga ukuran berbeda: panjang, lebar, dan tinggi. Volume dihitung dari perkalian ketiganya.',
     aiHint: 'Gunakan rumus volume balok: V = p × l × t. Kalikan 10 × 6 lalu × 8.',
-    context: 'Badan Candi Jawi menyerupai balok yang panjang dan tinggi berbeda.',
+    context: 'Badan bangunan menyerupai balok yang panjang dan tinggi berbeda.',
     accent: 'from-secondary-500 to-secondary-600',
     illustration: '/images/navigation/balok.svg',
   },
   {
     id: 3,
-    title: 'Misi 3 · Atap Candi',
-    part: 'Atap Candi',
+    title: 'Misi 3 · Atap Bangunan',
+    part: 'Atap Bangunan',
     shape: 'Kerucut',
     prompt: 'Sebuah kerucut memiliki jari-jari 7 cm dan tinggi 9 cm. Gunakan π = 22/7. Berapa volumenya?',
     options: [
@@ -75,7 +75,7 @@ export const RESOLUTION_MISSIONS: ResolutionMission[] = [
     formula: 'V = 1/3 × π × r² × t = 1/3 × 22/7 × 7² × 9 = 462 cm³',
     explanation: 'Kerucut memiliki volume sepertiga dari tabung dengan jari-jari dan tinggi yang sama.',
     aiHint: 'Mulai dari menghitung r² = 49, lalu kalikan dengan tinggi dan π, baru dibagi 3.',
-    context: 'Atap candi sering menyerupai bentuk kerucut yang meruncing ke atas.',
+    context: 'Atap bangunan sering menyerupai bentuk kerucut yang meruncing ke atas.',
     accent: 'from-amber-500 to-orange-500',
     illustration: '/images/navigation/kerucut.svg',
   },
@@ -96,7 +96,7 @@ export const RESOLUTION_MISSIONS: ResolutionMission[] = [
     formula: 'V = π × r² × t = 3,14 × 25 × 12 = 942 cm³',
     explanation: 'Volume tabung diperoleh dari luas alas lingkaran dikalikan tinggi.',
     aiHint: 'Hitung luas alas terlebih dahulu: π × r². Setelah itu kalikan tinggi.',
-    context: 'Stupa pada Candi Jawi dapat dipikirkan sebagai tabung yang berdiri tegak.',
+    context: 'Stupa dapat dipikirkan sebagai tabung yang berdiri tegak.',
     accent: 'from-emerald-500 to-emerald-600',
     illustration: '/images/navigation/tabung.svg',
   },
@@ -123,12 +123,155 @@ export const RESOLUTION_MISSIONS: ResolutionMission[] = [
   },
 ];
 
+export const RESOLUTION_MISSIONS: ResolutionMission[] = LEGACY_RESOLUTION_MISSIONS;
+
+const KOMIK_2_RESOLUTION_MISSIONS: ResolutionMission[] = [
+  {
+    id: 1,
+    title: 'Misi 1 · Pola Persegi',
+    part: 'Relief Persegi',
+    shape: 'Persegi',
+    prompt: 'Sebuah persegi memiliki panjang sisi 8 cm. Berapakah luasnya?',
+    options: [
+      { key: 'A', label: '32 cm²' },
+      { key: 'B', label: '48 cm²' },
+      { key: 'C', label: '64 cm²' },
+      { key: 'D', label: '72 cm²' },
+    ],
+    correctKey: 'C',
+    answer: '64 cm²',
+    formula: 'L = s × s = 8 × 8 = 64 cm²',
+    explanation: 'Luas persegi dihitung dari sisi dikali sisi.',
+    aiHint: 'Ingat rumus luas persegi: L = s².',
+    context: 'Pola persegi pada relief Candi Penataran menunjukkan susunan yang sama di kiri dan kanan.',
+    accent: 'from-primary-600 to-primary-700',
+    illustration: '/images/navigation/default.svg',
+  },
+  {
+    id: 2,
+    title: 'Misi 2 · Bidang Panjang',
+    part: 'Bidang Panjang',
+    shape: 'Persegi Panjang',
+    prompt: 'Sebuah persegi panjang berukuran panjang 12 cm dan lebar 6 cm. Berapakah luasnya?',
+    options: [
+      { key: 'A', label: '54 cm²' },
+      { key: 'B', label: '60 cm²' },
+      { key: 'C', label: '66 cm²' },
+      { key: 'D', label: '72 cm²' },
+    ],
+    correctKey: 'D',
+    answer: '72 cm²',
+    formula: 'L = p × l = 12 × 6 = 72 cm²',
+    explanation: 'Luas persegi panjang dihitung dari panjang dikali lebar.',
+    aiHint: 'Kalikan panjang dan lebar dengan hati-hati.',
+    context: 'Bidang panjang pada Candi Penataran membantu kita melihat bentuk yang lebih lebar dari persegi.',
+    accent: 'from-secondary-500 to-secondary-600',
+    illustration: '/images/navigation/default.svg',
+  },
+  {
+    id: 3,
+    title: 'Misi 3 · Ornamen Tajam',
+    part: 'Ornamen Tajam',
+    shape: 'Segitiga',
+    prompt: 'Sebuah segitiga memiliki alas 10 cm dan tinggi 6 cm. Berapakah luasnya?',
+    options: [
+      { key: 'A', label: '24 cm²' },
+      { key: 'B', label: '30 cm²' },
+      { key: 'C', label: '36 cm²' },
+      { key: 'D', label: '40 cm²' },
+    ],
+    correctKey: 'B',
+    answer: '30 cm²',
+    formula: 'L = 1/2 × a × t = 1/2 × 10 × 6 = 30 cm²',
+    explanation: 'Luas segitiga dihitung dari setengah kali alas kali tinggi.',
+    aiHint: 'Ingat, segitiga adalah setengah dari persegi panjang yang sama alas dan tingginya.',
+    context: 'Ornamen tajam pada Candi Penataran membentuk segitiga yang terlihat simetris.',
+    accent: 'from-amber-500 to-orange-500',
+    illustration: '/images/navigation/default.svg',
+  },
+  {
+    id: 4,
+    title: 'Misi 4 · Relief Trapesium',
+    part: 'Relief Trapesium',
+    shape: 'Trapesium',
+    prompt: 'Sebuah trapesium memiliki sisi sejajar 8 cm dan 12 cm serta tinggi 5 cm. Berapakah luasnya?',
+    options: [
+      { key: 'A', label: '40 cm²' },
+      { key: 'B', label: '45 cm²' },
+      { key: 'C', label: '50 cm²' },
+      { key: 'D', label: '60 cm²' },
+    ],
+    correctKey: 'C',
+    answer: '50 cm²',
+    formula: 'L = 1/2 × (a + b) × t = 1/2 × (8 + 12) × 5 = 50 cm²',
+    explanation: 'Luas trapesium dihitung dari setengah kali jumlah sisi sejajar dikali tinggi.',
+    aiHint: 'Jumlahkan kedua sisi sejajar terlebih dahulu, lalu kalikan tinggi dan bagi dua.',
+    context: 'Relief trapesium pada Candi Penataran menunjukkan bentuk yang memiliki sepasang sisi sejajar.',
+    accent: 'from-emerald-500 to-emerald-600',
+    illustration: '/images/navigation/default.svg',
+  },
+];
+
+export function getResolutionMissions(comicId: number, lokasi: string): ResolutionMission[] {
+  if (comicId === 2) {
+    return KOMIK_2_RESOLUTION_MISSIONS.map((mission) => ({
+      ...mission,
+      context: `${mission.context} (${lokasi})`,
+    }));
+  }
+  return LEGACY_RESOLUTION_MISSIONS;
+}
+
 export function isCorrectSelection(mission: ResolutionMission, selected: string | null): boolean {
   return Boolean(selected && selected.toUpperCase() === mission.correctKey);
 }
 
 function getResolutionFormulaDetails(mission: ResolutionMission) {
   const shape = mission.shape.toLowerCase();
+
+  if (shape === 'persegi') {
+    return {
+      volumeFormula: 'L = s × s',
+      surfaceFormula: 'K = 4 × s',
+      legend: 'L = Luas\ns = panjang sisi',
+      substitution: 's = 8 cm',
+      steps: '8 × 8 = 64',
+      conclusion: '64 cm²',
+    };
+  }
+
+  if (shape === 'persegi panjang') {
+    return {
+      volumeFormula: 'L = p × l',
+      surfaceFormula: 'K = 2 × (p + l)',
+      legend: 'L = Luas\np = panjang\nl = lebar',
+      substitution: 'p = 12 cm\nl = 6 cm',
+      steps: '12 × 6 = 72',
+      conclusion: '72 cm²',
+    };
+  }
+
+  if (shape === 'segitiga') {
+    return {
+      volumeFormula: 'L = 1/2 × a × t',
+      surfaceFormula: 'K = a + b + c',
+      legend: 'L = Luas\na = alas\nt = tinggi',
+      substitution: 'a = 10 cm\nt = 6 cm',
+      steps: '1/2 × 10 × 6 = 30',
+      conclusion: '30 cm²',
+    };
+  }
+
+  if (shape === 'trapesium') {
+    return {
+      volumeFormula: 'L = 1/2 × (a + b) × t',
+      surfaceFormula: 'K = a + b + c + d',
+      legend: 'L = Luas\na dan b = sisi sejajar\nt = tinggi',
+      substitution: 'a = 8 cm\nb = 12 cm\nt = 5 cm',
+      steps: '1/2 × (8 + 12) × 5 = 50',
+      conclusion: '50 cm²',
+    };
+  }
 
   if (shape === 'kubus') {
     return {
@@ -240,7 +383,7 @@ export function buildResolutionTutorExplanation(mission: ResolutionMission, isCo
       '',
       `Hasil akhir: ${details.conclusion}`,
       '',
-      `Hubungan dengan Candi Jawi: ${mission.context}`,
+      `Hubungan dengan materi: ${mission.context}`,
       '',
       'Bagus! Kamu sudah memahami rumusnya dengan baik.',
     ].join('\n');

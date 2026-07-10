@@ -14,12 +14,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/context/SnackbarContext';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 
-const CHECKLIST_ITEMS = [
-  'Saya memahami bangun ruang pada Candi Jawi',
-  'Saya dapat membedakan kubus, balok, tabung, kerucut dan limas',
-  'Saya dapat menghitung volume bangun ruang',
-  'Saya lebih percaya diri menyelesaikan soal serupa',
-] as const;
+function getChecklistItems(comicId: number) {
+  if (comicId === 2) {
+    return [
+      'Saya memahami pola simetri pada Candi Penataran',
+      'Saya dapat mengenali persegi, persegi panjang, segitiga, dan trapesium',
+      'Saya dapat menghitung luas dan keliling bangun datar',
+      'Saya lebih percaya diri menyelesaikan soal serupa',
+    ] as const;
+  }
+
+  return [
+    'Saya memahami bangun ruang pada candi',
+    'Saya dapat membedakan kubus, balok, tabung, kerucut dan limas',
+    'Saya dapat menghitung volume bangun ruang',
+    'Saya lebih percaya diri menyelesaikan soal serupa',
+  ] as const;
+}
 
 const STAR_LABELS = ['Sangat kurang', 'Kurang', 'Cukup', 'Paham', 'Sangat paham'] as const;
 const MIN_REFLECTION_LENGTH = 10;
@@ -57,7 +68,8 @@ export default function IntrospectionStage() {
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
 
-  const [checked, setChecked] = useState<boolean[]>(CHECKLIST_ITEMS.map(() => false));
+  const checklistItems = useMemo(() => getChecklistItems(comic.id), [comic.id]);
+  const [checked, setChecked] = useState<boolean[]>(() => checklistItems.map(() => false));
   const [rating, setRating] = useState<number | null>(null);
   const [reflectionText, setReflectionText] = useState('');
   const [saved, setSaved] = useState(false);
@@ -78,8 +90,8 @@ export default function IntrospectionStage() {
   const [applicationActivities, setApplicationActivities] = useState<ApplicationActivitySummary[]>([]);
 
   const selectedChecklist = useMemo(
-    () => CHECKLIST_ITEMS.filter((_, index) => checked[index]),
-    [checked],
+    () => checklistItems.filter((_, index) => checked[index]),
+    [checklistItems, checked],
   );
 
   const hasAtLeastOneCheck = selectedChecklist.length > 0;
@@ -268,7 +280,7 @@ ${data.suggestion}`;
       const completed = await completeCurrentStage({
         introspection: {
           completed: true,
-          checklist: CHECKLIST_ITEMS.map((prompt, idx) => ({ prompt, checked: checked[idx] })),
+          checklist: checklistItems.map((prompt, idx) => ({ prompt, checked: checked[idx] })),
           confidence: rating,
           reflectionText: reflectionText.trim(),
           completedAt: serverTimestamp(),
@@ -329,7 +341,7 @@ ${data.suggestion}`;
         if (savedReflection) {
           if (Array.isArray(savedReflection.selectedChecklist)) {
             setChecked(
-              CHECKLIST_ITEMS.map((prompt) => savedReflection.selectedChecklist?.includes(prompt) ?? false),
+              checklistItems.map((prompt) => savedReflection.selectedChecklist?.includes(prompt) ?? false),
             );
           }
 
@@ -392,7 +404,7 @@ ${data.suggestion}`;
     const completed = await completeCurrentStage({
       introspection: {
         completed: true,
-        checklist: CHECKLIST_ITEMS.map((prompt, idx) => ({ prompt, checked: checked[idx] })),
+        checklist: checklistItems.map((prompt, idx) => ({ prompt, checked: checked[idx] })),
         confidence: rating,
         reflectionText: reflectionText.trim(),
         ...(aiReflection ? { aiReflection } : {}),
@@ -410,7 +422,7 @@ ${data.suggestion}`;
       return;
     }
 
-    showSnackbar('Komik 1 berhasil diselesaikan 🎉 Komik 2 akan segera dimulai.', 'success');
+    showSnackbar(`Komik ${comic.id} berhasil diselesaikan 🎉 Lanjutkan ke tahap berikutnya.`, 'success');
   };
 
   return (
@@ -426,7 +438,7 @@ ${data.suggestion}`;
           <p className="mt-2 text-sm text-neutral-500">Hari ini saya...</p>
 
           <div className="mt-5 space-y-3">
-            {CHECKLIST_ITEMS.map((prompt, index) => (
+            {checklistItems.map((prompt, index) => (
               <label
                 key={prompt}
                 className="flex cursor-pointer items-start gap-3 rounded-3xl border border-neutral-200 bg-neutral-50 px-4 py-4 transition hover:border-primary-200"

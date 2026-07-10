@@ -3,22 +3,35 @@ import test from 'node:test';
 
 import { createIdentificationState, resolveSelectedOptionId } from './identificationService';
 
-test('identification questions use local assets and keep the correct answer intact', () => {
-  const state = createIdentificationState(1, 'Candi Jawi', [], '/images/identification/komik1-soal1.jpg', 'Candi Jawi');
+test('identification questions for comic 2 use local assets and symmetry-focused content', () => {
+  const state = createIdentificationState(
+    2,
+    'Candi Penataran',
+    [],
+    '/comics/komik-2/cover.png',
+    'Petualangan Simetri Candi Penataran',
+  );
   const firstItem = state.items[0];
 
-  assert.match(firstItem.image, /^\/images\/identification\//);
-  assert.match(firstItem.imageAlt, /^Foto lokal/i);
-  assert.match(firstItem.overlayType ?? '', /^\/images\/identification\//);
-  assert.match(firstItem.crop ?? '', /^\/images\/identification\//);
-  assert.match(firstItem.highlight ?? '', /^\/images\/identification\//);
+  assert.match(firstItem.image, /^\/assets\/qr\/komik-2\//);
+  assert.match(firstItem.imageAlt, /Candi Penataran|simetri|relief/i);
+  assert.match(firstItem.question, /simetri|persegi|persegi panjang|segitiga|trapesium/i);
+  assert.match(firstItem.overlayType ?? '', /^\/assets\/qr\/komik-2\//);
+  assert.match(firstItem.crop ?? '', /^\/assets\/qr\/komik-2\//);
+  assert.match(firstItem.highlight ?? '', /^\/assets\/qr\/komik-2\//);
 
   const correctOption = firstItem.options.find((option) => option.correct);
   assert.equal(firstItem.correctOptionId, correctOption?.id);
 });
 
 test('stored answer text resolves to the shuffled option id', () => {
-  const state = createIdentificationState(1, 'Candi Jawi', [], '/images/identification/komik1-soal1.jpg', 'Candi Jawi');
+  const state = createIdentificationState(
+    2,
+    'Candi Penataran',
+    [],
+    '/comics/komik-2/cover.png',
+    'Petualangan Simetri Candi Penataran',
+  );
   const firstItem = state.items[0];
   const correctOption = firstItem.options.find((option) => option.correct);
 

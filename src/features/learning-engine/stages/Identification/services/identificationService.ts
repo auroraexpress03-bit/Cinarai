@@ -28,84 +28,84 @@ type RawQuestion = {
 };
 
 /**
- * Soal Komik 1 — Candi Jawi, Pasuruan.
- * Semua aset kini memakai foto lokal yang tersedia di folder publik.
+ * Soal Komik 2 — Candi Penataran, Blitar.
+ * Soal ini fokus pada bangun datar, pola, dan simetri pada relief dan arsitektur candi.
  */
-const KOMIK_1_QUESTIONS: RawQuestion[] = [
+const KOMIK_2_QUESTIONS: RawQuestion[] = [
   {
-    question: 'Perhatikan bagian tubuh utama Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan bentuknya?',
-    imageAlt: 'Foto lokal tubuh utama Candi Jawi, Pasuruan — tampak depan, berbentuk balok',
-    image: '/images/identification/komik1-soal1.jpg',
-    overlayType: '/images/identification/komik1-soal1-tubuh-candi.svg',
-    crop: '/images/identification/komik1-soal1.jpg',
-    highlight: '/images/identification/komik1-soal1-tubuh-candi.svg',
+    question: 'Perhatikan pola relief pada bagian ini. Bangun datar apa yang paling terlihat berulang pada susunan pola Candi Penataran?',
+    imageAlt: 'Relief Candi Penataran memperlihatkan pola simetri dan susunan persegi yang teratur.',
+    image: '/assets/qr/komik-2/13-objek-1.jpeg',
+    overlayType: '/assets/qr/komik-2/13-objek-1.jpeg',
+    crop: '/assets/qr/komik-2/13-objek-1.jpeg',
+    highlight: '/assets/qr/komik-2/13-objek-1.jpeg',
     options: [
-      { text: 'Balok', correct: true },
-      { text: 'Kerucut', correct: false },
-      { text: 'Bola', correct: false },
-      { text: 'Tabung', correct: false },
+      { text: 'Persegi', correct: true },
+      { text: 'Segitiga', correct: false },
+      { text: 'Lingkaran', correct: false },
+      { text: 'Trapesium', correct: false },
     ],
-    explanation: 'Tubuh utama candi berbentuk balok karena memiliki panjang, lebar, dan tinggi yang berbeda, dengan enam sisi berbentuk persegi panjang.',
+    explanation: 'Pola relief yang teratur dan sama di kiri kanan menunjukkan bentuk persegi yang sering dipakai dalam susunan dekoratif.',
   },
   {
-    question: 'Amati susunan batu pada bagian kaki Candi Jawi ini. Bangun ruang apa yang paling mirip dengan setiap batu penyusunnya?',
-    imageAlt: 'Foto lokal susunan batu penyusun kaki Candi Jawi — batu-batu berbentuk kubus',
-    image: '/images/identification/komik1-soal2.jpg',
-    overlayType: '/images/identification/komik1-soal2-kaki-candi.svg',
-    crop: '/images/identification/komik1-soal2.jpg',
-    highlight: '/images/identification/komik1-soal2-kaki-candi.svg',
+    question: 'Amati bidang panjang pada bagian ini. Bangun datar apa yang paling sesuai dengan bentuknya?',
+    imageAlt: 'Bagian bidang Candi Penataran tampak memanjang dan memiliki sisi berhadapan sama panjang.',
+    image: '/assets/qr/komik-2/15-objek-2.jpeg',
+    overlayType: '/assets/qr/komik-2/15-objek-2.jpeg',
+    crop: '/assets/qr/komik-2/15-objek-2.jpeg',
+    highlight: '/assets/qr/komik-2/15-objek-2.jpeg',
     options: [
-      { text: 'Kubus', correct: true },
-      { text: 'Limas', correct: false },
-      { text: 'Kerucut', correct: false },
-      { text: 'Prisma', correct: false },
+      { text: 'Persegi panjang', correct: true },
+      { text: 'Belah ketupat', correct: false },
+      { text: 'Jajar genjang', correct: false },
+      { text: 'Segi enam', correct: false },
     ],
-    explanation: 'Batu penyusun kaki candi berbentuk kubus karena semua sisinya sama panjang dan membentuk sudut siku-siku di setiap sudutnya.',
+    explanation: 'Bangun datar ini memiliki dua pasang sisi yang sama panjang dan keempat sudutnya siku-siku, sehingga disebut persegi panjang.',
   },
   {
-    question: 'Lihat bagian puncak Candi Jawi yang meruncing ini. Bangun ruang apa yang paling sesuai dengan bentuk puncaknya?',
-    imageAlt: 'Foto lokal puncak Candi Jawi yang meruncing ke atas — berbentuk kerucut',
-    image: '/images/identification/komik1-soal3.jpg',
-    overlayType: '/images/identification/komik1-soal3-puncak-candi.svg',
-    crop: '/images/identification/komik1-soal3.jpg',
-    highlight: '/images/identification/komik1-soal3-puncak-candi.svg',
+    question: 'Lihat bagian bentuk lancip pada ornamen candi. Bangun datar apa yang paling cocok untuk menggambarkannya?',
+    imageAlt: 'Ornamen Candi Penataran menampilkan bentuk segitiga yang tajam dan simetris.',
+    image: '/assets/qr/komik-2/17-objek-3.jpeg',
+    overlayType: '/assets/qr/komik-2/17-objek-3.jpeg',
+    crop: '/assets/qr/komik-2/17-objek-3.jpeg',
+    highlight: '/assets/qr/komik-2/17-objek-3.jpeg',
     options: [
-      { text: 'Kerucut', correct: true },
-      { text: 'Kubus', correct: false },
-      { text: 'Balok', correct: false },
-      { text: 'Prisma segi empat', correct: false },
+      { text: 'Segitiga', correct: true },
+      { text: 'Trapesium', correct: false },
+      { text: 'Lingkaran', correct: false },
+      { text: 'Layang-layang', correct: false },
     ],
-    explanation: 'Puncak candi yang meruncing ke satu titik di atas dengan alas berbentuk lingkaran adalah ciri khas bangun ruang kerucut.',
+    explanation: 'Bentuk yang memiliki tiga sisi dan tiga sudut ini disebut segitiga.',
   },
   {
-    question: 'Perhatikan bagian atap bertingkat Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan setiap tingkatan atapnya?',
-    imageAlt: 'Foto lokal atap bertingkat Candi Jawi tampak samping — setiap tingkat berbentuk limas segi empat',
-    image: '/images/identification/komik1-soal4.jpg',
-    overlayType: '/images/identification/komik1-soal4-atap-candi.svg',
-    crop: '/images/identification/komik1-soal4.jpg',
-    highlight: '/images/identification/komik1-soal4-atap-candi.svg',
+    question: 'Pola pada relief ini tampak memiliki sepasang sisi sejajar. Bangun datar mana yang paling tepat?',
+    imageAlt: 'Pola relief Candi Penataran menunjukkan bentuk trapesium dengan dua sisi sejajar.',
+    image: '/assets/qr/komik-2/18-objek-4.jpeg',
+    overlayType: '/assets/qr/komik-2/18-objek-4.jpeg',
+    crop: '/assets/qr/komik-2/18-objek-4.jpeg',
+    highlight: '/assets/qr/komik-2/18-objek-4.jpeg',
     options: [
-      { text: 'Limas segi empat', correct: true },
-      { text: 'Tabung', correct: false },
-      { text: 'Bola', correct: false },
-      { text: 'Kubus', correct: false },
+      { text: 'Trapesium', correct: true },
+      { text: 'Persegi', correct: false },
+      { text: 'Segitiga', correct: false },
+      { text: 'Persegi panjang', correct: false },
     ],
-    explanation: 'Setiap tingkatan atap candi berbentuk limas segi empat karena memiliki alas berbentuk persegi dan empat sisi segitiga yang bertemu di satu titik puncak.',
+    explanation: 'Trapesium adalah bangun datar yang memiliki sepasang sisi sejajar, sesuai dengan bentuk pola yang diamati.',
   },
   {
-    question: 'Amati bagian dinding sisi Candi Jawi ini. Bangun ruang apa yang paling tepat menggambarkan bentuk keseluruhan dinding tersebut?',
-    imageAlt: 'Foto lokal dinding sisi Candi Jawi dengan relief ukiran — berbentuk prisma segi empat',
-    image: '/images/identification/komik1-soal5.jpg',
-    overlayType: '/images/identification/komik1-soal5-dinding-candi.svg',
-    crop: '/images/identification/komik1-soal5.jpg',
-    highlight: '/images/identification/komik1-soal5-dinding-candi.svg',
+    question: 'Jika kamu melipat bentuk ini pada sumbu tengah, apakah bentuk ini memiliki simetri lipat?',
+    imageAlt: 'Relief Candi Penataran menunjukkan bentuk yang seimbang sehingga mudah dicerminkan pada sumbu tengah.',
+    image: '/comics/komik-2/cover.png',
+    overlayType: '/comics/komik-2/cover.png',
+    crop: '/comics/komik-2/cover.png',
+    highlight: '/comics/komik-2/cover.png',
     options: [
-      { text: 'Prisma segi empat', correct: true },
-      { text: 'Limas', correct: false },
-      { text: 'Kerucut', correct: false },
-      { text: 'Tabung', correct: false },
+      { text: 'Ya, ada simetri lipat', correct: true },
+      { text: 'Tidak ada simetri lipat', correct: false },
+      { text: 'Hanya simetri putar', correct: false },
+      { text: 'Tidak bisa ditentukan', correct: false },
     ],
-    explanation: 'Dinding sisi candi yang memiliki dua alas sejajar berbentuk persegi panjang dan sisi-sisi tegak berbentuk persegi panjang adalah ciri khas prisma segi empat.',
+    explanation: 'Bentuk yang seimbang di kiri dan kanan memiliki simetri lipat karena dapat dilipat menjadi dua bagian yang sama.',
   },
 ];
 
@@ -190,7 +190,8 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
 }
 
 function getQuestionsForComic(comicId: number, lokasi: string, cover: string): RawQuestion[] {
-  if (comicId === 1) return KOMIK_1_QUESTIONS;
+  if (comicId === 2) return KOMIK_2_QUESTIONS;
+  if (comicId === 1) return buildFallbackQuestions(lokasi, cover);
   return buildFallbackQuestions(lokasi, cover);
 }
 

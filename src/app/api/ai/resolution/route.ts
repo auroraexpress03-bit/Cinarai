@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { RESOLUTION_MISSIONS, buildResolutionTutorExplanation } from '../../../../features/learning-engine/components/stages/resolutionStage.helpers';
+import { buildResolutionTutorExplanation, getResolutionMissions, type ResolutionMission } from '../../../../features/learning-engine/components/stages/resolutionStage.helpers';
 
 export const runtime = 'nodejs';
 
@@ -7,9 +7,10 @@ type ReqBody = {
   selected?: string;
   attempt?: number;
   missionId?: number;
+  comicId?: number;
 };
 
-function buildCorrectExplanation(mission: (typeof RESOLUTION_MISSIONS)[number]): string {
+function buildCorrectExplanation(mission: ResolutionMission): string {
   return buildResolutionTutorExplanation(mission, true);
 }
 
@@ -19,7 +20,9 @@ export async function POST(request: NextRequest) {
     const selected = (body.selected ?? '').toString().trim().toUpperCase();
     const attempt = Math.max(0, Number(body.attempt) || 0);
     const missionId = Number(body.missionId) || 1;
-    const mission = RESOLUTION_MISSIONS.find((item) => item.id === missionId) ?? RESOLUTION_MISSIONS[0];
+    const comicId = Number(body.comicId) || 1;
+    const missions = getResolutionMissions(comicId, 'lokasi');
+    const mission = missions.find((item) => item.id === missionId) ?? missions[0];
 
     if (!selected) {
       return NextResponse.json({ error: 'selected is required' }, { status: 400 });
