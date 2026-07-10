@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/context/SnackbarContext';
-import { subscribeToAllComicProgress } from '@/services/comicProgress';
+import { resetComicProgress, subscribeToAllComicProgress } from '@/services/comicProgress';
 import type { ComicProgressState } from '@/types/progress';
 
 export function useAllComicProgress() {
@@ -41,5 +41,10 @@ export function useAllComicProgress() {
   const getProgress = (comicId: number): ComicProgressState | undefined =>
     states.find((s) => s.comicId === comicId);
 
-  return { states, getProgress, isLoading };
+  const resetProgressForComic = useCallback(async (comicId: number) => {
+    if (!user?.uid) throw new Error('unauthenticated');
+    return resetComicProgress(user.uid, comicId);
+  }, [user?.uid]);
+
+  return { states, getProgress, resetProgressForComic, isLoading };
 }

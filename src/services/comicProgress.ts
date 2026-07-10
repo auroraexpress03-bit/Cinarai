@@ -92,6 +92,35 @@ async function clearIdentificationAnswers(userId: string, comicId: number): Prom
   );
 }
 
+async function clearApplicationActivities(userId: string, comicId: number): Promise<void> {
+  const activities = await queryFirestoreCollection('application_activity', {
+    filters: [
+      { field: 'userId', operator: '==', value: userId },
+      { field: 'comicId', operator: '==', value: comicId },
+    ],
+  });
+
+  await Promise.all(
+    activities.map((activity) => deleteFirestoreDocument('application_activity', activity.id ?? `${userId}_${comicId}_${activity.attempt}`))
+  );
+}
+
+async function clearReflectionDocuments(userId: string, comicId: number): Promise<void> {
+  const reflections = await queryFirestoreCollection('reflection', {
+    filters: [{ field: 'userId', operator: '==', value: userId }],
+  });
+
+  const matchingReflections = reflections.filter((reflection) => {
+    const reflectionComicId = reflection.comicId;
+    const reflectionId = reflection.id;
+    return reflectionId?.startsWith(`${userId}_${comicId}_`) || String(reflectionComicId) === String(comicId);
+  });
+
+  await Promise.all(
+    matchingReflections.map((reflection) => deleteFirestoreDocument('reflection', reflection.id ?? `${userId}_${comicId}_reflection`))
+  );
+}
+
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 /** Create initial progress documents for all comics when user first logs in. */
@@ -152,8 +181,10 @@ export async function resetComicProgress(userId: string, comicId: number): Promi
 
   try {
     await Promise.all([
-      setDoc(ref, toDocument(initialState), { merge: true }),
+      setDoc(ref, toDocument(initialState)),
       clearIdentificationAnswers(userId, comicId),
+      clearApplicationActivities(userId, comicId),
+      clearReflectionDocuments(userId, comicId),
     ]);
     return initialState;
   } catch (error) {
