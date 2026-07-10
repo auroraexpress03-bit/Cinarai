@@ -6,6 +6,7 @@ import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
 import { useSnackbar } from '@/context/SnackbarContext';
 // `useAuth` intentionally not used here (kept authentication & data flows intact elsewhere)
 import type { ComicAssetEntry } from '@/services/comic-assets/types';
+import { resolvePreviewImagePath } from './navigationStage.helpers';
 
 function isValidUrl(url: string): boolean {
   if (!url) return false;
@@ -90,14 +91,23 @@ export default function NavigationStage() {
   const metadata = useComicMetadata(comic.id);
   const { model3D } = metadata.assets;
   const primaryEntry = model3D[0] ?? null;
-  const activeObjectName = useMemo(() => getObjectDisplayName(primaryEntry), [primaryEntry]);
+  const [activeObjectId, setActiveObjectId] = useState<string | null>(null);
+  const activeEntry = useMemo(() => {
+    if (!model3D.length) return null;
+    if (activeObjectId) {
+      const matched = model3D.find((entry) => `${entry.page}-${entry.arUrl}` === activeObjectId);
+      if (matched) return matched;
+    }
+    return primaryEntry;
+  }, [activeObjectId, model3D, primaryEntry]);
+  const activeObjectName = useMemo(() => getObjectDisplayName(activeEntry), [activeEntry]);
   const quickQuestions = useMemo(() => getQuickQuestions(activeObjectName), [activeObjectName]);
+  const featuredEntry = activeEntry?.viewerType === 'embed' ? activeEntry : null;
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [draft, setDraft] = useState('');
   const [isResponding, setIsResponding] = useState(false);
   const [exploredIds, setExploredIds] = useState<Set<string>>(new Set());
-  const [showEmbed, setShowEmbed] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrModalSrc, setQrModalSrc] = useState<string>('');
@@ -150,8 +160,29 @@ export default function NavigationStage() {
 
   useEffect(() => {
     setCanAdvance(canAdvanceToArgumentation);
-    console.info('[Navigation] Navigation State — canAdvance:', canAdvanceToArgumentation, 'exploredIds:', exploredIds.size, '/', requiredIds.length);
-  }, [canAdvanceToArgumentation, exploredIds.size, requiredIds.length, setCanAdvance]);
+  }, [canAdvanceToArgumentation, setCanAdvance]);
+
+  useEffect(() => {
+    if (!primaryEntry) {
+      setActiveObjectId(null);
+      return;
+    }
+
+    const nextActiveId = `${primaryEntry.page}-${primaryEntry.arUrl}`;
+    setActiveObjectId((current) => (current ? current : nextActiveId));
+  }, [primaryEntry]);
+
+  useEffect(() => {
+    if (!activeEntry || activeEntry.viewerType !== 'embed' || !activeEntry.embedUrl) return;
+
+    const entryId = `${activeEntry.page}-${activeEntry.arUrl}`;
+    setExploredIds((prev) => {
+      if (prev.has(entryId)) return prev;
+      const next = new Set(prev);
+      next.add(entryId);
+      return next;
+    });
+  }, [activeEntry]);
 
   // Separate cleanup effect: unregister slide nav only on unmount.
   // Must not be co-located with setCanAdvance — otherwise the cleanup fires
@@ -160,27 +191,11 @@ export default function NavigationStage() {
     return () => { unregisterSlideNav(); };
   }, [unregisterSlideNav]);
 
-  // Auto-load Sketchfab embeds when the primary entry is a Sketchfab model
-  useEffect(() => {
-    if (!primaryEntry || !primaryEntry.arUrl) return;
-    try {
-      const parsed = new URL(primaryEntry.arUrl);
-      const host = parsed.hostname.toLowerCase();
-      if (host.includes('sketchfab.com') || host.includes('skfb.ly')) {
-        setShowEmbed(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, [primaryEntry]);
-
   // Rotate/Zoom controls removed — Sketchfab provides built-in gestures
 
   const handleSend = useCallback(async (rawText?: string) => {
     const trimmed = (rawText ?? draft).trim();
     if (!trimmed || isResponding || !comic) return;
-
-    console.info('[Navigation] AI Request Start — question:', trimmed);
 
     const userMessage: ChatMessage = { id: Date.now(), role: 'user', content: trimmed };
     const nextMessages = [...messages, userMessage];
@@ -192,11 +207,6 @@ export default function NavigationStage() {
     setAiError(null);
 
     try {
-      console.info('[NavigationStage] Navigation -> /api/ai/chat', {
-        question: trimmed,
-        objectName: activeObjectName,
-      });
-
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -214,7 +224,7 @@ export default function NavigationStage() {
             observationAnswers: {},
             sessionHistory: historyForPrompt,
             comicTitle: comic.title,
-            pageLabel: primaryEntry ? `Halaman ${primaryEntry.page}` : undefined,
+            pageLabel: activeEntry ? `Halaman ${activeEntry.page}` : undefined,
             objectName: activeObjectName,
             learningStage: 'Navigation',
           },
@@ -227,13 +237,6 @@ export default function NavigationStage() {
         throw new Error(payload.error ?? 'AI response was not available.');
       }
 
-      // AI response received — purely informational, does not affect stage progress.
-      console.info('[Navigation] AI Response Success — provider:', payload.provider, 'length:', payload.answer.length);
-      console.info('[NavigationStage] Navigation received:', {
-        provider: payload.provider,
-        answerLength: payload.answer.length,
-      });
-
       const assistantMessage: ChatMessage = {
         id: Date.now() + 1,
         role: 'assistant',
@@ -241,9 +244,7 @@ export default function NavigationStage() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('[NavigationStage] Gagal memanggil AI', error);
       const msg = error instanceof Error ? error.message : String(error);
-      console.error('[Navigation] Error:', msg);
       setAiError(msg);
       const fallbackMessage: ChatMessage = {
         id: Date.now() + 2,
@@ -254,7 +255,7 @@ export default function NavigationStage() {
     } finally {
       setIsResponding(false);
     }
-  }, [activeObjectName, comic, draft, isResponding, messages, primaryEntry]);
+  }, [activeObjectName, comic, draft, isResponding, messages, activeEntry]);
 
   function handleOpenAr(entry: ComicAssetEntry) {
     if (!isValidUrl(entry.arUrl)) {
@@ -268,22 +269,14 @@ export default function NavigationStage() {
       if (prev.has(entryId)) return prev;
       const next = new Set(prev);
       next.add(entryId);
-      console.info('[Navigation] AR explored:', entry.title, '— exploredIds:', next.size, '/', requiredIds.length);
       return next;
     });
 
-    // For Sketchfab embedded models, prefer opening embed in-page.
-    const url = entry.arUrl;
-    try {
-      const parsed = new URL(url);
-      const host = parsed.hostname.toLowerCase();
-      if (host.includes('sketchfab.com') || host.includes('skfb.ly')) {
-        setShowEmbed(true);
-        return;
-      }
-    } catch {
-      // fallback to opening externally
+    if (entry.viewerType === 'embed' && entry.embedUrl) {
+      window.open(entry.embedUrl, '_blank', 'noopener,noreferrer');
+      return;
     }
+
     window.open(entry.arUrl, '_blank', 'noopener,noreferrer');
   }
 
@@ -318,93 +311,127 @@ export default function NavigationStage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <section className="flex flex-col gap-4 rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
           <div className="rounded-[20px] border border-neutral-200 bg-neutral-50 p-3 sm:p-4">
-            <div className="overflow-hidden rounded-[18px] border border-neutral-200 bg-white">
-              {showEmbed && primaryEntry ? (
-                <div className="h-64 w-full sm:h-80">
-                  <iframe src={`${primaryEntry.arUrl.replace(/\/$/, '')}/embed`} title={`Model 3D ${activeObjectName}`} className="h-full w-full border-0" allow="fullscreen" />
-                </div>
-              ) : previewSrc ? (
-                <div className="h-56 w-full overflow-hidden sm:h-72">
-                  <img
-                    src={previewSrc}
-                    alt={`Tampilan ${activeObjectName} dalam AR`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="flex h-56 flex-col items-center justify-center gap-3 bg-gradient-to-br from-primary-50 via-white to-secondary-50 px-4 text-center sm:h-72">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-2xl text-primary-700">
-                    📷
-                  </div>
+            {featuredEntry?.viewerType === 'embed' && featuredEntry.embedUrl ? (
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-base font-black text-neutral-900">Preview AR belum tersedia.</p>
-                    <p className="mt-1 text-sm text-neutral-600">Screenshot asli untuk komik ini belum tersedia, tetapi pengalaman AR tetap bisa dibuka.</p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-neutral-400">Objek utama</p>
+                    <h3 className="mt-1 text-xl font-black text-neutral-900">{activeObjectName}</h3>
+                  </div>
+                  {exploredIds.has(`${featuredEntry.page}-${featuredEntry.arUrl}`) && (
+                    <span className="rounded-full bg-accent-100 px-2 py-1 text-xs font-bold text-accent-700">✓ Selesai</span>
+                  )}
+                </div>
+                <div className="overflow-hidden rounded-[18px] border border-neutral-200 bg-white">
+                  <div className="h-64 w-full sm:h-80">
+                    <iframe src={featuredEntry.embedUrl} title={`Model 3D ${activeObjectName}`} className="h-full w-full border-0" allow="fullscreen" />
                   </div>
                 </div>
-              )}
-            </div>
+                {featuredEntry.description && <p className="text-sm leading-relaxed text-neutral-600">{featuredEntry.description}</p>}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="overflow-hidden rounded-[18px] border border-neutral-200 bg-white">
+                  {previewSrc ? (
+                    <div className="h-56 w-full overflow-hidden sm:h-72">
+                      <img
+                        src={previewSrc}
+                        alt={`Tampilan ${activeObjectName} dalam AR`}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-56 flex-col items-center justify-center gap-3 bg-gradient-to-br from-primary-50 via-white to-secondary-50 px-4 text-center sm:h-72">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-2xl text-primary-700">
+                        📷
+                      </div>
+                      <div>
+                        <p className="text-base font-black text-neutral-900">Preview AR belum tersedia.</p>
+                        <p className="mt-1 text-sm text-neutral-600">Screenshot asli untuk komik ini belum tersedia, tetapi pengalaman AR tetap bisa dibuka.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-            <div className="mt-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-neutral-400">Eksplorasi 3D</p>
-              <h3 className="mt-1 text-xl font-black text-neutral-900">{activeObjectName}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600">Eksplorasi model 3D dan ajukan pertanyaan kepada AI untuk memahami objek ini.</p>
-            </div>
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-neutral-400">Eksplorasi 3D</p>
+                  <h3 className="mt-1 text-xl font-black text-neutral-900">{activeObjectName}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-600">Eksplorasi model 3D dan ajukan pertanyaan kepada AI untuk memahami objek ini.</p>
+                </div>
+              </div>
+            )}
 
-            {/* Per-object card list (Photo → Lihat Model 3D → Lihat QR) */}
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               {model3D.length > 0 ? (
                 model3D.map((entry, idx) => {
                   const entryId = `${entry.page}-${entry.arUrl}`;
                   const explored = exploredIds.has(entryId);
                   const valid = isValidUrl(entry.arUrl);
                   const candidateQr = entry.qrImage?.trim() || '';
-                  const preview = entry.previewImage || `/images/navigation/komik-${comic.id}-ar.png`;
+                  const preview = entry.previewImage || resolvePreviewImagePath(entry.title, `/images/navigation/komik-${comic.id}-ar.png`);
 
                   function openQr() {
                     setQrModalSrc(candidateQr || '');
                     setQrModalOpen(true);
-                    // mark explored when QR is viewed
                     setExploredIds((prev) => new Set(prev).add(entryId));
                   }
 
+                  const isActive = activeEntry ? `${activeEntry.page}-${activeEntry.arUrl}` === entryId : idx === 0;
+
                   return (
-                    <div key={entryId} className="overflow-hidden rounded-[16px] border border-neutral-200 bg-white p-3">
-                      {/* 1. Foto asli bagian Candi Jawi */}
+                    <div key={entryId} onClick={() => setActiveObjectId(entryId)} className={`overflow-hidden rounded-[16px] border bg-white p-3 transition-all duration-200 ${isActive ? 'border-primary-300 shadow-sm' : 'border-neutral-200'}`}>
                       <div className="h-40 w-full overflow-hidden rounded-md bg-neutral-100">
                         <img src={preview} alt={entry.title || `Objek ${idx + 1}`} className="h-full w-full object-cover" />
                       </div>
 
-                      {/* 2. Nama objek */}
                       <div className="mt-3">
                         <p className="text-xs font-semibold text-neutral-500">{`Objek ${idx + 1}`}</p>
                         <h4 className="truncate text-base font-black text-neutral-900">{entry.title || 'Model 3D'}</h4>
                       </div>
 
-                      {/* 3. Deskripsi singkat */}
                       {entry.description && <p className="mt-2 text-sm text-neutral-600">{entry.description}</p>}
 
-                      {/* 4. Tombol Lihat Model 3D */}
-                      <div className="mt-3 grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAr(entry)}
-                          disabled={!valid}
-                          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-600 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50"
-                        >
-                          <span>📦</span>
-                          <span>Lihat Model 3D</span>
-                        </button>
+                      {entry.viewerType === 'embed' ? (
+                        <div className="mt-3 space-y-3">
+                          <div className="rounded-2xl border border-primary-100 bg-primary-50 p-3 text-sm text-primary-800">
+                            Model ini langsung tampil di dalam card dan tidak memerlukan tombol tambahan.
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 space-y-3">
+                          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-600">
+                            Model ini dipublikasikan di Assemblr. Buka model 3D atau lihat QR untuk pengalaman penuh.
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setActiveObjectId(entryId);
+                                handleOpenAr(entry);
+                              }}
+                              disabled={!valid}
+                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-600 px-3 py-2 text-sm font-black text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50"
+                            >
+                              <span>📦</span>
+                              <span>Lihat Model 3D</span>
+                            </button>
 
-                        {/* 5. Tombol Lihat QR (menggunakan entry.qrImage saja) */}
-                        <button
-                          type="button"
-                          onClick={openQr}
-                          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-100"
-                        >
-                          <span>📱</span>
-                          <span>Lihat QR</span>
-                        </button>
-                      </div>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setActiveObjectId(entryId);
+                                openQr();
+                              }}
+                              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-100"
+                            >
+                              <span>📱</span>
+                              <span>Lihat QR</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       {explored && <div className="mt-3"><span className="rounded-full bg-accent-100 px-2 py-1 text-xs font-bold text-accent-700">✓ Selesai</span></div>}
                     </div>
@@ -445,20 +472,24 @@ export default function NavigationStage() {
           </div>
         </section>
 
-        {/* Floating AI FAB & Chat Panel */}
         <div aria-hidden className="relative">
           {/* FAB (positioned inside the right column to avoid overlapping main nav) */}
           <div>
             {/* FAB: fixed bottom-right, responsive offset so it won't overlap Lanjut on small screens */}
-            <div className="fixed right-6 bottom-24 sm:bottom-6 z-50">
+            <div className="fixed bottom-[100px] right-3 z-50 touch-manipulation sm:right-6 sm:bottom-6">
               <button
                 type="button"
                 onClick={() => {
-                  setAiPanelOpen((s) => !s);
-                  if (aiMinimized) setAiMinimized(false);
+                  if (aiPanelOpen) {
+                    setAiPanelOpen(false);
+                    setAiMinimized(false);
+                  } else {
+                    setAiPanelOpen(true);
+                    setAiMinimized(false);
+                  }
                 }}
                 aria-expanded={aiPanelOpen}
-                className="h-14 w-14 rounded-full bg-primary-600 shadow-lg flex items-center justify-center text-white"
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition-transform duration-200 hover:scale-105"
               >
                 <img src="/images/ai/robot.svg" alt="AI" className="h-8 w-8" />
               </button>
@@ -466,27 +497,32 @@ export default function NavigationStage() {
           </div>
 
           {/* Chat panel overlay (absolute so it stays within right column) */}
-          {aiPanelOpen && (
-            <div className="fixed right-6 bottom-6 z-40 w-full max-w-md transform-gpu rounded-tl-2xl rounded-bl-2xl shadow-xl" style={{ height: aiMinimized ? '4.5rem' : '70vh' }}>
-              <div className="h-full w-full rounded-[14px] bg-white border border-neutral-200 shadow-lg overflow-hidden flex flex-col">
-                <div className="flex items-center justify-between px-4 py-3 border-b">
+          {aiPanelOpen && !aiMinimized && (
+            <div className="fixed bottom-[100px] right-3 z-40 w-[calc(100vw-24px)] max-w-[360px] touch-pan-y overscroll-contain rounded-[20px] border border-neutral-200 bg-white shadow-2xl transition-all duration-300 ease-out sm:right-6 sm:bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:w-[360px]" style={{ maxHeight: 'min(72vh, 560px)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+              <div className="flex h-full flex-col overflow-hidden rounded-[20px]">
+                <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
                   <div className="flex items-center gap-3">
                     <img src="/images/ai/robot.svg" alt="AI" className="h-8 w-8" />
                     <div>
-                      <p className="text-sm font-bold">AI Tutor</p>
-                      <p className="text-xs text-neutral-500">Opsional — minimize atau tutup untuk kembali ke eksplorasi</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-neutral-900">AI Tutor</p>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Online
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-500">Asisten eksplorasi objek yang siap membantu</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => setAiMinimized((s) => !s)} className="text-sm font-semibold text-neutral-600">{aiMinimized ? 'Restore' : 'Minimize'}</button>
-                    <button type="button" onClick={() => setAiPanelOpen(false)} className="text-sm font-semibold text-neutral-600">Tutup</button>
+                    <button type="button" onClick={() => { setAiMinimized(true); setAiPanelOpen(false); }} className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs font-semibold text-neutral-600">Minimize</button>
+                    <button type="button" onClick={() => { setAiPanelOpen(false); setAiMinimized(false); }} className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs font-semibold text-neutral-600">Tutup</button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-auto p-4">
-                  {/* Inline chat panel (uses existing messages/handleSend state) */}
-                  {primaryEntry ? (
-                    <div className="flex h-full flex-col">
-                      <div className="flex-1 overflow-y-auto pr-2">
+
+                <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+                  {activeEntry ? (
+                    <div className="flex h-full flex-col gap-3">
+                      <div className="flex-1 overflow-y-auto pr-1">
                         {messages.map((msg) => (
                           <div key={msg.id} className={['flex', msg.role === 'user' ? 'justify-end' : 'justify-start'].join(' ')}>
                             <div className={['max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed', msg.role === 'user' ? 'rounded-br-sm bg-primary-600 text-white' : 'rounded-bl-sm border border-primary-100 bg-[#F5FBFF] text-neutral-800'].join(' ')}>
@@ -499,15 +535,15 @@ export default function NavigationStage() {
                         )}
                       </div>
 
-                      <div className="mt-3 flex flex-col gap-2">
+                      <div className="sticky bottom-0 mt-3 flex flex-col gap-2 bg-white pt-2">
                         <div className="flex flex-wrap gap-2">
                           {quickQuestions.map((q) => (
-                            <button key={q} type="button" onClick={() => void handleSend(q)} disabled={isResponding} className="rounded-full border border-primary-200 bg-white px-3 py-1 text-xs font-semibold text-primary-700">{q}</button>
+                            <button key={q} type="button" onClick={() => void handleSend(q)} disabled={isResponding} className="rounded-full border border-primary-200 bg-white px-3 py-1 text-xs font-semibold text-primary-700 transition hover:bg-primary-50">{q}</button>
                           ))}
                         </div>
                         <div className="flex items-center gap-2">
-                          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} className="flex-1 resize-none rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm" />
-                          <button type="button" onClick={() => void handleSend()} disabled={isResponding || !draft.trim()} className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-white">➤</button>
+                          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} className="flex-1 resize-none rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm shadow-inner" />
+                          <button type="button" onClick={() => void handleSend()} disabled={isResponding || !draft.trim()} className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-white transition hover:bg-primary-700 disabled:opacity-50">➤</button>
                         </div>
                         {aiError && <div className="text-sm text-error-700">{aiError}</div>}
                       </div>

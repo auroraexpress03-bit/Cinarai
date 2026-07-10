@@ -144,6 +144,10 @@ export interface ComicAssetEntry {
   previewImage?: string;
   buttonLabel: string;
   provider?: string;
+  /** Viewer layout type used by NavigationStage */
+  viewerType: 'embed' | 'assemblr';
+  /** Embed URL for inline viewer cards */
+  embedUrl?: string;
   /** AR / 3D model URL used by the Model 3D button */
   arUrl: string;
   /** QR image asset used by the QR button */

@@ -21,6 +21,21 @@ const BUTTON_LABELS = {
 
 // ── Core ──────────────────────────────────────────────────────────────────────
 
+function inferViewerType(arUrl: string): ComicAssetEntry['viewerType'] {
+  if (!arUrl) return 'assemblr';
+
+  try {
+    const host = new URL(arUrl).hostname.toLowerCase();
+    if (host.includes('sketchfab.com') || host.includes('skfb.ly')) {
+      return 'embed';
+    }
+  } catch {
+    // ignore invalid URLs and fall back to assemblr-style cards
+  }
+
+  return 'assemblr';
+}
+
 function toEntry(qr: ClassifiedQr): ComicAssetEntry | null {
   if (qr.category === 'UNKNOWN') return null;
 
@@ -31,6 +46,7 @@ function toEntry(qr: ClassifiedQr): ComicAssetEntry | null {
   const qrImage = [qr.qrImage, qr.image, qr.previewImage]
     .map((value) => (typeof value === 'string' ? value.trim() : ''))
     .find((value) => Boolean(value));
+  const viewerType = inferViewerType(arUrl);
 
   return {
     page: qr.page,
@@ -39,6 +55,8 @@ function toEntry(qr: ClassifiedQr): ComicAssetEntry | null {
     previewImage: qr.previewImage,
     buttonLabel: BUTTON_LABELS[qr.category],
     provider,
+    viewerType,
+    embedUrl: viewerType === 'embed' ? `${arUrl.replace(/\/$/, '')}/embed` : '',
     arUrl,
     qrImage,
   };
