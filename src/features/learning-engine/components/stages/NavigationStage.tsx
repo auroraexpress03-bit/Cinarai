@@ -264,110 +264,75 @@ export default function NavigationStage() {
   const isFeatureExplored = featuredEntry ? exploredIds.has(`${featuredEntry.page}-${featuredEntry.arUrl}`) : false;
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden px-2 py-2 animate-fade-in-up sm:gap-5">
-      {/* Header */}
-      <header className="rounded-[20px] bg-gradient-to-br from-primary-50 via-white to-secondary-50 px-4 py-4 shadow-sm sm:px-5 sm:py-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-2xl text-white shadow-sm">
-            🧭
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary-600">Navigation (AR + AI)</p>
-            <h2 className="mt-1 text-lg font-black text-neutral-900 sm:text-xl">
-              Mari jelajahi 3D dan tanya AI!
-            </h2>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-w-0 flex-col gap-6 overflow-x-hidden px-2 py-2 sm:px-4 sm:py-4">
+      {featuredEntry && (
+        <Hero3DViewer entry={featuredEntry} isExplored={isFeatureExplored} />
+      )}
 
-      {/* Content */}
-      <section className="flex min-h-[60vh] flex-col gap-6 rounded-[20px] bg-white p-4 shadow-lg sm:p-6 lg:p-8">
-        {/* Hero 3D Viewer */}
-        {featuredEntry && (
-          <Hero3DViewer entry={featuredEntry} isExplored={isFeatureExplored} />
+      <div className="space-y-5">
+        <div className="space-y-3 px-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-primary-600">Daftar Objek</p>
+          <h1 className="text-3xl font-black text-neutral-900 sm:text-4xl">Pilih objek untuk dipelajari</h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-neutral-600 sm:text-base">
+            Sentuh kartu untuk melihat detail dan buka Model 3D atau QR. Semakin banyak objek kamu eksplorasi, semakin cepat bisa lanjut.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {model3D.length > 0 ? (
+            model3D.map((entry, idx) => {
+              const entryId = `${entry.page}-${entry.arUrl}`;
+              const isActive = activeEntry ? `${activeEntry.page}-${activeEntry.arUrl}` === entryId : idx === 0;
+              const isExplored = exploredIds.has(entryId);
+              const isValid = isValidUrl(entry.arUrl);
+
+              return (
+                <AssemblrCard
+                  key={entryId}
+                  entry={entry}
+                  index={idx}
+                  isActive={isActive}
+                  isExplored={isExplored}
+                  onSelect={() => setActiveObjectId(entryId)}
+                  onOpenAr={(e) => {
+                    e.stopPropagation();
+                    setActiveObjectId(entryId);
+                    handleOpenAr(entry);
+                  }}
+                  onOpenQr={(e) => handleOpenQr(entry, e)}
+                  isValidUrl={isValid}
+                />
+              );
+            })
+          ) : (
+            <div className="col-span-full rounded-[20px] bg-neutral-50 p-5 text-center text-sm text-neutral-500 shadow-sm">
+              Tidak ada objek AR untuk komik ini.
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 z-10 mx-auto w-full max-w-2xl rounded-t-[20px] bg-white/90 px-4 py-5 shadow-[0_-16px_40px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:px-6">
+        <button
+          type="button"
+          onClick={handleContinueToArgumentation}
+          disabled={!canAdvanceToArgumentation}
+          className="w-full rounded-[20px] bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-4 text-base font-black text-white shadow-lg transition hover:shadow-xl disabled:bg-neutral-300 disabled:cursor-not-allowed active:scale-95 min-h-[48px]"
+        >
+          Lanjut ke Argumentasi
+        </button>
+
+        {!canAdvanceToArgumentation && (
+          <p className="mt-3 text-center text-sm font-semibold text-primary-700">
+            {requiredIds.length > 1
+              ? `Eksplorasi ${requiredIds.length - exploredIds.size} objek lagi untuk melanjutkan`
+              : 'Buka viewer AR untuk melanjutkan'}
+          </p>
         )}
+      </div>
 
-        {/* Object List */}
-        <div className="space-y-4">
-          {activeEntry && !featuredEntry && (
-            <div className="space-y-2 px-1">
-              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary-600">Objek Aktif</p>
-              <h2 className="text-2xl font-black text-neutral-900">{activeEntry.title}</h2>
-              {activeEntry.description && (
-                <p className="mt-2 text-sm leading-relaxed text-neutral-700">{activeEntry.description}</p>
-              )}
-            </div>
-          )}
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {model3D.length > 0 ? (
-              model3D.map((entry, idx) => {
-                const entryId = `${entry.page}-${entry.arUrl}`;
-                const isActive = activeEntry ? `${activeEntry.page}-${activeEntry.arUrl}` === entryId : idx === 0;
-                const isExplored = exploredIds.has(entryId);
-                const isValid = isValidUrl(entry.arUrl);
-
-                return (
-                  <AssemblrCard
-                    key={entryId}
-                    entry={entry}
-                    index={idx}
-                    isActive={isActive}
-                    isExplored={isExplored}
-                    onSelect={() => setActiveObjectId(entryId)}
-                    onOpenAr={(e) => {
-                      e.stopPropagation();
-                      setActiveObjectId(entryId);
-                      handleOpenAr(entry);
-                    }}
-                    onOpenQr={(e) => handleOpenQr(entry, e)}
-                    isValidUrl={isValid}
-                  />
-                );
-              })
-            ) : (
-              <div className="col-span-full rounded-[12px] border border-neutral-200 bg-neutral-50 p-4 text-center text-sm text-neutral-500">
-                Tidak ada objek AR untuk komik ini.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom Actions - Prominent CTA */}
-        <div className="mt-8 space-y-3 border-t border-neutral-100 pt-6">
-          <button
-            type="button"
-            onClick={handleContinueToArgumentation}
-            disabled={!canAdvanceToArgumentation}
-            className="w-full rounded-[14px] bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4 text-base font-black text-white shadow-lg transition hover:shadow-xl hover:from-primary-700 hover:to-primary-800 disabled:bg-neutral-300 disabled:cursor-not-allowed active:scale-95 min-h-[48px]"
-          >
-            Lanjut ke Argumentasi
-          </button>
-
-          {!canAdvanceToArgumentation && (
-            <div className="rounded-[12px] bg-primary-50 p-3 text-center">
-              <p className="text-xs font-semibold text-primary-700">
-                {requiredIds.length > 1
-                  ? `Eksplorasi ${requiredIds.length - exploredIds.size} objek lagi untuk melanjutkan`
-                  : 'Buka viewer AR untuk melanjutkan'}
-              </p>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={() => showSnackbar(comic.synopsis || 'Tidak ada info lebih lanjut.', 'info')}
-            className="w-full rounded-[12px] border-2 border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 active:scale-95 min-h-[44px]"
-          >
-            ℹ️ Info Komik
-          </button>
-        </div>
-      </section>
-
-      {/* QR Modal */}
       <QrModal isOpen={qrModalOpen} qrSrc={qrModalSrc} onClose={() => setQrModalOpen(false)} />
 
-      {/* Floating AI Tutor */}
       <FloatingAITutor
         messages={messages}
         draft={draft}
