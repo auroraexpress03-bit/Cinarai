@@ -339,6 +339,10 @@ function ObjectCard({ entry, index, explored, comic, onExplored }: ObjectCardPro
     };
   }, [isQrOpen, qrSource]);
 
+  useEffect(() => {
+    console.log('Modal rendered', isQrOpen, qrSource);
+  }, [isQrOpen, qrSource]);
+
   function handleIframeLoad() {
     console.log('Current Object (iframe load):', id);
     onExplored(id);
@@ -422,7 +426,7 @@ function ObjectCard({ entry, index, explored, comic, onExplored }: ObjectCardPro
             </button>
             <button
               type="button"
-              onClick={handleQrOpen}
+              onClick={() => { console.log('Lihat QR clicked', id); handleQrOpen(); }}
               className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm font-black text-neutral-700 transition hover:bg-neutral-100 active:scale-[0.98]"
             >
               <span>📱</span> Lihat QR
@@ -455,7 +459,7 @@ function ObjectCard({ entry, index, explored, comic, onExplored }: ObjectCardPro
         </div>
       )}
 
-      {isQrOpen && qrSource && (
+      {isQrOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
           <div className="w-full max-w-md rounded-[24px] border border-neutral-200 bg-white p-5 shadow-xl">
             <div className="flex items-start justify-between gap-3">
