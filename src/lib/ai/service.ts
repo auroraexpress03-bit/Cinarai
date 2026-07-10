@@ -76,8 +76,8 @@ export async function generateTutorResponse(
   providerOverride?: Pick<AiProvider, 'generate'>,
   options?: GenerateTutorResponseOptions,
 ): Promise<TutorResponse> {
-  console.info('[generateTutorResponse] generateTutorResponse() start');
-  console.info('[generateTutorResponse] Navigation -> generateTutorResponse()', {
+  console.warn('[generateTutorResponse] generateTutorResponse() start');
+  console.warn('[generateTutorResponse] Navigation -> generateTutorResponse()', {
     moduleName: context.moduleName,
     question: context.question,
   });
@@ -103,7 +103,7 @@ export async function generateTutorResponse(
   };
 
   try {
-    console.info('[generateTutorResponse] generateTutorResponse() -> router');
+    console.warn('[generateTutorResponse] generateTutorResponse() -> router');
     const routingRouter = options?.router
       ? options.router
       : providerOverride
@@ -112,9 +112,9 @@ export async function generateTutorResponse(
     const response = await routingRouter.generate(payload) as AiResponse;
     const normalizedAnswer = typeof response?.content === 'string' ? response.content.trim() : '';
 
-    console.info('[generateTutorResponse] provider used:', response?.provider);
-    console.info('[generateTutorResponse] response length:', normalizedAnswer.length);
-    console.info('[generateTutorResponse] service returned:', {
+    console.warn('[generateTutorResponse] provider used:', response?.provider);
+    console.warn('[generateTutorResponse] response length:', normalizedAnswer.length);
+    console.warn('[generateTutorResponse] service returned:', {
       provider: response?.provider,
       answerLength: normalizedAnswer.length,
     });
@@ -127,13 +127,13 @@ export async function generateTutorResponse(
       return { answer: fallback };
     }
 
-    console.info('[generateTutorResponse] generateTutorResponse() end');
+    console.warn('[generateTutorResponse] generateTutorResponse() end');
     return {
       answer: normalizedAnswer,
       provider: response.provider,
     };
   } catch (error) {
-    console.info('[generateTutorResponse] generateTutorResponse() end with error');
+    console.warn('[generateTutorResponse] generateTutorResponse() end with error');
     const message = error instanceof Error ? error.message : 'Unknown AI error';
     const friendlyMessage = message.includes('Seluruh layanan AI sedang tidak tersedia')
       ? 'Seluruh layanan AI sedang tidak tersedia.'
@@ -148,6 +148,5 @@ export async function generateTutorResponse(
       answer: friendlyMessage,
     };
   }
-
-  console.info('[generateTutorResponse] generateTutorResponse() end');
 }
+

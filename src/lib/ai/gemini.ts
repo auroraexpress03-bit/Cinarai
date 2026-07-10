@@ -16,8 +16,8 @@ export class GeminiProvider implements AiProvider {
 
   async generate(payload: AiRequestPayload): Promise<AiResponse> {
     const apiKey = this.config.apiKey?.trim();
-    console.info('[AI Provider] Trying Gemini...');
-    console.info(`[AI Provider] API Key = ${apiKey ? 'FOUND' : 'NOT FOUND'}`);
+    console.warn('[AI Provider] Trying Gemini...');
+    console.warn(`[AI Provider] API Key = ${apiKey ? 'FOUND' : 'NOT FOUND'}`);
 
     if (!apiKey) {
       console.error('[AI Provider] Gemini failed: GEMINI_API_KEY is not configured');
@@ -25,7 +25,7 @@ export class GeminiProvider implements AiProvider {
     }
 
     try {
-      console.info('[AI Provider] Request sent');
+      console.warn('[AI Provider] Request sent');
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${this.config.model ?? 'gemini-2.0-flash'}:generateContent?key=${encodeURIComponent(apiKey)}`,
         {
@@ -46,11 +46,11 @@ export class GeminiProvider implements AiProvider {
         },
       );
 
-      console.info('[AI Provider] Response received');
-      console.info(`[AI Provider] Status Code = ${response.status}`);
+      console.warn('[AI Provider] Response received');
+      console.warn(`[AI Provider] Status Code = ${response.status}`);
 
       const rawBody = await response.text();
-      console.info(`[AI Provider] Response Body = ${summarizeResponseBody(rawBody)}`);
+      console.warn(`[AI Provider] Response Body = ${summarizeResponseBody(rawBody)}`);
 
       if (!response.ok) {
         console.error(`[AI Provider] Gemini failed: ${rawBody}`);
@@ -67,7 +67,7 @@ export class GeminiProvider implements AiProvider {
         throw createProviderError(`Parsing failed. Expected response with candidates content. Actual response: ${summarizeResponseBody(rawBody)}`);
       }
 
-      console.info('[AI Provider] Parsing Result = success');
+      console.warn('[AI Provider] Parsing Result = success');
       const parsed = data as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
       const content = parsed.candidates?.[0]?.content?.parts?.map((part) => part.text ?? '').join('').trim();
 
@@ -76,7 +76,7 @@ export class GeminiProvider implements AiProvider {
         throw createProviderError(`Parsing failed. Expected response with text content. Actual response: ${summarizeResponseBody(parsed)}`);
       }
 
-      console.info('[AI Provider] Success');
+      console.warn('[AI Provider] Success');
       return {
         provider: this.name,
         content,

@@ -39,9 +39,9 @@ export function getAiProviderRuntimeStatus() {
 export function logAiProviderStartupStatus(): void {
   const status = getAiProviderRuntimeStatus();
 
-  console.info('[AI Providers]');
-  console.info(`Gemini: ${status.gemini.ready ? 'READY' : 'NOT READY'}${status.gemini.ready ? '' : ` (${status.gemini.reason})`}`);
-  console.info(`OpenAI: ${status.openai.ready ? 'READY' : 'NOT READY'}${status.openai.ready ? '' : ` (${status.openai.reason})`}`);
-  console.info(`Groq: ${status.groq.ready ? 'READY' : 'NOT READY'}${status.groq.ready ? '' : ` (${status.groq.reason})`}`);
-  console.info(`OpenRouter: ${status.openrouter.ready ? 'READY' : 'NOT READY'}${status.openrouter.ready ? '' : ` (${status.openrouter.reason})`}`);
+  console.warn('[AI Providers]');
+  console.warn(`Gemini: ${status.gemini.ready ? 'READY' : 'NOT READY'}${status.gemini.ready ? '' : ` (${status.gemini.reason})`}`);
+  console.warn(`OpenAI: ${status.openai.ready ? 'READY' : 'NOT READY'}${status.openai.ready ? '' : ` (${status.openai.reason})`}`);
+  console.warn(`Groq: ${status.groq.ready ? 'READY' : 'NOT READY'}${status.groq.ready ? '' : ` (${status.groq.reason})`}`);
+  console.warn(`OpenRouter: ${status.openrouter.ready ? 'READY' : 'NOT READY'}${status.openrouter.ready ? '' : ` (${status.openrouter.reason})`}`);
 }
