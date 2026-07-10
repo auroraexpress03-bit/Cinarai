@@ -9,7 +9,7 @@ import { Stage } from '../../types';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 
 const OPTIONS = ['Kubus', 'Balok', 'Prisma', 'Limas', 'Kerucut', 'Tabung'] as const;
-const CORRECT_ANSWER = 'LIMAS';
+const CORRECT_ANSWERS = ['Limas'];
 
 function shuffle<T>(array: ReadonlyArray<T>): T[] {
   const result = [...array];
@@ -23,7 +23,7 @@ function shuffle<T>(array: ReadonlyArray<T>): T[] {
 export default function ApplicationStage() {
   const { setCanAdvance, goToStage, completeCurrentStage } = useLearningEngine();
   const { user } = useAuth();
-  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
+  const [selectedAnswer, setSelectedAnswer] = useState<string[]>([]);
   const [attemptCount, setAttemptCount] = useState(0);
   const [usedAR, setUsedAR] = useState(false);
   const [timeSpent, setTimeSpent] = useState(0);
@@ -33,7 +33,7 @@ export default function ApplicationStage() {
   const [arRetryCount, setArRetryCount] = useState(0);
   const [isThinking, setIsThinking] = useState(false);
   const [aiMessage, setAiMessage] = useState<string | null>(null);
-  const [aiStatus, setAiStatus] = useState<'correct' | 'incorrect' | null>(null);
+  const [aiStatus, setAiStatus] = useState<'correct' | 'partial' | 'incorrect' | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
   const timerRef = useRef<number | null>(null);
@@ -84,7 +84,7 @@ export default function ApplicationStage() {
   };
 
   const logApplicationActivity = async (
-    chosen: string,
+    chosen: string | string[],
     correct: string,
     correctState: boolean,
     attemptNumber: number,
@@ -94,7 +94,7 @@ export default function ApplicationStage() {
 
     const payload = {
       userId: user.uid,
-      selectedAnswer: chosen,
+      selectedAnswer: Array.isArray(chosen) ? chosen.join(',') : chosen,
       correctAnswer: correct,
       isCorrect: correctState,
       attemptCount: attemptNumber,
@@ -113,7 +113,7 @@ export default function ApplicationStage() {
   };
 
   const handleCheckAnswer = async () => {
-    if (!selectedAnswer) return;
+    if (!selectedAnswer || selectedAnswer.length === 0) return;
 
     setErrorMessage(null);
     setIsThinking(true);
@@ -123,19 +123,33 @@ export default function ApplicationStage() {
     const currentAttempt = attemptCount + 1;
 
     try {
+      const payloadBody = {
+        soal: 'Pilih semua bangun ruang yang dapat kamu temukan pada bagian candi di atas. Kamu boleh memilih lebih dari satu jawaban.',
+        gambar: [
+          '/images/identification/komik1-soal4.jpg',
+          '/images/identification/komik1-soal1.jpg',
+          '/images/identification/komik1-soal2.jpg',
+        ],
+        jawabanSiswa: selectedAnswer,
+        jawabanBenar: CORRECT_ANSWERS,
+        attempt: currentAttempt,
+      };
+
       const response = await fetch('/api/ai/application', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selected: selectedAnswer, attempt: currentAttempt }),
+        body: JSON.stringify(payloadBody),
       });
 
-      const payload = await response.json();
-      const message = payload?.message ?? 'Maaf, AI coach belum bisa memberikan bantuan saat ini. Coba lagi nanti.';
-      const status = response.ok && payload?.status === 'correct' ? 'correct' : 'incorrect';
+      const data = await response.json();
+      const message = data?.message ?? 'Maaf, AI coach belum bisa memberikan bantuan saat ini. Coba lagi nanti.';
+      const status: 'correct' | 'partial' | 'incorrect' = data?.status ?? (data?.correct ? 'correct' : 'incorrect');
 
       setAiStatus(status);
       setAiMessage(message);
-      await logApplicationActivity(selectedAnswer, CORRECT_ANSWER, status === 'correct', currentAttempt, message);
+
+      // keep firestore shape compatible by storing selected answers as a string
+      await logApplicationActivity(selectedAnswer, CORRECT_ANSWERS.join(','), status === 'correct', currentAttempt, message);
 
       if (status === 'correct') {
         await completeCurrentStage();
@@ -149,7 +163,7 @@ export default function ApplicationStage() {
       const fallbackMessage = 'Maaf, AI sedang bermasalah. Coba lagi sebentar lagi.';
       setAiStatus('incorrect');
       setAiMessage(fallbackMessage);
-      await logApplicationActivity(selectedAnswer, CORRECT_ANSWER, false, currentAttempt, fallbackMessage);
+      await logApplicationActivity(selectedAnswer, CORRECT_ANSWERS.join(','), false, currentAttempt, fallbackMessage);
       setCanAdvance(false);
       setAttemptCount(currentAttempt);
     } finally {
@@ -234,41 +248,52 @@ export default function ApplicationStage() {
         <div className="mt-6 space-y-4">
           <div>
             <p className="text-sm font-black text-neutral-900 sm:text-base">
-              Bangun ruang apa yang paling sesuai dengan bagian candi tersebut?
+              Pilih semua bangun ruang yang dapat kamu temukan pada bagian candi di atas. Kamu boleh memilih lebih dari satu jawaban.
             </p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0 flex-1">
-              <label className="sr-only" htmlFor="application-answer">
-                Pilihan jawaban
-              </label>
-              <select
-                id="application-answer"
-                value={selectedAnswer}
-                onChange={(e) => {
-                  setSelectedAnswer(e.target.value);
-                  setAiMessage(null);
-                  setAiStatus(null);
-                }}
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 outline-none transition-colors focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 sm:text-base"
-              >
-                <option value="">Pilih jawaban</option>
-                {options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+              <p className="text-sm text-neutral-700">Pilih semua jawaban yang benar:</p>
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {options.map((option) => {
+                  const checked = selectedAnswer.includes(option);
+                  return (
+                    <label
+                      key={option}
+                      className={[
+                        'inline-flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-2 text-sm transition',
+                        checked ? 'border-primary-600 bg-primary-50' : 'border-neutral-200 bg-neutral-50',
+                      ].join(' ')}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5 shrink-0 appearance-none rounded-sm border border-neutral-300 bg-white checked:border-primary-600 checked:bg-primary-600 focus:outline-none"
+                        checked={checked}
+                        onChange={() => {
+                          setAiMessage(null);
+                          setAiStatus(null);
+                          setSelectedAnswer((prev) => {
+                            if (prev.includes(option)) return prev.filter((p) => p !== option);
+                            return [...prev, option];
+                          });
+                        }}
+                        aria-label={option}
+                      />
+                      <span className="select-none">{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
             <button
               type="button"
-              disabled={!selectedAnswer || isThinking}
+              disabled={selectedAnswer.length === 0 || isThinking}
               onClick={handleCheckAnswer}
               className={[
                 'inline-flex h-12 w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-bold uppercase tracking-[0.16em] transition-colors focus:outline-none sm:w-auto sm:px-6 sm:text-sm',
-                selectedAnswer && !isThinking
+                selectedAnswer.length > 0 && !isThinking
                   ? 'bg-primary-600 text-white hover:bg-primary-700'
                   : 'bg-neutral-200 text-neutral-500',
               ].join(' ')}
@@ -285,7 +310,18 @@ export default function ApplicationStage() {
           )}
 
           {aiMessage && (
-            <div className={['rounded-3xl border p-4', aiStatus === 'correct' ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-950'].join(' ')} role="status" aria-live="polite">
+            <div
+              className={[
+                'rounded-3xl border p-4',
+                aiStatus === 'correct'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                  : aiStatus === 'partial'
+                  ? 'border-amber-200 bg-amber-50 text-amber-950'
+                  : 'border-rose-200 bg-rose-50 text-rose-900',
+              ].join(' ')}
+              role="status"
+              aria-live="polite"
+            >
               <div className="flex items-start gap-3">
                 <Image
                   src="/images/ai/robot.svg"

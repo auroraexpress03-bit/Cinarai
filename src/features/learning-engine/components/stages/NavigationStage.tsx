@@ -1,6 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toDataURL } from 'qrcode';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { useComicMetadata } from '@/services/comic-assets/useComicMetadata';
@@ -280,9 +283,18 @@ interface ObjectCardProps {
   onExplored: (entryId: string) => void;
 }
 
+function makeObjectId(entry: ComicAssetEntry, index: number) {
+  const title = (entry.title ?? '').trim() || '';
+  const safeTitle = title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') : '';
+  const urlHash = entry.url ? String(entry.url).slice(-12).replace(/[^a-z0-9]/gi, '') : '';
+  return `${entry.page}-${safeTitle || urlHash || index}`;
+}
+
+
 function ObjectCard({ entry, index, explored, comic, onExplored }: ObjectCardProps) {
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
   const objectTitle = entry.title?.trim() || 'Bangun Ruang';
   const valid = isValidUrl(entry.url);
@@ -290,25 +302,36 @@ function ObjectCard({ entry, index, explored, comic, onExplored }: ObjectCardPro
   const embedUrl = sketchfab ? toEmbedUrl(entry.url) : null;
   const previewImage = entry.previewImage?.trim() || resolvePreviewImagePath(objectTitle);
   const qrSource = (entry.qrUrl || entry.url || '').trim();
-  const id = `${entry.page}-${entry.url}`;
+  const id = makeObjectId(entry, index);
 
   useEffect(() => {
     if (!isQrOpen || !qrSource) {
       setQrDataUrl('');
       setQrError(null);
+      setQrLoading(false);
       return;
     }
 
+    console.log('[NavigationStage] membuka QR, qrSource:', qrSource);
+
     let isMounted = true;
+    setQrLoading(true);
     toDataURL(qrSource, { margin: 1, scale: 10 })
       .then((dataUrl) => {
-        if (isMounted) setQrDataUrl(dataUrl);
-      })
-      .catch(() => {
         if (isMounted) {
+          setQrDataUrl(dataUrl);
+          setQrError(null);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('[NavigationStage] QR generation failed', err);
           setQrDataUrl('');
           setQrError('QR tidak dapat dibuat saat ini.');
         }
+      })
+      .finally(() => {
+        if (isMounted) setQrLoading(false);
       });
 
     return () => {
@@ -317,16 +340,22 @@ function ObjectCard({ entry, index, explored, comic, onExplored }: ObjectCardPro
   }, [isQrOpen, qrSource]);
 
   function handleIframeLoad() {
+    console.log('Current Object (iframe load):', id);
     onExplored(id);
   }
 
   function handleExternalOpen() {
+    console.log('Current Object (external open):', id);
     onExplored(id);
     window.open(entry.url, '_blank', 'noopener,noreferrer');
   }
 
   function handleQrOpen() {
-    if (!qrSource) return;
+    console.log('Current Object (qr open):', id);
+    if (!qrSource) {
+      setQrError('QR Code belum tersedia.');
+      return;
+    }
     onExplored(id);
     setIsQrOpen(true);
   }
@@ -444,11 +473,15 @@ function ObjectCard({ entry, index, explored, comic, onExplored }: ObjectCardPro
             </div>
 
             <div className="mt-4 rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
-              {qrDataUrl ? (
+              {qrLoading ? (
+                <div className="mx-auto flex h-60 w-60 items-center justify-center rounded-2xl bg-white p-3">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+                </div>
+              ) : qrDataUrl ? (
                 <img src={qrDataUrl} alt={`QR ${objectTitle}`} className="mx-auto h-60 w-60 rounded-2xl bg-white p-3 object-contain" />
               ) : (
                 <div className="mx-auto flex h-60 w-60 items-center justify-center rounded-2xl bg-white p-3 text-center text-sm font-semibold text-neutral-500">
-                  {qrError || 'Membuat QR...'}
+                  {qrError || 'QR Code belum tersedia.'}
                 </div>
               )}
               <div className="mt-4 space-y-2 text-sm text-neutral-600">
@@ -492,25 +525,90 @@ export default function NavigationStage() {
   const { model3D } = metadata.assets;
 
   const [exploredIds, setExploredIds] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
 
-  const requiredIds = useMemo(
-    () => model3D.filter((e) => isValidUrl(e.url)).map((e) => `${e.page}-${e.url}`),
-    [model3D],
-  );
+  const requiredIds = useMemo(() => {
+    return model3D
+      .filter((e) => isValidUrl(e.url))
+      .map((e, idx) => makeObjectId(e, idx));
+  }, [model3D]);
 
   const canAdvance = requiredIds.length > 0 && requiredIds.every((id) => exploredIds.has(id));
 
   useEffect(() => { setCanAdvance(canAdvance); }, [canAdvance, setCanAdvance]);
+  // Restore explored ids from Firestore (once) or localStorage
+  useEffect(() => {
+    let isMounted = true;
+    async function restore() {
+      try {
+        // localStorage first
+        const raw = localStorage.getItem(`navigation_explored_${comic.id}`);
+        if (raw) {
+          const arr = JSON.parse(raw) as string[];
+          if (isMounted && Array.isArray(arr) && arr.length > 0) {
+            setExploredIds(new Set(arr));
+            console.log('[NavigationStage] restored explored from localStorage', arr);
+            return;
+          }
+        }
+
+        // fallback: Firestore
+        if (user?.uid) {
+          const ref = doc(firestore, 'users', user.uid, 'progress', `comic-${comic.id}`);
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const data = snap.data() as any;
+            const arr = Array.isArray(data?.navigationExploredObjects) ? data.navigationExploredObjects : [];
+            if (isMounted && arr.length > 0) {
+              setExploredIds(new Set(arr));
+              console.log('[NavigationStage] restored explored from Firestore', arr);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[NavigationStage] restore explored failed', err);
+      }
+    }
+    restore();
+    return () => { isMounted = false; };
+  }, [comic.id, user]);
   useEffect(() => () => { unregisterSlideNav(); }, [unregisterSlideNav]);
 
   const handleExplored = useCallback((id: string) => {
+    console.log('mark explored called for:', id);
     setExploredIds((prev) => {
-      if (prev.has(id)) return prev;
+      if (prev.has(id)) {
+        console.log('Already completed:', id);
+        console.log('Completed:', Array.from(prev));
+        console.log('Progress:', prev.size, '/', requiredIds.length);
+        return prev;
+      }
       const next = new Set(prev);
       next.add(id);
+      console.log('Completed:', Array.from(next));
+      console.log('Progress:', next.size, '/', requiredIds.length);
+
+      // persist to Firestore (merge) and localStorage
+      try {
+        if (user?.uid) {
+          const ref = doc(firestore, 'users', user.uid, 'progress', `comic-${comic.id}`);
+          // merge navigationExploredObjects array
+          void setDoc(ref, { navigationExploredObjects: Array.from(next) }, { merge: true });
+        }
+      } catch (err) {
+        console.error('[NavigationStage] failed to persist explored ids', err);
+      }
+
+      try {
+        localStorage.setItem(`navigation_explored_${comic.id}`, JSON.stringify(Array.from(next)));
+      } catch (e) {
+        // ignore
+      }
+
       return next;
     });
-  }, []);
+  }, [user, comic.id, requiredIds.length]);
 
   return (
     <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden animate-fade-in-up">

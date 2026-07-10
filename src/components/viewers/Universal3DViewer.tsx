@@ -92,6 +92,7 @@ export default function Universal3DViewer({
   const [isPreparing, setIsPreparing] = useState(true);
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [qrLoading, setQrLoading] = useState(false);
   const isValidUrl = isValidHttpUrl(resolvedUrl);
   const providerInfo = useMemo(() => detectProvider(resolvedUrl), [resolvedUrl]);
   const metadata = useComicMetadata(Number(resolvedComicId) || 0);
@@ -115,12 +116,19 @@ export default function Universal3DViewer({
   useEffect(() => {
     if (!qrSource) {
       setQrDataUrl('');
+      setQrLoading(false);
       return;
     }
 
+    console.log('[Universal3DViewer] Generating QR for:', qrSource);
+    setQrLoading(true);
     toDataURL(qrSource, { margin: 1, scale: 10 })
       .then((dataUrl) => setQrDataUrl(dataUrl))
-      .catch(() => setQrDataUrl(''));
+      .catch((err) => {
+        console.error('[Universal3DViewer] QR generation error', err);
+        setQrDataUrl('');
+      })
+      .finally(() => setQrLoading(false));
   }, [qrSource]);
 
   const handleBack = () => {
@@ -261,11 +269,17 @@ export default function Universal3DViewer({
               </div>
 
               <div className="mt-5 flex flex-col items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <img
-                  src={qrDataUrl || undefined}
-                  alt={`QR untuk ${resolvedTitle}`}
-                  className="h-60 w-60 rounded-2xl bg-white p-3 object-contain"
-                />
+                  {qrLoading ? (
+                    <div className="h-60 w-60 flex items-center justify-center">
+                      <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+                    </div>
+                  ) : (
+                    <img
+                      src={qrDataUrl || undefined}
+                      alt={`QR untuk ${resolvedTitle}`}
+                      className="h-60 w-60 rounded-2xl bg-white p-3 object-contain"
+                    />
+                  )}
                 <div className="w-full text-left">
                   <p className="text-sm font-semibold text-neutral-700">Model</p>
                   <p className="text-base font-black text-neutral-900">{resolvedTitle}</p>
