@@ -6,95 +6,139 @@ export const runtime = 'nodejs';
 
 type ReqBody = {
   soal?: string;
+  konteks?: string;
   gambar?: string[];
   jawabanSiswa?: string[];
-  jawabanBenar?: string[];
+  jawabanAlasan?: string;
   attempt?: number;
 };
 
+type CoachSummary = {
+  mastered: string[];
+  needsImprovement: string[];
+  nextPractice: string[];
+};
+
 type RespBody = {
-  status: 'correct' | 'partial' | 'incorrect';
+  coachType: 'positive' | 'constructive' | 'neutral';
   message: string;
+  summary: CoachSummary;
   provider?: string;
 };
 
+function normalizeText(text?: string): string {
+  return (text ?? '').trim();
+}
+
 function buildPrompt(body: ReqBody): string {
-  const soal = body.soal ?? '';
+  const soal = normalizeText(body.soal);
+  const konteks = normalizeText(body.konteks);
   const gambar = (body.gambar ?? []).map((g) => `- ${g}`).join('\n') || 'Tidak ada gambar';
   const siswa = (body.jawabanSiswa ?? []).join(', ') || 'Tidak memilih jawaban';
-  const benar = (body.jawabanBenar ?? []).join(', ') || 'Tidak tersedia';
+  const alasan = normalizeText(body.jawabanAlasan);
 
   return [
     'Kamu adalah AI Coach CINARAI untuk siswa Sekolah Dasar Indonesia.',
     '',
     'TUGAS:',
-    'Berikan umpan balik singkat dan ramah kepada siswa setelah mereka menekan tombol CEK.',
-    'Gunakan bahasa Indonesia yang sangat sederhana, cocok untuk anak SD.',
+    'Berikan bimbingan yang hangat, sederhana, dan ramah kepada siswa.',
+    'JANGAN menilai jawaban hanya benar atau salah; fokus pada penjelasan, petunjuk berpikir, rekomendasi, dan ringkasan belajar.',
     '',
-    'INPUT:',
-    `Soal: ${soal}`,
-    'Gambar:',
+    'FORMAT OUTPUT:',
+    '{',
+    '  "coachType": "positive|constructive|neutral",',
+    '  "message": "Umpan balik singkat untuk siswa, jelaskan alasan dan rekomendasi.",',
+    '  "summary": {',
+    '    "mastered": ["..."],',
+    '    "needsImprovement": ["..."],',
+    '    "nextPractice": ["..."]',
+    '  }',
+    '}',
+    '',
+    'KONTEKS:',
+    `- Soal: ${soal}`,
+    `- Konteks: ${konteks}`,
+    `- Gambar:`,
     gambar,
-    `Jawaban siswa: ${siswa}`,
-    `Jawaban benar: ${benar}`,
+    `- Jawaban siswa: ${siswa}`,
+    `- Alasan siswa: ${alasan}`,
+    `- Catatan: Berikan rangkuman belajar dengan tiga poin di setiap bagian.`,
     '',
     'ATURAN WAJIB:',
-    '1) Jika semua jawaban siswa sama persis dengan jawaban benar -> beri apresiasi singkat dan jelaskan alasannya.',
-    '2) Jika beberapa jawaban benar dan beberapa salah/terlewat -> jelaskan mana yang benar dan mana yang terlewat, dorong untuk mencoba lagi.',
-    '3) Jika tidak ada jawaban yang benar -> berikan petunjuk yang membantu tanpa memberi jawaban akhir.',
-    '4) Gunakan kalimat sederhana, singkat, dan ramah.',
-    '5) Balas hanya dengan JSON ketat dengan format: {"status":"correct|partial|incorrect","message":"..."} tanpa teks tambahan.',
-    '',
-    'PANJANG PESAN: Maksimal 140 kata.',
+    '1) Jelaskan mengapa pilihan siswa cocok atau perlu diperbaiki untuk konteks baru.',
+    '2) Berikan setidaknya satu petunjuk berpikir yang membantu siswa menghubungkan bangun ruang dengan bentuk replika.',
+    '3) Tambahkan rekomendasi latihan berikutnya yang relevan.',
+    '4) Gunakan bahasa anak SD yang sederhana, hangat, dan tidak menakutkan.',
+    '5) Berikan ringkasan: Yang sudah dikuasai, Yang masih perlu diperbaiki, Saran latihan berikutnya.',
+    '6) Balas hanya dengan JSON ketat dan tidak ada teks lain.',
   ].join('\n');
+}
+
+function parseCoachResponse(raw: string): RespBody | null {
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  try {
+    const parsed = JSON.parse(cleaned) as Partial<RespBody>;
+    if (
+      parsed &&
+      ['positive', 'constructive', 'neutral'].includes(parsed.coachType ?? '') &&
+      typeof parsed.message === 'string' &&
+      parsed.message.trim().length > 0 &&
+      parsed.summary &&
+      Array.isArray(parsed.summary.mastered) &&
+      Array.isArray(parsed.summary.needsImprovement) &&
+      Array.isArray(parsed.summary.nextPractice)
+    ) {
+      return {
+        coachType: parsed.coachType as RespBody['coachType'],
+        message: parsed.message.trim(),
+        summary: {
+          mastered: parsed.summary.mastered.map((item) => String(item)),
+          needsImprovement: parsed.summary.needsImprovement.map((item) => String(item)),
+          nextPractice: parsed.summary.nextPractice.map((item) => String(item)),
+        },
+        provider: parsed.provider,
+      };
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ReqBody;
-    if (!body.jawabanSiswa) {
-      return NextResponse.json({ error: 'jawabanSiswa is required' }, { status: 400 });
+    if (!body.jawabanSiswa || !body.jawabanAlasan) {
+      return NextResponse.json({ error: 'jawabanSiswa and jawabanAlasan are required' }, { status: 400 });
     }
 
     const router = AiRouter.createDefault();
     const payload: AiRequestPayload = {
       prompt: buildPrompt(body),
-      systemPrompt: 'Kamu adalah AI Coach CINARAI. Balas hanya dalam format JSON yang diminta.',
+      systemPrompt: 'Kamu adalah AI Coach CINARAI. Balas hanya dengan JSON ketat dan bantu siswa tanpa memberi jawaban langsung.',
       temperature: 0.4,
-      maxTokens: 220,
+      maxTokens: 350,
     };
 
     const response = await router.generate(payload);
     const raw = typeof response?.content === 'string' ? response.content.trim() : '';
-    const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    const parsed = parseCoachResponse(raw);
 
-    try {
-      const parsed = JSON.parse(jsonStr) as RespBody;
-      return NextResponse.json({ status: parsed.status, message: parsed.message, provider: response.provider });
-    } catch (err) {
-      // Fallback: build a simple response based on deterministic comparison
-      const siswa = new Set((body.jawabanSiswa ?? []).map((s) => s.toLowerCase().trim()));
-      const benar = new Set((body.jawabanBenar ?? []).map((s) => s.toLowerCase().trim()));
-      const intersection = [...siswa].filter((s) => benar.has(s));
-
-      let status: RespBody['status'] = 'incorrect';
-      let message = 'Maaf, saya tidak bisa memberikan umpan balik sekarang.';
-
-      if (intersection.length === benar.size && benar.size > 0 && siswa.size === benar.size) {
-        status = 'correct';
-        message = 'Hebat! Jawabanmu lengkap dan benar. Bagian-bagian itu memang sesuai dengan bangun ruang yang disebutkan.';
-      } else if (intersection.length > 0) {
-        status = 'partial';
-        const benarDitemukan = intersection.join(', ');
-        const terlewat = [...benar].filter((b) => !siswa.has(b)).join(', ');
-        message = `Bagus, kamu menemukan: ${benarDitemukan}. Coba perhatikan lagi untuk menemukan: ${terlewat || 'tidak ada yang terlewat'}.`;
-      } else {
-        status = 'incorrect';
-        message = 'Sepertinya belum tepat. Coba perhatikan bentuk pada gambar: apakah ada sisi datar, melengkung, atau runcing? Gunakan itu sebagai petunjuk.';
-      }
-
-      return NextResponse.json({ status, message, provider: response.provider });
+    if (parsed) {
+      return NextResponse.json({ ...parsed, provider: response.provider });
     }
+
+    const fallback: RespBody = {
+      coachType: 'constructive',
+      message: 'Jawabanmu sudah bagus sebagai permulaan. Coba perhatikan lagi apakah bangun ruang yang kamu pilih paling cocok untuk bentuk replika tersebut, lalu tambahkan alasan tentang sisi atau puncak yang kamu lihat.',
+      summary: {
+        mastered: ['Mulai menghubungkan bentuk replika dengan bangun ruang'],
+        needsImprovement: ['Memperjelas alasan mengapa bangun ruang tersebut cocok untuk replika'],
+        nextPractice: ['Coba jelaskan lagi dengan fokus pada satu sudut pandang baru dari AR'],
+      },
+    };
+
+    return NextResponse.json({ ...fallback, provider: response.provider });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown AI error';
     return NextResponse.json({ error: message }, { status: 502 });

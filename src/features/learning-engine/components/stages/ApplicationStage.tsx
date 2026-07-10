@@ -1,15 +1,48 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Stage } from '../../types';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 
-const OPTIONS = ['Kubus', 'Balok', 'Prisma', 'Limas', 'Kerucut', 'Tabung'] as const;
-const CORRECT_ANSWERS = ['Limas'];
+type CoachSummary = {
+  mastered: string[];
+  needsImprovement: string[];
+  nextPractice: string[];
+};
+
+type CoachResponse = {
+  coachType: 'positive' | 'constructive' | 'neutral';
+  message: string;
+  summary: CoachSummary;
+};
+
+const OPTIONS = ['Kubus', 'Balok', 'Prisma Segi Empat', 'Limas Segi Empat', 'Kerucut', 'Tabung'] as const;
+const APPLICATION_IMAGES = [
+  {
+    src: '/images/identification/komik1-soal1.jpg',
+    alt: 'Replika Candi Jawi tampak depan dengan badan utama yang jelas',
+    label: 'Tampak Depan',
+    description: 'Perhatikan bagaimana tubuh utama replika terlihat dari depan.',
+  },
+  {
+    src: '/images/identification/komik1-soal3.jpg',
+    alt: 'Replika Candi Jawi tampak puncak yang meruncing',
+    label: 'Sudut Puncak',
+    description: 'Amati bentuk puncak replika yang meruncing dan simetris.',
+  },
+  {
+    src: '/images/identification/komik1-soal5.jpg',
+    alt: 'Replika Candi Jawi tampak samping dengan dinding dan reliefnya',
+    label: 'Sudut Dinding',
+    description: 'Lihatlah sisi samping dan kecocokan bentuk dinding replika.',
+  },
+] as const;
+
+const AR_MODEL_EMBED_URL =
+  'https://sketchfab.com/3d-models/candi-jawi-with-precision-geometry-83da3450467747fda7872c5a9392ffac/embed?autostart=0&ui_infos=0&ui_stop=0&ui_controls=1';
 
 function shuffle<T>(array: ReadonlyArray<T>): T[] {
   const result = [...array];
@@ -20,42 +53,53 @@ function shuffle<T>(array: ReadonlyArray<T>): T[] {
   return result;
 }
 
+function getLocalApplicationKey(comicId: number) {
+  return `cinarai.application.activity.${comicId}`;
+}
+
+function saveLocalApplicationActivity(comicId: number, payload: Record<string, unknown>) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const key = getLocalApplicationKey(comicId);
+    const stored = JSON.parse(window.localStorage.getItem(key) ?? '[]') as Record<string, unknown>[];
+    stored.push(payload);
+    window.localStorage.setItem(key, JSON.stringify(stored));
+  } catch (error) {
+    console.warn('[ApplicationStage] Gagal menyimpan cache lokal', error);
+  }
+}
+
 export default function ApplicationStage() {
-  const { setCanAdvance, goToStage, completeCurrentStage } = useLearningEngine();
+  const { comic, setCanAdvance, completeCurrentStage } = useLearningEngine();
   const { user } = useAuth();
   const [selectedAnswer, setSelectedAnswer] = useState<string[]>([]);
-  const [attemptCount, setAttemptCount] = useState(0);
-  const [usedAR, setUsedAR] = useState(false);
-  const [timeSpent, setTimeSpent] = useState(0);
+  const [studentReason, setStudentReason] = useState('');
+  const [arViewed, setArViewed] = useState(false);
+  const [explorationCompleted, setExplorationCompleted] = useState(false);
+  const [answerSubmitted, setAnswerSubmitted] = useState(false);
   const [isArOpen, setIsArOpen] = useState(false);
   const [arLoading, setArLoading] = useState(false);
   const [arFailed, setArFailed] = useState(false);
   const [arRetryCount, setArRetryCount] = useState(0);
   const [isThinking, setIsThinking] = useState(false);
-  const [aiMessage, setAiMessage] = useState<string | null>(null);
-  const [aiStatus, setAiStatus] = useState<'correct' | 'partial' | 'incorrect' | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [coachMessage, setCoachMessage] = useState<string | null>(null);
+  const [coachSummary, setCoachSummary] = useState<CoachSummary | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
-  const timerRef = useRef<number | null>(null);
+  const [attemptCount, setAttemptCount] = useState(0);
   const options = useMemo(() => shuffle(OPTIONS), []);
 
-  useEffect(() => {
-    setCanAdvance(false);
-  }, [setCanAdvance]);
+  const hasCompletedPreparation = arViewed && explorationCompleted;
+  const minReasonLength = studentReason.trim().length;
+  const canSubmit = hasCompletedPreparation && selectedAnswer.length > 0 && minReasonLength >= 20 && !isThinking;
 
   useEffect(() => {
-    timerRef.current = window.setInterval(() => {
-      setTimeSpent((value) => value + 1);
-    }, 1000);
-    return () => {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-    };
-  }, []);
-
-  const AR_MODEL_EMBED_URL = 'https://sketchfab.com/3d-models/candi-jawi-with-precision-geometry-83da3450467747fda7872c5a9392ffac/embed?autostart=0&ui_infos=0&ui_stop=0&ui_controls=1';
+    setCanAdvance(answerSubmitted);
+  }, [answerSubmitted, setCanAdvance]);
 
   const openArViewer = () => {
-    setUsedAR(true);
+    setArViewed(true);
     setArFailed(false);
     setArLoading(true);
     setIsArOpen(true);
@@ -83,92 +127,96 @@ export default function ApplicationStage() {
     setArFailed(true);
   };
 
-  const logApplicationActivity = async (
-    chosen: string | string[],
-    correct: string,
-    correctState: boolean,
-    attemptNumber: number,
-    feedback: string
-  ) => {
-    if (!user?.uid) return;
-
-    const payload = {
-      userId: user.uid,
-      selectedAnswer: Array.isArray(chosen) ? chosen.join(',') : chosen,
-      correctAnswer: correct,
-      isCorrect: correctState,
-      attemptCount: attemptNumber,
-      usedAR,
-      timeSpent,
-      aiFeedback: feedback,
-      timestamp: serverTimestamp(),
+  const logApplicationActivity = async (payload: Record<string, unknown>) => {
+    const localPayload = {
+      ...payload,
+      timestamp: new Date().toISOString(),
+      synced: false,
     };
 
+    if (!user?.uid) {
+      saveLocalApplicationActivity(comic.id, localPayload);
+      return;
+    }
+
     try {
-      await addDoc(collection(firestore, 'application_activity'), payload);
+      await addDoc(collection(firestore, 'application_activity'), {
+        ...payload,
+        timestamp: serverTimestamp(),
+        localTimestamp: localPayload.timestamp,
+        synced: true,
+      });
     } catch (error) {
-      console.error('[ApplicationStage] Firestore activity log failed', error);
-      setErrorMessage('Tidak dapat menyimpan aktivitas ke server. Coba lagi nanti.');
+      console.warn('[ApplicationStage] Firestore sync failed, storing locally', error);
+      saveLocalApplicationActivity(comic.id, localPayload);
     }
   };
 
-  const handleCheckAnswer = async () => {
-    if (!selectedAnswer || selectedAnswer.length === 0) return;
-
-    setErrorMessage(null);
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
     setIsThinking(true);
-    setAiMessage(null);
-    setAiStatus(null);
+    setAiError(null);
+    setCoachMessage(null);
+    setCoachSummary(null);
 
     const currentAttempt = attemptCount + 1;
+    const payloadBody = {
+      soal: 'Replika Candi Jawi di museum menampilkan sudut baru yang belum pernah dilihat sebelumnya. Pilih bangun ruang yang paling cocok untuk menjelaskan bentuk replika ini dan tuliskan alasanmu.',
+      konteks: 'Replika Candi Jawi dengan sudut pemandangan baru, ditampilkan sebagai objek pembelajaran di museum.',
+      gambar: APPLICATION_IMAGES.map((image) => image.src),
+      jawabanSiswa: selectedAnswer,
+      jawabanAlasan: studentReason,
+      attempt: currentAttempt,
+    };
 
     try {
-      const payloadBody = {
-        soal: 'Pilih semua bangun ruang yang dapat kamu temukan pada bagian candi di atas. Kamu boleh memilih lebih dari satu jawaban.',
-        gambar: [
-          '/images/identification/komik1-soal4.jpg',
-          '/images/identification/komik1-soal1.jpg',
-          '/images/identification/komik1-soal2.jpg',
-        ],
-        jawabanSiswa: selectedAnswer,
-        jawabanBenar: CORRECT_ANSWERS,
-        attempt: currentAttempt,
-      };
-
       const response = await fetch('/api/ai/application', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payloadBody),
       });
 
-      const data = await response.json();
-      const message = data?.message ?? 'Maaf, AI coach belum bisa memberikan bantuan saat ini. Coba lagi nanti.';
-      const status: 'correct' | 'partial' | 'incorrect' = data?.status ?? (data?.correct ? 'correct' : 'incorrect');
+      const data = (await response.json()) as Partial<CoachResponse>;
+      const message = typeof data.message === 'string'
+        ? data.message
+        : 'AI Coach sementara tidak tersedia. Coba lagi nanti.';
+      const summary = data.summary ?? {
+        mastered: [],
+        needsImprovement: [],
+        nextPractice: [],
+      };
 
-      setAiStatus(status);
-      setAiMessage(message);
-
-      // keep firestore shape compatible by storing selected answers as a string
-      await logApplicationActivity(selectedAnswer, CORRECT_ANSWERS.join(','), status === 'correct', currentAttempt, message);
-
-      if (status === 'correct') {
-        await completeCurrentStage();
-        setCanAdvance(true);
-      } else {
-        setCanAdvance(false);
-        setAttemptCount(currentAttempt);
-      }
-    } catch (error) {
-      console.error('[ApplicationStage] AI request failed', error);
-      const fallbackMessage = 'Maaf, AI sedang bermasalah. Coba lagi sebentar lagi.';
-      setAiStatus('incorrect');
-      setAiMessage(fallbackMessage);
-      await logApplicationActivity(selectedAnswer, CORRECT_ANSWERS.join(','), false, currentAttempt, fallbackMessage);
-      setCanAdvance(false);
+      setCoachMessage(message);
+      setCoachSummary(summary);
+      setAnswerSubmitted(true);
       setAttemptCount(currentAttempt);
+
+      const activityPayload = {
+        userId: user?.uid ?? 'anonymous',
+        comicId: comic.id,
+        selectedAnswer: selectedAnswer.join(', '),
+        studentReason,
+        attempt: currentAttempt,
+        arViewed,
+        explorationCompleted,
+        coachType: data.coachType ?? 'neutral',
+        coachMessage: message,
+        coachSummary: summary,
+      };
+
+      await logApplicationActivity(activityPayload);
+    } catch (error) {
+      console.error('[ApplicationStage] AI Coach request failed', error);
+      setAiError('AI Coach sedang tidak tersedia. Coba lagi nanti.');
+      setCoachMessage(null);
+      setCoachSummary(null);
     } finally {
       setIsThinking(false);
     }
+  };
+
+  const handleFinishStage = async () => {
+    await completeCurrentStage();
   };
 
   return (
@@ -180,180 +228,243 @@ export default function ApplicationStage() {
               7
             </span>
             <div className="space-y-1">
-              <p className="text-xs font-black uppercase tracking-[0.32em] text-primary-600">
-                APPLICATION
-              </p>
+              <p className="text-xs font-black uppercase tracking-[0.32em] text-primary-600">APPLICATION</p>
               <h1 className="text-2xl font-black leading-snug text-neutral-900 sm:text-3xl">
-                Tantangan Baru!
+                Terapkan Ilmu di Konteks Baru
               </h1>
             </div>
           </div>
         </div>
 
         <p className="mt-4 text-sm leading-relaxed text-neutral-600 sm:text-base">
-          Perhatikan bentuk bagian candi berikut.
+          Amati replika Candi Jawi baru di museum, jelajahi sudut-sudut berbeda, lalu pilih bangun ruang yang paling cocok.
         </p>
 
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
           {[
-            {
-              src: '/images/identification/komik1-soal4.jpg',
-              alt: 'Bagian atap bertingkat Candi Jawi tampak samping',
-              label: 'Bagian atap',
-            },
-            {
-              src: '/images/identification/komik1-soal1.jpg',
-              alt: 'Tubuh utama Candi Jawi tampak depan, menyerupai balok',
-              label: 'Bagian tubuh',
-            },
-            {
-              src: '/images/identification/komik1-soal2.jpg',
-              alt: 'Bagian kaki atau pondasi Candi Jawi dengan susunan batu',
-              label: 'Bagian pondasi',
-            },
-          ].map((image) => (
-            <div key={image.src} className="relative overflow-hidden rounded-3xl shadow-sm">
-              {!imagesLoaded[image.src] && (
-                <div className="absolute inset-0 animate-pulse bg-slate-200" aria-hidden="true" />
-              )}
-              <div className="relative aspect-[4/3]">
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  loading="lazy"
-                  decoding="async"
-                  className={['transition-opacity duration-500', imagesLoaded[image.src] ? 'opacity-100' : 'opacity-0'].join(' ')}
-                  onLoadingComplete={() => setImagesLoaded((prev) => ({ ...prev, [image.src]: true }))}
-                />
-              </div>
+            { label: 'Observasi AR', active: arViewed, description: 'Buka model AR dan amati objek 3D dari berbagai sisi.' },
+            { label: 'Eksplorasi', active: explorationCompleted, description: 'Amati tiga sudut pandang baru sebelum menjawab.' },
+            { label: 'Menjawab', active: answerSubmitted, description: 'Kirim jawabanmu dan terima bimbingan AI Coach.' },
+          ].map((step) => (
+            <div
+              key={step.label}
+              className={['rounded-[20px] border px-4 py-4 transition', step.active ? 'border-primary-400 bg-primary-50' : 'border-neutral-200 bg-white'].join(' ')}
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-neutral-500">{step.label}</p>
+              <p className="mt-2 text-sm font-semibold text-neutral-900">{step.description}</p>
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-[24px] bg-white px-5 py-5 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-black text-neutral-900 sm:text-base">Lihat bagian candi ini dalam AR.</p>
-            <p className="text-xs text-neutral-500">Putar, zoom, dan jelajahi model 3D sebelum menjawab.</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary-500">AR Aktivitas Utama</p>
+            <h2 className="mt-1 text-lg font-black text-neutral-900">Amati Model 3D Candi Jawi</h2>
           </div>
           <button
             type="button"
             onClick={openArViewer}
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-primary-600 px-6 py-3 text-sm font-bold uppercase tracking-[0.16em] text-white transition hover:bg-primary-700 focus:outline-none"
+            className="inline-flex h-12 items-center justify-center rounded-2xl bg-primary-600 px-5 py-3 text-sm font-black text-white transition hover:bg-primary-700"
           >
-            Lihat dalam AR
+            Buka AR Viewer
           </button>
         </div>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+          Gunakan AR sebagai bagian pertama dari tantanganmu. Putar, zoom, dan perhatikan volume bangun ruang replika.
+        </p>
+      </div>
 
-        <div className="mt-6 space-y-4">
+      <div className="rounded-[24px] bg-white px-5 py-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-100 pb-4">
           <div>
-            <p className="text-sm font-black text-neutral-900 sm:text-base">
-              Pilih semua bangun ruang yang dapat kamu temukan pada bagian candi di atas. Kamu boleh memilih lebih dari satu jawaban.
-            </p>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary-500">Eksplorasi</p>
+            <h2 className="mt-1 text-lg font-black text-neutral-900">Tiga sudut pandang baru</h2>
           </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm text-neutral-700">Pilih semua jawaban yang benar:</p>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {options.map((option) => {
-                  const checked = selectedAnswer.includes(option);
-                  return (
-                    <label
-                      key={option}
-                      className={[
-                        'inline-flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-2 text-sm transition',
-                        checked ? 'border-primary-600 bg-primary-50' : 'border-neutral-200 bg-neutral-50',
-                      ].join(' ')}
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-5 w-5 shrink-0 appearance-none rounded-sm border border-neutral-300 bg-white checked:border-primary-600 checked:bg-primary-600 focus:outline-none"
-                        checked={checked}
-                        onChange={() => {
-                          setAiMessage(null);
-                          setAiStatus(null);
-                          setSelectedAnswer((prev) => {
-                            if (prev.includes(option)) return prev.filter((p) => p !== option);
-                            return [...prev, option];
-                          });
-                        }}
-                        aria-label={option}
-                      />
-                      <span className="select-none">{option}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
+          {!explorationCompleted ? (
             <button
               type="button"
-              disabled={selectedAnswer.length === 0 || isThinking}
-              onClick={handleCheckAnswer}
-              className={[
-                'inline-flex h-12 w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-bold uppercase tracking-[0.16em] transition-colors focus:outline-none sm:w-auto sm:px-6 sm:text-sm',
-                selectedAnswer.length > 0 && !isThinking
-                  ? 'bg-primary-600 text-white hover:bg-primary-700'
-                  : 'bg-neutral-200 text-neutral-500',
-              ].join(' ')}
+              onClick={() => setExplorationCompleted(true)}
+              className="inline-flex h-10 items-center justify-center rounded-2xl bg-secondary-500 px-4 py-2 text-sm font-black text-white transition hover:bg-secondary-600"
             >
-              {isThinking ? 'AI Coach sedang berpikir…' : 'CEK'}
+              Sudah diamati
             </button>
-          </div>
-
-          {errorMessage && (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
-              <p className="font-semibold">Terjadi kesalahan</p>
-              <p>{errorMessage}</p>
-            </div>
+          ) : (
+            <span className="rounded-full bg-secondary-100 px-3 py-1 text-xs font-semibold text-secondary-700">Eksplorasi selesai</span>
           )}
+        </div>
 
-          {aiMessage && (
-            <div
-              className={[
-                'rounded-3xl border p-4',
-                aiStatus === 'correct'
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                  : aiStatus === 'partial'
-                  ? 'border-amber-200 bg-amber-50 text-amber-950'
-                  : 'border-rose-200 bg-rose-50 text-rose-900',
-              ].join(' ')}
-              role="status"
-              aria-live="polite"
-            >
-              <div className="flex items-start gap-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          {APPLICATION_IMAGES.map((item) => (
+            <div key={item.src} className="overflow-hidden rounded-[20px] border border-neutral-200 bg-neutral-50">
+              <div className="relative aspect-[4/3]">
+                {!imagesLoaded[item.src] && (
+                  <div className="absolute inset-0 animate-pulse bg-slate-200" aria-hidden="true" />
+                )}
                 <Image
-                  src="/images/ai/robot.svg"
-                  alt="AI Coach"
-                  width={28}
-                  height={28}
-                  className="h-7 w-7"
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  className={['transition-opacity duration-500', imagesLoaded[item.src] ? 'opacity-100' : 'opacity-0'].join(' ')}
+                  onLoadingComplete={() => setImagesLoaded((prev) => ({ ...prev, [item.src]: true }))}
                 />
-                <div>
-                  <p className="text-sm font-black uppercase tracking-[0.24em] text-neutral-600">AI Coach</p>
-                  <p className="mt-2 text-sm leading-relaxed">{aiMessage}</p>
-                </div>
               </div>
-              {aiStatus === 'correct' && (
-                <div className="mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-                  <button
-                    type="button"
-                    onClick={() => { goToStage(Stage.Introspection); }}
-                    className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
-                  >
-                    Lanjut ke Introspection →
-                  </button>
-                </div>
-              )}
+              <div className="space-y-2 p-4">
+                <p className="text-sm font-black text-neutral-900">{item.label}</p>
+                <p className="text-sm leading-relaxed text-neutral-600">{item.description}</p>
+              </div>
             </div>
-          )}
-
-          <p className="text-xs leading-relaxed text-neutral-400 sm:text-sm">
-            Belum perlu membuat validasi, AI, atau Firestore. Fokus pada layout responsif dan pengalaman AR.
-          </p>
+          ))}
         </div>
       </div>
+
+      <div className="rounded-[24px] bg-white px-5 py-5 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary-500">Pertanyaan Aplikasi</p>
+            <h2 className="mt-1 text-lg font-black text-neutral-900">Pilih bangun ruang yang paling sesuai</h2>
+          </div>
+          <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">
+            {arViewed ? 'AR sudah dilihat' : 'Buka AR terlebih dahulu'}
+          </div>
+        </div>
+
+        <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+          Perhatikan gambar replika, pilih bangun ruang yang paling cocok, lalu jelaskan alasanmu secara singkat.
+        </p>
+
+        <div className="mt-5 grid gap-3">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {options.map((option) => {
+              const checked = selectedAnswer.includes(option);
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    setSelectedAnswer((prev) =>
+                      prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option],
+                    );
+                  }}
+                  className={['inline-flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition',
+                    checked ? 'border-primary-600 bg-primary-50 text-primary-900' : 'border-neutral-200 bg-white text-neutral-800 hover:border-primary-200 hover:bg-primary-50/50',
+                  ].join(' ')}
+                >
+                  <span>{option}</span>
+                  <span className={['h-5 w-5 rounded-full border text-center text-xs font-black', checked ? 'border-primary-600 bg-primary-600 text-white' : 'border-neutral-300 bg-white text-neutral-400'].join(' ')}>
+                    {checked ? '✓' : '+'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
+            <label htmlFor="application-reason" className="mb-2 block text-sm font-black text-neutral-700">
+              ✏️ Jelaskan pilihanmu
+            </label>
+            <textarea
+              id="application-reason"
+              value={studentReason}
+              onChange={(event) => setStudentReason(event.target.value)}
+              rows={5}
+              placeholder="Tuliskan alasanmu di sini..."
+              disabled={!hasCompletedPreparation || isThinking}
+              className="w-full resize-none rounded-3xl border border-neutral-200 bg-white px-4 py-3 text-sm leading-relaxed text-neutral-800 placeholder:text-neutral-400 outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100 disabled:cursor-not-allowed disabled:opacity-60"
+            />
+            <div className="mt-2 flex items-center justify-between text-xs text-neutral-500">
+              <span>{minReasonLength} / 20 karakter</span>
+              <span>{selectedAnswer.length} pilihan dipilih</span>
+            </div>
+          </div>
+
+          {!hasCompletedPreparation && (
+            <div className="rounded-[20px] border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900">
+              Selesaikan observasi AR dan eksplorasi gambar sebelum mengirim jawaban.
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className={['inline-flex h-14 w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-black uppercase tracking-[0.14em] transition',
+              canSubmit ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-neutral-200 text-neutral-500',
+            ].join(' ')}
+          >
+            {isThinking ? 'AI Coach sedang berpikir…' : answerSubmitted ? 'Perbarui bimbingan AI Coach' : 'Minta bimbingan AI Coach'}
+          </button>
+
+          {aiError && (
+            <div className="rounded-[20px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+              {aiError}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {coachMessage && coachSummary && (
+        <div className="rounded-[24px] bg-white px-5 py-5 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary-500">AI Coach</p>
+              <h2 className="mt-1 text-lg font-black text-neutral-900">Bimbingan dan Ringkasan</h2>
+            </div>
+            <span className="rounded-full bg-secondary-100 px-3 py-1 text-xs font-semibold text-secondary-700">Attempt ke-{attemptCount}</span>
+          </div>
+
+          <div className="mt-4 rounded-[20px] border border-neutral-200 bg-neutral-50 p-4 text-sm leading-relaxed text-neutral-700">
+            <p>{coachMessage}</p>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-[20px] border border-primary-100 bg-primary-50 p-4">
+              <p className="text-sm font-black text-primary-700">Yang sudah dikuasai</p>
+              <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+                {coachSummary.mastered.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-black text-primary-700">✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-[20px] border border-amber-100 bg-amber-50 p-4">
+              <p className="text-sm font-black text-amber-700">Yang masih perlu diperbaiki</p>
+              <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+                {coachSummary.needsImprovement.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-black text-amber-700">!</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-[20px] border border-accent-100 bg-accent-50 p-4">
+              <p className="text-sm font-black text-accent-700">Saran latihan berikutnya</p>
+              <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+                {coachSummary.nextPractice.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-black text-accent-700">→</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleFinishStage}
+            className="mt-5 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-secondary-500 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:bg-secondary-600"
+          >
+            Selesai dan lanjut ke Introspection
+          </button>
+        </div>
+      )}
 
       {isArOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
