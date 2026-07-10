@@ -43,6 +43,14 @@ export interface ProgressDocument extends FirestoreBaseDocument {
   completedAt?: FirestoreTimestamp;
 }
 
+export interface IntrospectionProgressMetadata {
+  completed?: boolean;
+  checklist?: Array<{ prompt: string; checked: boolean }>;
+  confidence?: number | null;
+  reflectionText?: string;
+  completedAt?: FirestoreTimestamp | FieldValue;
+}
+
 export interface ComicProgressDocument {
   id?: string;
   createdAt?: FirestoreTimestamp;
@@ -52,6 +60,7 @@ export interface ComicProgressDocument {
   percentage: number;
   status: 'not_started' | 'in_progress' | 'completed';
   sintaksList: SintaksProgress[];
+  introspection?: IntrospectionProgressMetadata;
   completedAt?: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp | FieldValue;
 }

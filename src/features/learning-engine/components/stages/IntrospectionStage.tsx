@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { serverTimestamp } from 'firebase/firestore';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 
@@ -15,6 +16,7 @@ const STAR_LABELS = ['Sangat kurang', 'Kurang', 'Cukup', 'Paham', 'Sangat paham'
 const MIN_REFLECTION_LENGTH = 10;
 
 export default function IntrospectionStage() {
+  const router = useRouter();
   const { comic, progress, completeCurrentStage } = useLearningEngine();
   const [checked, setChecked] = useState<boolean[]>(REFLECTION_PROMPTS.map(() => false));
   const [rating, setRating] = useState<number | null>(null);
@@ -173,6 +175,11 @@ export default function IntrospectionStage() {
     }
   };
 
+  const handleViewReport = () => {
+    const comicId = comic.id;
+    router.push(`/report?comicId=${comicId}`);
+  };
+
   return (
     <div className="flex flex-col gap-4 animate-fade-in-up">
       <section className="rounded-[24px] bg-white px-5 py-6 shadow-sm sm:px-6 sm:py-8">
@@ -288,15 +295,15 @@ export default function IntrospectionStage() {
       <section className="rounded-[24px] bg-white p-5 shadow-sm">
         <button
           type="button"
-          onClick={handleSave}
-          disabled={!canSave || aiLoading}
+          onClick={saved ? handleViewReport : handleSave}
+          disabled={(!canSave && !saved) || aiLoading}
           className={['inline-flex w-full items-center justify-center rounded-3xl px-5 py-4 text-sm font-black transition',
-            canSave && !aiLoading
+            (canSave && !aiLoading) || saved
               ? 'bg-primary-600 text-white shadow-sm hover:bg-primary-700'
               : 'cursor-not-allowed bg-neutral-200 text-neutral-500'
           ].join(' ')}
         >
-          {aiLoading ? 'Membuat refleksi...' : 'Simpan'}
+          {aiLoading ? 'Membuat refleksi...' : saved ? 'Lihat Laporan Belajar' : 'Simpan'}
         </button>
 
         {saved && !aiLoading && !aiResult && (
@@ -305,6 +312,13 @@ export default function IntrospectionStage() {
               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-green-600 text-white animate-bounce">✓</span>
               Refleksi berhasil disimpan.
             </p>
+            <button
+              type="button"
+              onClick={handleViewReport}
+              className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-green-600 px-4 py-3 font-black text-white transition hover:bg-green-700"
+            >
+              Lihat Laporan Belajar
+            </button>
           </div>
         )}
 
@@ -333,6 +347,13 @@ export default function IntrospectionStage() {
         {aiResult && (
           <div className="mt-4 space-y-4 rounded-[24px] border border-neutral-200 bg-neutral-50 p-5 animate-fade-in stagger-children">
             <p className="text-sm font-black uppercase tracking-[0.3em] text-primary-700">Refleksi AI</p>
+            <button
+              type="button"
+              onClick={handleViewReport}
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-primary-600 px-4 py-3 text-sm font-black text-white transition hover:bg-primary-700"
+            >
+              Lihat Laporan Belajar
+            </button>
             <div className="rounded-3xl bg-white p-4 shadow-sm">
               <p className="text-sm font-semibold text-neutral-900">Apresiasi</p>
               <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-neutral-700">

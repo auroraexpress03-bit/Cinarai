@@ -202,6 +202,11 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       const next = await persistCompleteStage(user.uid, progressRef.current, sintaks, metadata);
       progressRef.current = next;
       setProgress(next);
+      const nextCurrentSintaks = next.sintaksList.find((item) => item.status === 'CURRENT')?.sintaks;
+      const nextStageFromProgress = nextCurrentSintaks ? sintaksToStage(nextCurrentSintaks) : null;
+      if (nextStageFromProgress && nextStageFromProgress === Stage.Finish) {
+        setStageIndex(ALL_STAGES.indexOf(Stage.Finish));
+      }
       showSnackbar('Progress berhasil disimpan ✓', 'success');
       return true;
     } catch (error) {
