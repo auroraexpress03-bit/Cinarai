@@ -78,6 +78,8 @@ export interface ReflectionDocument extends FirestoreBaseDocument {
   prompt?: string;
   response?: string;
   selectedChecklist?: string[];
+  checklist?: string[];
+  rating?: number | null;
   confidence?: number | null;
   reflectionText?: string;
   aiReflection?: {
@@ -87,6 +89,7 @@ export interface ReflectionDocument extends FirestoreBaseDocument {
   } | string;
   jawaban?: Record<string, string>;
   timestamp?: FirestoreTimestamp | FieldValue;
+  stage?: string;
   status?: 'completed' | string;
   submittedAt?: FirestoreTimestamp | FieldValue;
 }

@@ -9,6 +9,7 @@ import {
   queryFirestoreCollection,
 } from '@/services/firestore';
 import { getComicById } from '@/lib/comicRepository';
+import { getCurrentUser } from '@/lib/firebase/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/context/SnackbarContext';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
@@ -61,6 +62,8 @@ export default function IntrospectionStage() {
   const [reflectionText, setReflectionText] = useState('');
   const [saved, setSaved] = useState(false);
   const [attemptedSave, setAttemptedSave] = useState(false);
+  const [isSavingReflection, setIsSavingReflection] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiReflection, setAiReflection] = useState<AiReflection | null>(null);
@@ -167,8 +170,10 @@ export default function IntrospectionStage() {
       setTypingSectionIndex(0);
       setIsTyping(true);
 
-      if (user) {
-        const docId = `${user.uid}_${comic.id}_introspection`;
+      const authUser = getCurrentUser();
+      const uid = authUser?.uid ?? user?.uid;
+      if (uid) {
+        const docId = `${uid}_${comic.id}_introspection`;
         const aiReflectionText = `Apresiasi
 ${data.appreciation}
 
@@ -184,8 +189,9 @@ ${data.suggestion}`;
         });
       }
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : 'Terjadi kesalahan saat membuat refleksi AI.');
-      throw error;
+      const friendlyMessage = 'Terjadi kesalahan saat membuat refleksi AI. Silakan coba lagi.';
+      setAiError(friendlyMessage);
+      throw new Error(friendlyMessage);
     } finally {
       setAiLoading(false);
     }
@@ -225,9 +231,13 @@ ${data.suggestion}`;
 
   const handleSaveReflection = async () => {
     setAttemptedSave(true);
+    setSaveError(null);
     setAiError(null);
 
-    if (!user) {
+    const authUser = getCurrentUser();
+    const uid = authUser?.uid ?? user?.uid;
+
+    if (!uid) {
       showSnackbar('Silakan masuk terlebih dahulu untuk menyimpan refleksi.', 'error');
       return;
     }
@@ -237,25 +247,53 @@ ${data.suggestion}`;
       return;
     }
 
+    setIsSavingReflection(true);
+
     try {
-      const docId = `${user.uid}_${comic.id}_introspection`;
+      const docId = `${uid}_${comic.id}_introspection`;
       await mergeFirestoreDocument('reflection', docId, {
-        userId: user.uid,
+        userId: uid,
         comicId: String(comic.id),
-        selectedChecklist,
+        checklist: selectedChecklist,
         confidence: rating,
+        rating,
         reflectionText: reflectionText.trim(),
+        stage: 'introspection',
+        timestamp: serverTimestamp(),
         createdAt: serverTimestamp(),
         status: 'completed',
         submittedAt: serverTimestamp(),
       });
 
-      await fetchAiReflection();
+      const completed = await completeCurrentStage({
+        introspection: {
+          completed: true,
+          checklist: CHECKLIST_ITEMS.map((prompt, idx) => ({ prompt, checked: checked[idx] })),
+          confidence: rating,
+          reflectionText: reflectionText.trim(),
+          completedAt: serverTimestamp(),
+        },
+      });
+
+      if (!completed) {
+        throw new Error('Gagal memperbarui progress Introspection.');
+      }
+
       setSaved(true);
       showSnackbar('Refleksi berhasil disimpan.', 'success');
+
+      await fetchAiReflection().catch((error) => {
+        console.error('[IntrospectionStage] AI reflection update gagal', error);
+        setAiError('Terjadi kesalahan saat membuat refleksi AI. Silakan coba lagi.');
+      });
     } catch (error) {
+      console.error('[IntrospectionStage] Gagal menyimpan refleksi', error);
       setSaved(false);
-      setAiError(error instanceof Error ? error.message : 'Gagal menyimpan refleksi.');
+      const friendlyMessage = 'Refleksi belum dapat disimpan. Silakan coba lagi.';
+      setSaveError(friendlyMessage);
+      showSnackbar(friendlyMessage, 'error');
+    } finally {
+      setIsSavingReflection(false);
     }
   };
 
@@ -479,19 +517,19 @@ ${data.suggestion}`;
           <button
             type="button"
             onClick={handleSaveReflection}
-            disabled={aiLoading}
+            disabled={isSavingReflection || saved}
             className={['inline-flex w-full items-center justify-center rounded-3xl px-5 py-4 text-sm font-black uppercase tracking-[0.15em] transition',
-              aiLoading
+              isSavingReflection || saved
                 ? 'cursor-not-allowed bg-neutral-200 text-neutral-500'
                 : 'bg-primary-600 text-white shadow-sm hover:bg-primary-700',
             ].join(' ')}
           >
-            {aiLoading ? 'Menyimpan refleksi…' : 'SIMPAN REFLEKSI'}
+            {isSavingReflection ? 'Menyimpan...' : saved ? '✓ Refleksi Tersimpan' : 'SIMPAN REFLEKSI'}
           </button>
 
-          {aiError && (
+          {(saveError || aiError) && (
             <div className="rounded-[20px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              {aiError}
+              {saveError ?? aiError}
             </div>
           )}
         </div>
