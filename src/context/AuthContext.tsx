@@ -14,6 +14,7 @@ import {
 } from '@/lib/firebase/auth';
 import { initializeUserProgress } from '@/services/comicProgress';
 import { getFirestoreDocument, upsertUser } from '@/services/firestore';
+import { cleanObject } from '@/lib/firestore.helpers';
 import type { User, AuthContextType, AuthState } from '@/types/auth';
 import type { UserRole } from '@/types/firestore';
 
@@ -78,7 +79,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const { user: firebaseUser } = await firebaseSignUp(email, password);
         await updateUserProfile(firebaseUser, displayName);
-        await upsertUser({
+
+        // Build user object with only defined fields, then clean to remove any undefined values
+        const userData = cleanObject({
           uid: firebaseUser.uid,
           email: firebaseUser.email ?? '',
           displayName: firebaseUser.displayName ?? displayName,
@@ -87,7 +90,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isActive: true,
           lastLoginAt: undefined,
           emailVerified: undefined,
-        } as Parameters<typeof upsertUser>[0]);
+        });
+
+        await upsertUser(userData as Parameters<typeof upsertUser>[0]);
         await syncUserFromFirestore(firebaseUser);
       } catch (error) {
         const errorMessage =
