@@ -12,7 +12,7 @@ const PdfReader = dynamic(() => import('@/components/comic/PdfReader'), { ssr: f
 
 export default function ContextualizationStage() {
   const { comic, progress, setCanAdvance, completeAndAdvance, isSaving } = useLearningEngine();
-  const { updateProgress, markCompleted, isComicCompleted } = useComicReadingProgress();
+  const { updateProgress, markCompleted, isComicCompleted, progress: readingProgress } = useComicReadingProgress();
 
   const alreadyCompleted = progress.sintaksList.some(
     (s) => s.sintaks === 'Contextualization' && s.status === 'COMPLETED'
@@ -34,11 +34,12 @@ export default function ContextualizationStage() {
   );
 
   const handlePdfComplete = useCallback(async () => {
-    // Simpan sebagai completed
-    markCompleted(comic.id, progress.sintaksList[0]?.status !== 'COMPLETED' ? 1 : 1);
-    // Advance ke Identification
+    const lastPage = readingProgress?.currentPage ?? readingProgress?.lastPage ?? 1;
+    const totalPages = readingProgress?.totalPages ?? lastPage;
+
+    markCompleted(comic.id, totalPages);
     await completeAndAdvance('Contextualization');
-  }, [comic.id, completeAndAdvance, markCompleted, progress.sintaksList]);
+  }, [comic.id, completeAndAdvance, markCompleted, readingProgress]);
 
   return (
     <div
