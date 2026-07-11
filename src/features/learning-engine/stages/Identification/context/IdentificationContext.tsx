@@ -133,7 +133,7 @@ export function IdentificationProvider({
     updateAutoSaveState(item.id, { status: 'saving', message: 'Menyimpan...' });
 
     try {
-      const selectedOptionIds = item.selectedOptionIds ?? (item.selectedOptionId ? [item.selectedOptionId] : []);
+      const selectedOptionIds = item.selectedOptionIds ?? [];
       const selectedShapeTexts = item.options
         .filter((option) => selectedOptionIds.includes(option.id))
         .map((option) => option.text);
@@ -252,7 +252,7 @@ export function IdentificationProvider({
   const validationErrors = useMemo<string[]>(() => {
     const errors: string[] = [];
     const unanswered = state.items.filter((i) => {
-      const selectedIds = i.selectedOptionIds ?? (i.selectedOptionId ? [i.selectedOptionId] : []);
+      const selectedIds = i.selectedOptionIds ?? [];
       return selectedIds.length === 0;
     });
     if (unanswered.length > 0) {

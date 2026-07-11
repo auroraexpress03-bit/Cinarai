@@ -34,7 +34,6 @@ export interface IdentificationItem {
   readonly highlight?: string;
   readonly explanation: string;
   status: IdentificationItemStatus;
-  selectedOptionId: string | null;
   selectedOptionIds: string[];
   note: string;
   answerStatus: AnswerStatus;

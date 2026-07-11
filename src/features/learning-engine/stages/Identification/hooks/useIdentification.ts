@@ -96,11 +96,13 @@ export function useIdentification({
         const item = next.items.find((i) => i.targetIndex === answer.step);
         if (!item) continue;
         
-        const selectedIds = answer.selectedAnswerIds && answer.selectedAnswerIds.length > 0
-          ? answer.selectedAnswerIds
-          : item.options
-              .filter((option) => option.text === answer.selectedAnswer)
-              .map((option) => option.id);
+        const selectedIds = Array.from(new Set(
+          (answer.selectedAnswerIds && answer.selectedAnswerIds.length > 0
+            ? answer.selectedAnswerIds
+            : item.options
+                .filter((option) => option.text === answer.selectedAnswer)
+                .map((option) => option.id))
+        ));
         
         next = {
           ...next,
@@ -109,7 +111,6 @@ export function useIdentification({
               ? {
                   ...i,
                   selectedOptionIds: selectedIds,
-                  selectedOptionId: selectedIds[0] ?? null,
                   note: answer.note,
                   reason: answer.reason,
                   answerStatus: selectedIds.length > 0 ? 'SAVED' : 'UNANSWERED',

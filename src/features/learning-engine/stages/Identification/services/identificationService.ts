@@ -304,7 +304,6 @@ export function createIdentificationState(
       correctOptionId: correctOption?.id ?? options[0].id,
       explanation: question.explanation,
       status: 'PENDING',
-      selectedOptionId: null,
       selectedOptionIds: [],
       note: '',
       answerStatus: 'UNANSWERED',
@@ -365,7 +364,7 @@ export function selectAnswer(
   const updatedItems: IdentificationItem[] = state.items.map((item) => {
     if (item.id !== itemId) return item;
 
-    const currentSelection = item.selectedOptionIds ?? (item.selectedOptionId ? [item.selectedOptionId] : []);
+    const currentSelection = item.selectedOptionIds ?? [];
     const alreadySelected = currentSelection.includes(optionId);
     const nextSelection = alreadySelected
       ? currentSelection.filter((id) => id !== optionId)
@@ -374,7 +373,6 @@ export function selectAnswer(
     return {
       ...item,
       selectedOptionIds: nextSelection,
-      selectedOptionId: nextSelection[0] ?? null,
       answerStatus: nextSelection.length > 0 ? 'SAVED' : 'UNANSWERED',
       status: nextSelection.length > 0 ? 'OBSERVED' : item.status,
     };
@@ -439,7 +437,6 @@ export function resetIdentificationState(state: IdentificationState): Identifica
         options,
         correctOptionId: correctOption?.id ?? options[0].id,
         status: 'PENDING',
-        selectedOptionId: null,
         selectedOptionIds: [],
         note: '',
         answerStatus: 'UNANSWERED',
