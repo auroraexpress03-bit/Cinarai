@@ -8,7 +8,6 @@ import { useSnackbar } from '@/context/SnackbarContext';
 import type { ComicAssetEntry } from '@/services/comic-assets/types';
 import { Hero3DViewer } from './Hero3DViewer';
 import { AssemblrCard } from './AssemblrCard';
-import { FloatingAITutor } from './FloatingAITutor';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -86,6 +85,10 @@ function createStarterMessages(objectName: string, location: string): ChatMessag
   ];
 }
 
+function getEntrySessionId(entry: ComicAssetEntry | null | undefined): string {
+  return entry ? `${entry.page}-${entry.arUrl}` : 'default';
+}
+
 /* eslint-disable @next/next/no-img-element */
 
 export default function NavigationStage() {
@@ -104,17 +107,11 @@ export default function NavigationStage() {
     }
     return primaryEntry;
   }, [activeObjectId, model3D, primaryEntry]);
-  const activeObjectName = useMemo(() => getObjectDisplayName(activeEntry), [activeEntry]);
-  const quickQuestions = useMemo(() => getQuickQuestions(activeObjectName, comic.lokasi), [activeObjectName, comic.lokasi]);
   const [chatSessions, setChatSessions] = useState<Record<string, ChatMessage[]>>({});
   const [draftBySession, setDraftBySession] = useState<Record<string, string>>({});
   const [isResponding, setIsResponding] = useState(false);
   const [exploredIds, setExploredIds] = useState<Set<string>>(new Set());
   const [aiErrors, setAiErrors] = useState<Record<string, string | null>>({});
-  const sessionId = useMemo(() => (activeEntry ? `${activeEntry.page}-${activeEntry.arUrl}` : 'default'), [activeEntry]);
-  const sessionMessages = useMemo(() => (sessionId ? chatSessions[sessionId] ?? [] : []), [chatSessions, sessionId]);
-  const sessionDraft = useMemo(() => (sessionId ? draftBySession[sessionId] ?? '' : ''), [draftBySession, sessionId]);
-  const sessionAiError = useMemo(() => (sessionId ? aiErrors[sessionId] ?? null : null), [aiErrors, sessionId]);
 
   const requiredIds = useMemo(
     () => model3D.filter((e) => isValidUrl(e.arUrl)).map((e) => `${e.page}-${e.arUrl}`),
@@ -139,15 +136,21 @@ export default function NavigationStage() {
   }, [primaryEntry]);
 
   useEffect(() => {
-    if (!sessionId) return;
     setChatSessions((prev) => {
-      if (prev[sessionId]) return prev;
-      return {
-        ...prev,
-        [sessionId]: createStarterMessages(activeObjectName, comic.lokasi),
-      };
+      const next = { ...prev };
+      let changed = false;
+
+      for (const entry of model3D) {
+        const entryId = getEntrySessionId(entry);
+        if (!next[entryId]) {
+          next[entryId] = createStarterMessages(getObjectDisplayName(entry), comic.lokasi);
+          changed = true;
+        }
+      }
+
+      return changed ? next : prev;
     });
-  }, [sessionId, activeObjectName, comic.lokasi]);
+  }, [comic.lokasi, model3D]);
 
   useEffect(() => {
     if (!activeEntry || activeEntry.viewerType !== 'embed' || !activeEntry.embedUrl) return;
@@ -175,22 +178,25 @@ export default function NavigationStage() {
     };
   }, [unregisterSlideNav]);
 
-  const handleSend = useCallback(
-    async (rawText?: string) => {
-      if (!sessionId || isResponding || !comic) return;
+  const handleSendForEntry = useCallback(
+    async (entry: ComicAssetEntry, rawText?: string) => {
+      if (isResponding || !comic) return;
 
-      const trimmed = (rawText ?? sessionDraft).trim();
+      const entryId = getEntrySessionId(entry);
+      const objectName = getObjectDisplayName(entry);
+      const currentDraft = draftBySession[entryId] ?? '';
+      const trimmed = (rawText ?? currentDraft).trim();
       if (!trimmed) return;
 
-      const currentMessages = chatSessions[sessionId] ?? [];
+      const currentMessages = chatSessions[entryId] ?? [];
       const userMessage: ChatMessage = { id: Date.now(), role: 'user', content: trimmed };
       const nextMessages = [...currentMessages, userMessage];
       const historyForPrompt = nextMessages.map(({ role, content }) => ({ role, content }));
 
-      setChatSessions((prev) => ({ ...prev, [sessionId]: nextMessages }));
-      setDraftBySession((prev) => ({ ...prev, [sessionId]: '' }));
+      setChatSessions((prev) => ({ ...prev, [entryId]: nextMessages }));
+      setDraftBySession((prev) => ({ ...prev, [entryId]: '' }));
       setIsResponding(true);
-      setAiErrors((prev) => ({ ...prev, [sessionId]: null }));
+      setAiErrors((prev) => ({ ...prev, [entryId]: null }));
 
       try {
         const response = await fetch('/api/ai/chat', {
@@ -210,12 +216,12 @@ export default function NavigationStage() {
               observationAnswers: {},
               sessionHistory: historyForPrompt,
               comicTitle: comic.title,
-              pageLabel: activeEntry ? `Halaman ${activeEntry.page}` : undefined,
-              objectName: activeObjectName,
+              pageLabel: entry ? `Halaman ${entry.page}` : undefined,
+              objectName,
               learningStage: 'Navigation',
-              objectDescription: activeEntry?.description,
-              arProvider: activeEntry?.provider,
-              modelUrl: activeEntry?.arUrl,
+              objectDescription: entry?.description,
+              arProvider: entry?.provider,
+              modelUrl: entry?.arUrl,
               learningGoal: comic.learningTargets?.[0] ?? 'Mengamati objek AR',
               numeracyConcept: 'bangun datar, simetri, dan pola visual',
               cultureConcept: comic.lokasi ? `Konteks budaya di ${comic.lokasi}` : 'hubungan budaya dan matematika',
@@ -234,21 +240,21 @@ export default function NavigationStage() {
           role: 'assistant',
           content: payload.answer,
         };
-        setChatSessions((prev) => ({ ...prev, [sessionId]: [...(prev[sessionId] ?? []), assistantMessage] }));
+        setChatSessions((prev) => ({ ...prev, [entryId]: [...(prev[entryId] ?? []), assistantMessage] }));
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        setAiErrors((prev) => ({ ...prev, [sessionId]: msg }));
+        setAiErrors((prev) => ({ ...prev, [entryId]: msg }));
         const fallbackMessage: ChatMessage = {
           id: Date.now() + 2,
           role: 'assistant',
           content: `Maaf, terjadi kesalahan saat menghubungi layanan AI: ${msg}`,
         };
-        setChatSessions((prev) => ({ ...prev, [sessionId]: [...(prev[sessionId] ?? []), fallbackMessage] }));
+        setChatSessions((prev) => ({ ...prev, [entryId]: [...(prev[entryId] ?? []), fallbackMessage] }));
       } finally {
         setIsResponding(false);
       }
     },
-    [activeObjectName, activeEntry, chatSessions, comic, isResponding, sessionDraft, sessionId],
+    [chatSessions, comic, draftBySession, isResponding],
   );
 
   function handleOpenAr(entry: ComicAssetEntry, openQr = false) {
@@ -312,6 +318,11 @@ export default function NavigationStage() {
               const isActive = activeEntry ? `${activeEntry.page}-${activeEntry.arUrl}` === entryId : idx === 0;
               const isValid = isValidUrl(entry.arUrl);
 
+              const entryMessages = chatSessions[entryId] ?? [];
+              const entryDraft = draftBySession[entryId] ?? '';
+              const entryAiError = aiErrors[entryId] ?? null;
+              const entryQuickQuestions = getQuickQuestions(getObjectDisplayName(entry), comic.lokasi);
+
               return (
                 <AssemblrCard
                   key={entryId}
@@ -329,6 +340,16 @@ export default function NavigationStage() {
                     handleOpenAr(entry, true);
                   }}
                   isValidUrl={isValid}
+                  messages={entryMessages}
+                  draft={entryDraft}
+                  isResponding={isResponding}
+                  aiError={entryAiError}
+                  quickQuestions={entryQuickQuestions}
+                  onSendMessage={(text) => handleSendForEntry(entry, text)}
+                  onDraftChange={(value) => {
+                    if (!entryId) return;
+                    setDraftBySession((prev) => ({ ...prev, [entryId]: value }));
+                  }}
                 />
               );
             })
@@ -359,20 +380,6 @@ export default function NavigationStage() {
         )}
       </div>
 
-      <FloatingAITutor
-        messages={sessionMessages}
-        draft={sessionDraft}
-        isResponding={isResponding}
-        aiError={sessionAiError}
-        quickQuestions={quickQuestions}
-        activeEntry={activeEntry}
-        activeObjectName={activeObjectName}
-        onSendMessage={handleSend}
-        onDraftChange={(value) => {
-          if (!sessionId) return;
-          setDraftBySession((prev) => ({ ...prev, [sessionId]: value }));
-        }}
-      />
     </div>
   );
 }
