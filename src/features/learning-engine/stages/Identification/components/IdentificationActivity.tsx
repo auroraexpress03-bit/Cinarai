@@ -25,16 +25,14 @@ export default function IdentificationActivity() {
       <IdentificationQuestion
         item={currentItem}
         isChecked={currentChecked}
-        onCheck={() =>
-          setCheckedItems((prev) => ({ ...prev, [currentItem.id]: true }))
-        }
+        onCheck={() => setCheckedItems((prev) => ({ ...prev, [currentItem.id]: true }))}
       />
 
       {isComplete && (
-        <div className="rounded-xl bg-accent-500 px-4 py-3 flex items-center gap-3">
-          <span className="text-xl flex-shrink-0">🎉</span>
+        <div className="flex items-center gap-3 rounded-[22px] bg-accent-500 px-4 py-3">
+          <span className="flex-shrink-0 text-xl">🎉</span>
           <div>
-            <p className="text-base font-black text-white leading-tight">Semua soal selesai!</p>
+            <p className="text-base font-black leading-tight text-white">Semua soal selesai!</p>
             <p className="text-sm text-accent-100">Kamu berhasil di {lokasi}. Tekan Lanjut!</p>
           </div>
         </div>

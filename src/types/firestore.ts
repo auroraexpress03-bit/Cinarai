@@ -126,6 +126,11 @@ export interface IdentificationAnswerDocument extends FirestoreBaseDocument {
   comicId: number;
   step: number;
   selectedAnswer: string | null;
+  selectedAnswerIds?: string[];
+  correctAnswer?: string | null;
+  selectedShapes?: string[];
+  aiTutorUsed?: boolean;
+  attemptCount?: number;
   note: string;
   reason: string;
   createdAt?: FirestoreTimestamp;

@@ -133,9 +133,23 @@ export function IdentificationProvider({
     updateAutoSaveState(item.id, { status: 'saving', message: 'Menyimpan...' });
 
     try {
-      const selectedOption = item.options.find((option) => option.id === item.selectedOptionId);
-    await saveIdentificationAnswer(currentUser.uid, comicId, item.targetIndex, {
-        selectedAnswer: selectedOption?.text ?? null,
+      const selectedOptionIds = item.selectedOptionIds ?? (item.selectedOptionId ? [item.selectedOptionId] : []);
+      const selectedShapeTexts = item.options
+        .filter((option) => selectedOptionIds.includes(option.id))
+        .map((option) => option.text);
+      const selectedAnswer = selectedShapeTexts.join(', ') || null;
+      const correctAnswer = item.options
+        .filter((option) => option.correct)
+        .map((option) => option.text)
+        .join(', ');
+
+      await saveIdentificationAnswer(currentUser.uid, comicId, item.targetIndex, {
+        selectedAnswer,
+        selectedAnswerIds: selectedOptionIds,
+        correctAnswer,
+        selectedShapes: selectedShapeTexts,
+        aiTutorUsed: Boolean(item.reason?.trim()),
+        attemptCount: 1,
         note: item.note,
         reason: item.reason,
       });

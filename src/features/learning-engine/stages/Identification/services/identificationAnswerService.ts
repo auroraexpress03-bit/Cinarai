@@ -14,6 +14,11 @@ interface PendingIdentificationWrite {
   step: number;
   data: {
     selectedAnswer: string | null;
+    selectedAnswerIds?: string[];
+    correctAnswer?: string | null;
+    selectedShapes?: string[];
+    aiTutorUsed?: boolean;
+    attemptCount?: number;
     note: string;
     reason: string;
   };
@@ -77,6 +82,11 @@ async function persistToFirestore(entry: PendingIdentificationWrite): Promise<vo
     comicId: entry.comicId,
     step: entry.step,
     selectedAnswer: entry.data.selectedAnswer,
+    selectedAnswerIds: entry.data.selectedAnswerIds ?? [],
+    correctAnswer: entry.data.correctAnswer ?? null,
+    selectedShapes: entry.data.selectedShapes ?? [],
+    aiTutorUsed: entry.data.aiTutorUsed ?? false,
+    attemptCount: entry.data.attemptCount ?? 0,
     note: entry.data.note,
     reason: entry.data.reason,
     ...(existing ? {} : { createdAt: serverTimestamp() as IdentificationAnswerDocument['createdAt'] }),
@@ -146,6 +156,11 @@ export async function saveIdentificationAnswer(
   step: number,
   data: {
     selectedAnswer: string | null;
+    selectedAnswerIds?: string[];
+    correctAnswer?: string | null;
+    selectedShapes?: string[];
+    aiTutorUsed?: boolean;
+    attemptCount?: number;
     note: string;
     reason: string;
   }

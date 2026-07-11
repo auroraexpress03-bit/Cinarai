@@ -16,11 +16,14 @@ export default function IdentificationHeader() {
   }, [currentStage]);
 
   return (
-    <div className="flex items-center justify-between gap-3 px-1">
-      <h1 className="text-2xl font-black uppercase tracking-[0.35em] text-neutral-900 sm:text-3xl">
-        IDENTIFICATION
-      </h1>
-      <span className="text-base font-semibold uppercase tracking-[0.2em] text-neutral-400 whitespace-nowrap">
+    <div className="flex flex-col gap-3 rounded-[24px] border border-neutral-200 bg-white px-4 py-4 shadow-[0_12px_32px_-18px_rgba(15,23,42,0.25)] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div>
+        <p className="text-[11px] font-black uppercase tracking-[0.35em] text-primary-600">Stage</p>
+        <h1 className="text-2xl font-black uppercase tracking-[0.3em] text-neutral-900 sm:text-3xl">
+          IDENTIFICATION
+        </h1>
+      </div>
+      <span className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-400 whitespace-nowrap">
         Tahap {stageNumber} dari {totalStages}
       </span>
     </div>
