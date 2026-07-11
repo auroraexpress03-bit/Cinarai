@@ -1,3 +1,5 @@
+import type { UserRole } from '@/types/firestore';
+
 export interface User {
   uid: string;
   email: string | null;
@@ -5,6 +7,7 @@ export interface User {
   photoURL: string | null;
   emailVerified: boolean;
   createdAt: Date;
+  role: UserRole | null;
 }
 
 export interface AuthState {
@@ -14,7 +17,7 @@ export interface AuthState {
 }
 
 export interface AuthContextType extends AuthState {
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signUp: (email: string, password: string, displayName: string, role?: 'student' | 'teacher') => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;

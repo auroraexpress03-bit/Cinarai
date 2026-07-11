@@ -10,6 +10,7 @@ export const SignUpForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'student' | 'teacher'>('student');
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
   const { signUp, error, clearError } = useAuth();
@@ -31,7 +32,7 @@ export const SignUpForm: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await signUp(email, password, displayName);
+      await signUp(email, password, displayName, role);
       router.push('/dashboard');
     } catch (err) {
       console.error('Sign up error:', err);
@@ -121,6 +122,36 @@ export const SignUpForm: React.FC = () => {
             disabled={isLoading}
             className={inputClass}
           />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-neutral-700">Pilih Peran</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setRole('student')}
+              disabled={isLoading}
+              className={`flex-1 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                role === 'student'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-neutral-200 bg-white text-neutral-600'
+              } disabled:opacity-60`}
+            >
+              Siswa
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('teacher')}
+              disabled={isLoading}
+              className={`flex-1 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                role === 'teacher'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-neutral-200 bg-white text-neutral-600'
+              } disabled:opacity-60`}
+            >
+              Guru
+            </button>
+          </div>
         </div>
 
         <button
