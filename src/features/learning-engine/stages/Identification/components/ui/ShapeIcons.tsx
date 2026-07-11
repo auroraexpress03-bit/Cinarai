@@ -1,0 +1,193 @@
+'use client';
+
+interface ShapeIconProps {
+  className?: string;
+}
+
+// === KUBUS (Cube) - Blue ===
+export function KubusIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Front face */}
+      <path d="M12 16L12 32L28 32L28 16Z" fill="#3B82F6" stroke="#1E40AF" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Top face */}
+      <path d="M12 16L20 8L36 8L28 16Z" fill="#60A5FA" stroke="#1E40AF" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right face */}
+      <path d="M28 16L36 8L36 24L28 32Z" fill="#1E40AF" stroke="#1E40AF" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === BALOK (Rectangular Prism) - Green ===
+export function BalokIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Front face */}
+      <path d="M10 18L10 34L34 34L34 18Z" fill="#22C55E" stroke="#166534" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Top face */}
+      <path d="M10 18L18 8L42 8L34 18Z" fill="#4ADE80" stroke="#166534" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right face */}
+      <path d="M34 18L42 8L42 24L34 34Z" fill="#15803D" stroke="#166534" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === LIMAS SEGI EMPAT (Square Pyramid) - Orange ===
+export function LimasIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Front triangular face */}
+      <path d="M24 8L12 32L36 32Z" fill="#F97316" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Left side face */}
+      <path d="M24 8L12 32L8 28Z" fill="#FB923C" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right side face */}
+      <path d="M24 8L36 32L40 28Z" fill="#EA580C" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Base outline */}
+      <path d="M12 32L36 32L40 28L8 28Z" fill="none" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === LIMAS SEGITIGA (Triangular Pyramid) - Orange (lighter) ===
+export function LimasSegitigaIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Top vertex */}
+      {/* Front face - triangle */}
+      <path d="M24 8L14 32L34 32Z" fill="#FB923C" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Left face - triangle */}
+      <path d="M24 8L14 32L10 28Z" fill="#F97316" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right face - triangle */}
+      <path d="M24 8L34 32L38 28Z" fill="#EA580C" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Base */}
+      <path d="M14 32L34 32L38 28L10 28Z" fill="none" stroke="#B45309" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === PRISMA SEGI EMPAT (Rectangular Prism/Box) - Teal ===
+export function PrismaIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Front rectangular face */}
+      <path d="M12 16L12 32L28 32L28 16Z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Top rectangular face */}
+      <path d="M12 16L22 8L38 8L28 16Z" fill="#2DD4BF" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right rectangular face */}
+      <path d="M28 16L38 8L38 24L28 32Z" fill="#0D9488" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === PRISMA SEGITIGA (Triangular Prism) - Teal (darker) ===
+export function PrismaSegitigaIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Front triangular face */}
+      <path d="M10 28L16 10L22 28Z" fill="#2DD4BF" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Top rectangular face */}
+      <path d="M16 10L32 8L38 26L22 28Z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right rectangular face */}
+      <path d="M22 28L38 26L38 40L24 42Z" fill="#0F766E" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Back triangular face */}
+      <path d="M10 28L24 42L32 32Z" fill="none" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === PRISMA SEGI LIMA (Pentagonal Prism) - Teal (medium) ===
+export function PrismaSegiLimaIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Front pentagonal face */}
+      <path d="M24 10L10 18L14 32L34 32L38 18Z" fill="#2DD4BF" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Top rectangular face */}
+      <path d="M24 10L32 8L36 14L38 18Z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right rectangular face */}
+      <path d="M38 18L36 14L36 28L38 32Z" fill="#0F766E" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Left side outline */}
+      <path d="M10 18L12 14L14 32" fill="none" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === PRISMA SEGI ENAM (Hexagonal Prism) - Teal (light) ===
+export function PrismaSegiEnamIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Front hexagonal face */}
+      <path d="M16 12L10 18L12 28L24 34L36 28L38 18L32 12Z" fill="#2DD4BF" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Top rectangular face */}
+      <path d="M24 10L32 8L36 14L32 12Z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right rectangular face */}
+      <path d="M38 18L38 8L36 14L36 28Z" fill="#0F766E" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Left outline */}
+      <path d="M16 12L12 10L12 28" fill="none" stroke="#0D9488" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// === KERUCUT (Cone) - Red ===
+export function KerucutIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Left side of cone */}
+      <path d="M24 8L12 34L24 32Z" fill="#EF4444" stroke="#991B1B" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Right side of cone */}
+      <path d="M24 8L36 34L24 32Z" fill="#F87171" stroke="#991B1B" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Base circle */}
+      <ellipse cx="24" cy="34" rx="12" ry="4" fill="none" stroke="#991B1B" strokeWidth="1.2" />
+    </svg>
+  );
+}
+
+// === TABUNG (Cylinder) - Purple ===
+export function TabungIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Top ellipse */}
+      <ellipse cx="24" cy="12" rx="10" ry="4" fill="#A855F7" stroke="#6B21A8" strokeWidth="1.2" />
+      {/* Cylinder sides */}
+      <path d="M14 12L14 32L34 32L34 12Z" fill="#9333EA" stroke="#6B21A8" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Bottom ellipse */}
+      <ellipse cx="24" cy="32" rx="10" ry="4" fill="#7E22CE" stroke="#6B21A8" strokeWidth="1.2" />
+    </svg>
+  );
+}
+
+// === BOLA (Sphere) - Pink ===
+export function BolaIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Main sphere */}
+      <circle cx="24" cy="24" r="14" fill="#EC4899" stroke="#BE185D" strokeWidth="1.2" />
+      {/* Highlight stripe for 3D effect - vertical */}
+      <path d="M24 10Q30 24 24 38" fill="none" stroke="#F472B6" strokeWidth="2.5" opacity="0.7" strokeLinecap="round" />
+      {/* Highlight circle on top */}
+      <circle cx="22" cy="16" r="2.5" fill="#F472B6" opacity="0.8" />
+    </svg>
+  );
+}
+
+// === Get icon component based on shape name ===
+export function getShapeIcon(shape: string) {
+  const shapeNormalized = shape.toLowerCase().trim();
+
+  if (shapeNormalized === 'kubus') return KubusIcon;
+  if (shapeNormalized === 'balok') return BalokIcon;
+  if (shapeNormalized === 'balok selasar') return BalokIcon;
+  
+  if (shapeNormalized === 'limas segitiga') return LimasSegitigaIcon;
+  if (shapeNormalized.includes('limas')) return LimasIcon; // Default to square pyramid
+  
+  if (shapeNormalized === 'prisma segitiga') return PrismaSegitigaIcon;
+  if (shapeNormalized === 'prisma segi lima') return PrismaSegiLimaIcon;
+  if (shapeNormalized === 'prisma segi enam') return PrismaSegiEnamIcon;
+  if (shapeNormalized.includes('prisma')) return PrismaIcon; // Default to rectangular prism
+  
+  if (shapeNormalized === 'kerucut') return KerucutIcon;
+  if (shapeNormalized === 'tabung') return TabungIcon;
+  if (shapeNormalized === 'bola') return BolaIcon;
+
+  return KubusIcon; // default fallback
+}

@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
-import { renderPdfPageToBlobUrl } from '@/lib/comic-image';
 import { useLearningEngine } from '../../../hooks/useLearningEngine';
 import type { IdentificationItem } from '../types';
 import { useIdentificationContext } from '../context/IdentificationContext';
@@ -23,37 +21,13 @@ export default function IdentificationQuestion({
 }: IdentificationQuestionProps) {
   const { selectOption } = useIdentificationContext();
   const { setCanAdvance, nextStage } = useLearningEngine();
-  const [imgError, setImgError] = useState(false);
-  const [renderedImageSrc, setRenderedImageSrc] = useState<string | null>(null);
   const [visibleTutorCount, setVisibleTutorCount] = useState(0);
 
-  const effectiveImageSrc = renderedImageSrc ?? item.image;
-  const hasImage = Boolean(effectiveImageSrc) && !imgError;
   const selectedOptionIds = useMemo(() => item.selectedOptionIds ?? (item.selectedOptionId ? [item.selectedOptionId] : []), [item.selectedOptionIds, item.selectedOptionId]);
   const selectedShapes = useMemo(() => item.options.filter((option) => selectedOptionIds.includes(option.id)).map((option) => option.text), [item.options, selectedOptionIds]);
   const correctOptionTexts = useMemo(() => item.options.filter((option) => option.correct).map((option) => option.text), [item.options]);
   const hasSelection = selectedOptionIds.length > 0;
   const isCorrect = selectedOptionIds.length === correctOptionTexts.length && correctOptionTexts.every((text) => selectedShapes.includes(text));
-
-  useEffect(() => {
-    let isActive = true;
-
-    async function tryRenderPdfPage() {
-      if (!item.sourcePdfPath || !item.sourcePage || renderedImageSrc) return;
-      try {
-        const blobUrl = await renderPdfPageToBlobUrl(item.sourcePdfPath, item.sourcePage);
-        if (isActive) setRenderedImageSrc(blobUrl);
-      } catch {
-        if (isActive) setImgError(false);
-      }
-    }
-
-    void tryRenderPdfPage();
-
-    return () => {
-      isActive = false;
-    };
-  }, [item.sourcePdfPath, item.sourcePage, renderedImageSrc]);
 
   const tutorExplanations = useMemo(() => buildIdentificationTutorExplanations(selectedShapes), [selectedShapes]);
 
@@ -85,50 +59,10 @@ export default function IdentificationQuestion({
     };
   }, [isChecked, setCanAdvance, tutorExplanations]);
 
-  const handleCheck = () => {
-    if (onCheck) onCheck();
-  };
-
   const isTutorComplete = isChecked && visibleTutorCount >= tutorExplanations.length;
 
   return (
     <div className="flex flex-col gap-4 rounded-[28px] border border-neutral-200 bg-white p-4 shadow-[0_16px_40px_-20px_rgba(15,23,42,0.28)] sm:p-6">
-      <figure className="overflow-hidden rounded-[24px] border border-neutral-100" aria-label={`Gambar observasi: ${item.imageAlt}`}>
-        <div className="relative w-full" style={{ aspectRatio: '16/10' }}>
-          {hasImage ? (
-            <>
-              <Image
-                src={effectiveImageSrc}
-                alt={item.imageAlt}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
-                priority={item.targetIndex === 0}
-                loading={item.targetIndex === 0 ? undefined : 'lazy'}
-                aria-describedby={`question-${item.id}`}
-                onError={() => setImgError(true)}
-              />
-              {item.highlight && (
-                <Image
-                  src={item.highlight}
-                  alt=""
-                  fill
-                  className="pointer-events-none object-cover"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
-                  aria-hidden="true"
-                />
-              )}
-            </>
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-primary-50 px-6 text-center" role="img" aria-label={item.imageAlt}>
-              <span className="text-5xl">🏛️</span>
-              <p className="text-sm font-bold leading-snug text-primary-700">{item.imageAlt}</p>
-              <p className="text-xs text-primary-400">Amati bagian candi yang terlihat pada foto</p>
-            </div>
-          )}
-        </div>
-      </figure>
-
       <div className="rounded-[22px] border border-primary-100 bg-primary-50/70 p-4">
         <p className="text-[11px] font-black uppercase tracking-[0.3em] text-primary-700">IDENTIFICATION</p>
         <p id={`question-${item.id}`} className="mt-2 text-base font-black leading-relaxed text-neutral-900">
@@ -143,7 +77,6 @@ export default function IdentificationQuestion({
             <ShapeOptionCard
               key={option.id}
               label={option.text}
-              icon={option.text === 'Kubus' ? '🧊' : option.text === 'Balok' ? '📦' : option.text === 'Limas' ? '🔺' : option.text === 'Prisma' ? '🏗️' : option.text === 'Kerucut' ? '🍦' : option.text === 'Tabung' ? '🧪' : option.text === 'Bola' ? '⚽' : '🧩'}
               selected={selected}
               disabled={isChecked}
               onToggle={() => selectOption(item.id, option.id)}
@@ -156,10 +89,12 @@ export default function IdentificationQuestion({
         <button
           type="button"
           disabled={!hasSelection}
-          onClick={handleCheck}
+          onClick={() => onCheck?.()}
           className={[
-            'w-full rounded-2xl py-4 text-base font-black transition duration-200',
-            hasSelection ? 'bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98]' : 'bg-neutral-100 text-neutral-400 cursor-not-allowed',
+            'w-full rounded-2xl py-5 px-6 text-lg font-black uppercase tracking-[0.1em] transition duration-200',
+            hasSelection
+              ? 'bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98] shadow-lg shadow-primary-200'
+              : 'bg-neutral-100 text-neutral-400 cursor-not-allowed',
           ].join(' ')}
         >
           CEK JAWABAN
@@ -223,7 +158,7 @@ export default function IdentificationQuestion({
             <button
               type="button"
               onClick={() => void nextStage()}
-              className="w-full rounded-2xl bg-primary-600 px-4 py-4 text-base font-black text-white transition duration-200 hover:bg-primary-700 active:scale-[0.98]"
+              className="w-full rounded-2xl bg-primary-600 px-6 py-5 text-lg font-black uppercase tracking-[0.1em] text-white transition duration-200 hover:bg-primary-700 active:scale-[0.98] shadow-lg shadow-primary-200"
             >
               LANJUT
             </button>
