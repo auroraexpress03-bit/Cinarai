@@ -33,7 +33,8 @@ export const SignUpForm: React.FC = () => {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, role);
-      router.push('/dashboard');
+      const dest = role === 'teacher' ? '/dashboard/guru' : '/dashboard/siswa';
+      router.push(dest);
     } catch (err) {
       console.error('Sign up error:', err);
     } finally {

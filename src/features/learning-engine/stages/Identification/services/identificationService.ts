@@ -109,15 +109,86 @@ const KOMIK_2_QUESTIONS: RawQuestion[] = [
   },
 ];
 
-function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
+/**
+ * Soal Komik 1 — Candi Jawi, Pasuruan.
+ * Setiap soal menggunakan gambar bagian candi yang berbeda.
+ * image  : foto utama bagian candi
+ * highlight : SVG overlay yang menandai bangun ruang pada foto
+ */
+const KOMIK_1_QUESTIONS: RawQuestion[] = [
+  {
+    question: 'Perhatikan keseluruhan Candi Jawi. Bangun ruang apa yang paling dominan terlihat pada tubuh utama candi?',
+    imageAlt: 'Foto keseluruhan Candi Jawi dengan overlay bangun ruang dominan.',
+    image: '/images/identification/komik1-soal1.jpg',
+    highlight: '/images/identification/komik1-soal1-tubuh-candi.svg',
+    options: [
+      { text: 'Balok', correct: true },
+      { text: 'Kerucut', correct: false },
+      { text: 'Bola', correct: false },
+      { text: 'Tabung', correct: false },
+    ],
+    explanation: 'Tubuh utama Candi Jawi berbentuk balok — memiliki panjang, lebar, dan tinggi yang berbeda dengan enam sisi berbentuk persegi panjang.',
+  },
+  {
+    question: 'Amati bagian kaki Candi Jawi. Bangun ruang apa yang paling tepat menggambarkan susunan batu pada kaki candi?',
+    imageAlt: 'Zoom bagian kaki Candi Jawi dengan highlight bentuk kubus dan balok.',
+    image: '/images/identification/komik1-soal2.jpg',
+    highlight: '/images/identification/komik1-soal2-kaki-candi.svg',
+    options: [
+      { text: 'Kubus', correct: true },
+      { text: 'Limas', correct: false },
+      { text: 'Prisma segitiga', correct: false },
+      { text: 'Kerucut', correct: false },
+    ],
+    explanation: 'Susunan batu pada kaki candi berbentuk kubus — keenam sisinya berbentuk persegi dengan panjang sisi yang sama.',
+  },
+  {
+    question: 'Perhatikan badan (tubuh tengah) Candi Jawi. Bangun ruang apa yang paling sesuai dengan bentuknya?',
+    imageAlt: 'Zoom badan tengah Candi Jawi dengan highlight bentuk balok.',
+    image: '/images/identification/komik1-soal3.jpg',
+    highlight: '/images/identification/komik1-soal3-puncak-candi.svg',
+    options: [
+      { text: 'Balok', correct: true },
+      { text: 'Tabung', correct: false },
+      { text: 'Kubus', correct: false },
+      { text: 'Prisma segitiga', correct: false },
+    ],
+    explanation: 'Badan candi berbentuk balok karena memiliki tiga pasang sisi yang sejajar dan sama besar, dengan panjang, lebar, dan tinggi yang berbeda.',
+  },
+  {
+    question: 'Amati bagian atap Candi Jawi yang meruncing ke atas. Bangun ruang apa yang paling tepat?',
+    imageAlt: 'Zoom atap Candi Jawi dengan highlight bentuk limas segi empat.',
+    image: '/images/identification/komik1-soal4.jpg',
+    highlight: '/images/identification/komik1-soal4-atap-candi.svg',
+    options: [
+      { text: 'Limas segi empat', correct: true },
+      { text: 'Kerucut', correct: false },
+      { text: 'Balok', correct: false },
+      { text: 'Prisma segitiga', correct: false },
+    ],
+    explanation: 'Atap Candi Jawi berbentuk limas segi empat — alasnya berbentuk persegi dan keempat sisi tegaknya berbentuk segitiga yang bertemu di satu titik puncak.',
+  },
+  {
+    question: 'Lihat keseluruhan Candi Jawi sekali lagi. Kombinasi bangun ruang apa yang membentuk struktur candi dari bawah ke atas?',
+    imageAlt: 'Foto keseluruhan Candi Jawi dengan highlight kombinasi kubus, balok, dan limas.',
+    image: '/images/identification/komik1-soal5.jpg',
+    highlight: '/images/identification/komik1-soal5-dinding-candi.svg',
+    options: [
+      { text: 'Kubus, balok, dan limas', correct: true },
+      { text: 'Tabung, kerucut, dan bola', correct: false },
+      { text: 'Prisma, tabung, dan kerucut', correct: false },
+      { text: 'Balok, bola, dan kerucut', correct: false },
+    ],
+    explanation: 'Candi Jawi tersusun dari kubus (kaki), balok (badan), dan limas segi empat (atap) — kombinasi tiga bangun ruang yang membentuk struktur candi secara keseluruhan.',
+  },
+];
+
+function buildFallbackQuestions(lokasi: string): RawQuestion[] {
   return [
     {
       question: `Bangun ruang apa yang paling banyak kamu temukan saat mengamati ${lokasi}?`,
-      imageAlt: `Foto lokal ${lokasi}`,
-      image: cover,
-      overlayType: cover,
-      crop: cover,
-      highlight: cover,
+      imageAlt: `Ilustrasi bangun ruang pada ${lokasi}`,
+      image: '',
       options: [
         { text: 'Balok', correct: true },
         { text: 'Kerucut', correct: false },
@@ -128,11 +199,8 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bagian mana dari ${lokasi} yang paling mirip dengan bentuk kubus?`,
-      imageAlt: `Foto lokal ${lokasi}`,
-      image: cover,
-      overlayType: cover,
-      crop: cover,
-      highlight: cover,
+      imageAlt: `Ilustrasi kaki bangunan ${lokasi}`,
+      image: '',
       options: [
         { text: 'Susunan batu kaki bangunan', correct: true },
         { text: 'Atap yang meruncing', correct: false },
@@ -143,11 +211,8 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bangun ruang apa yang paling tepat menggambarkan puncak ${lokasi}?`,
-      imageAlt: `Foto lokal ${lokasi}`,
-      image: cover,
-      overlayType: cover,
-      crop: cover,
-      highlight: cover,
+      imageAlt: `Ilustrasi puncak ${lokasi}`,
+      image: '',
       options: [
         { text: 'Limas segi empat', correct: true },
         { text: 'Kubus', correct: false },
@@ -158,11 +223,8 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bagian dinding ${lokasi} paling mirip dengan bangun ruang apa?`,
-      imageAlt: `Foto lokal ${lokasi}`,
-      image: cover,
-      overlayType: cover,
-      crop: cover,
-      highlight: cover,
+      imageAlt: `Ilustrasi dinding ${lokasi}`,
+      image: '',
       options: [
         { text: 'Prisma segi empat', correct: true },
         { text: 'Kerucut', correct: false },
@@ -173,11 +235,8 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
     },
     {
       question: `Bangun ruang apa yang paling tepat menggambarkan atap ${lokasi}?`,
-      imageAlt: `Foto lokal ${lokasi}`,
-      image: cover,
-      overlayType: cover,
-      crop: cover,
-      highlight: cover,
+      imageAlt: `Ilustrasi atap ${lokasi}`,
+      image: '',
       options: [
         { text: 'Kerucut', correct: true },
         { text: 'Kubus', correct: false },
@@ -189,10 +248,10 @@ function buildFallbackQuestions(lokasi: string, cover: string): RawQuestion[] {
   ];
 }
 
-function getQuestionsForComic(comicId: number, lokasi: string, cover: string): RawQuestion[] {
+function getQuestionsForComic(comicId: number, lokasi: string): RawQuestion[] {
+  if (comicId === 1) return KOMIK_1_QUESTIONS;
   if (comicId === 2) return KOMIK_2_QUESTIONS;
-  if (comicId === 1) return buildFallbackQuestions(lokasi, cover);
-  return buildFallbackQuestions(lokasi, cover);
+  return buildFallbackQuestions(lokasi);
 }
 
 function buildShuffledOptions(itemId: string, rawOptions: RawOption[]): AnswerOption[] {
@@ -213,10 +272,10 @@ export function createIdentificationState(
   comicId: number,
   lokasi: string,
   _learningTargets: readonly string[],
-  cover: string,
+  _cover: string,
   title: string,
 ): IdentificationState {
-  const questions = getQuestionsForComic(comicId, lokasi, cover);
+  const questions = getQuestionsForComic(comicId, lokasi);
   const items: IdentificationItem[] = questions.map((question, index) => {
     const id = `${comicId}-identification-${index}`;
     const options = buildShuffledOptions(id, question.options);
@@ -246,7 +305,7 @@ export function createIdentificationState(
   return {
     comicId,
     lokasi,
-    cover,
+    cover: _cover,
     title,
     observe: { note: '', isDone: false },
     items,

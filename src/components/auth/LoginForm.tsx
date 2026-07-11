@@ -13,7 +13,10 @@ export const LoginForm: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) router.replace('/dashboard');
+    if (!loading && user) {
+      const dest = user.role === 'teacher' ? '/dashboard/guru' : '/dashboard/siswa';
+      router.replace(dest);
+    }
   }, [user, loading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,7 +25,7 @@ export const LoginForm: React.FC = () => {
     setIsLoading(true);
     try {
       await signIn(email, password);
-      router.push('/dashboard');
+      // role-based redirect handled by useEffect above
     } catch (err) {
       console.error('Login error:', err);
     } finally {
@@ -35,7 +38,7 @@ export const LoginForm: React.FC = () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
-      router.push('/dashboard');
+      // role-based redirect handled by useEffect above
     } catch (err) {
       console.error('Google sign in error:', err);
     } finally {

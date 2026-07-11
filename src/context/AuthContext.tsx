@@ -24,7 +24,7 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const mapFirebaseUserToUser = (firebaseUser: FirebaseUser, role: UserRole | null = null): User => ({
+const mapFirebaseUserToUser = (firebaseUser: FirebaseUser, role: UserRole = 'student'): User => ({
   uid: firebaseUser.uid,
   email: firebaseUser.email,
   displayName: firebaseUser.displayName,
@@ -46,7 +46,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const syncUserFromFirestore = useCallback(async (firebaseUser: FirebaseUser) => {
     const userDocument = await getFirestoreDocument('users', firebaseUser.uid);
-    const role = userDocument?.role ?? null;
+    let role: UserRole = userDocument?.role ?? 'student';
+    if (!userDocument?.role) {
+      console.warn(
+        `[AuthContext] Role tidak ditemukan untuk uid=${firebaseUser.uid}. Default ke 'student'.`
+      );
+      role = 'student';
+    }
     const user = mapFirebaseUserToUser(firebaseUser, role);
 
     setState({ user, loading: false, error: null });

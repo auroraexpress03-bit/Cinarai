@@ -7,7 +7,7 @@ export interface User {
   photoURL: string | null;
   emailVerified: boolean;
   createdAt: Date;
-  role: UserRole | null;
+  role: UserRole;
 }
 
 export interface AuthState {

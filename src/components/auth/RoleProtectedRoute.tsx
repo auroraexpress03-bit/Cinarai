@@ -6,7 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
-  allowedRole: 'student' | 'teacher';
+  allowedRole: 'student' | 'teacher' | 'admin';
+}
+
+function roleToDashboard(role: string): string {
+  if (role === 'teacher') return '/dashboard/guru';
+  if (role === 'admin') return '/dashboard/admin';
+  return '/dashboard/siswa';
 }
 
 export const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
@@ -25,8 +31,7 @@ export const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
     }
 
     if (user.role !== allowedRole) {
-      const fallbackRoute = user.role === 'teacher' ? '/teacher' : '/student';
-      router.replace(fallbackRoute);
+      router.replace(roleToDashboard(user.role));
     }
   }, [allowedRole, loading, router, user]);
 

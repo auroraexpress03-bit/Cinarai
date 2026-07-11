@@ -26,6 +26,7 @@ export default function IdentificationQuestion({
   const selectedOption = item.options.find((o) => o.id === item.selectedOptionId) ?? null;
   const correctOption = item.options.find((o) => o.id === item.correctOptionId) ?? null;
   const totalItems = state.items.length;
+  const hasImage = Boolean(item.image);
 
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-neutral-200 bg-white p-5 shadow-lg shadow-neutral-100 sm:p-6">
@@ -38,24 +39,15 @@ export default function IdentificationQuestion({
           id={`img-desc-${item.id}`}
           className="relative aspect-[16/10] w-full bg-neutral-900"
         >
-          {imgError ? (
+          {!hasImage || imgError ? (
             <div
-              className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-100"
-              role="alert"
-              aria-live="polite"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-primary-50 px-6 text-center"
+              role="img"
+              aria-label={item.imageAlt}
             >
-              <svg
-                className="h-12 w-12 text-neutral-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v8l3-3m0 0l3 3m-3-3V4" />
-              </svg>
-              <p className="text-sm font-semibold text-neutral-400">Gagal memuat gambar — {item.imageAlt}</p>
+              <span className="text-5xl">🏛️</span>
+              <p className="text-sm font-bold text-primary-700 leading-snug">{item.imageAlt}</p>
+              <p className="text-xs text-primary-400">Bayangkan bagian candi yang sedang diamati</p>
             </div>
           ) : (
             <>

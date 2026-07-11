@@ -1,12 +1,10 @@
 'use client';
 
-import DashboardPage from '@/app/dashboard/page';
-import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function StudentPage() {
-  return (
-    <RoleProtectedRoute allowedRole="student">
-      <DashboardPage />
-    </RoleProtectedRoute>
-  );
+  const router = useRouter();
+  useEffect(() => { router.replace('/dashboard/siswa'); }, [router]);
+  return null;
 }
