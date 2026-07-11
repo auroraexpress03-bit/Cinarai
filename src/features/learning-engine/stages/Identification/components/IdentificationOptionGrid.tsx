@@ -5,8 +5,8 @@ import IdentificationOptionCard from './IdentificationOptionCard';
 
 interface IdentificationOptionGridProps {
   options: AnswerOption[];
-  selectedOptionId: string | null;
-  correctOptionId: string | null;
+  selectedOptionIds: string[];
+  correctOptionIds: string[] | null;
   isAnswered: boolean;
   disabled: boolean;
   onSelect: (optionId: string) => void;
@@ -14,8 +14,8 @@ interface IdentificationOptionGridProps {
 
 export default function IdentificationOptionGrid({
   options,
-  selectedOptionId,
-  correctOptionId,
+  selectedOptionIds,
+  correctOptionIds,
   isAnswered,
   disabled,
   onSelect,
@@ -26,8 +26,8 @@ export default function IdentificationOptionGrid({
         <IdentificationOptionCard
           key={option.id}
           option={option}
-          selectedOptionId={selectedOptionId}
-          correctOptionId={correctOptionId}
+          selectedOptionIds={selectedOptionIds}
+          correctOptionIds={correctOptionIds}
           isAnswered={isAnswered}
           disabled={disabled}
           onSelect={onSelect}

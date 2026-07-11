@@ -9,9 +9,15 @@ interface StepKonfirmasiItemProps {
 }
 
 export default function StepKonfirmasiItem({ item, index, total }: StepKonfirmasiItemProps) {
-  const selectedOption = item.options.find((o) => o.id === item.selectedOptionId) ?? null;
-  const correctOption = item.options.find((o) => o.id === item.correctOptionId) ?? null;
-  const isCorrect = item.selectedOptionId === item.correctOptionId;
+  const selectedOptionIds = item.selectedOptionIds ?? [];
+  const correctOptionIds = item.options.filter((option) => option.correct).map((option) => option.id);
+  const selectedOptions = item.options.filter((option) => selectedOptionIds.includes(option.id));
+  const correctOptions = item.options.filter((option) => correctOptionIds.includes(option.id));
+  const selectedOptionText = selectedOptions.map((option) => option.text).join(', ') || 'Belum dijawab';
+  const correctOptionText = correctOptions.map((option) => option.text).join(', ') || '-';
+  const isCorrect = selectedOptionIds.length === correctOptionIds.length
+    && correctOptionIds.every((optionId) => selectedOptionIds.includes(optionId))
+    && selectedOptionIds.every((optionId) => correctOptionIds.includes(optionId));
 
   return (
     <div className="flex flex-col gap-3">
@@ -42,13 +48,13 @@ export default function StepKonfirmasiItem({ item, index, total }: StepKonfirmas
       <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-4">
         <Row
           label="Jawabanmu"
-          value={selectedOption?.text ?? 'Belum dijawab'}
+          value={selectedOptionText}
           highlight={isCorrect ? 'correct' : 'wrong'}
         />
         {!isCorrect && (
           <Row
             label="Jawaban yang benar"
-            value={correctOption?.text ?? '-'}
+            value={correctOptionText}
             highlight="correct"
           />
         )}

@@ -18,10 +18,15 @@ interface PocActivityItemProps {
 export default function PocActivityItem({ item, checked, onCheck }: PocActivityItemProps) {
   const { selectOption } = useIdentificationContext();
 
-  const hasSelection = item.selectedOptionId !== null;
-  const isCorrect = checked && item.selectedOptionId === item.correctOptionId;
-  const isWrong = checked && item.selectedOptionId !== item.correctOptionId;
-  const correctOption = item.options.find((o) => o.id === item.correctOptionId);
+  const selectedOptionIds = item.selectedOptionIds ?? [];
+  const correctOptionIds = item.options.filter((option) => option.correct).map((option) => option.id);
+  const hasSelection = selectedOptionIds.length > 0;
+  const isCorrect = checked
+    && selectedOptionIds.length === correctOptionIds.length
+    && correctOptionIds.every((optionId) => selectedOptionIds.includes(optionId))
+    && selectedOptionIds.every((optionId) => correctOptionIds.includes(optionId));
+  const isWrong = checked && !isCorrect;
+  const correctOptionTexts = item.options.filter((option) => option.correct).map((option) => option.text);
 
   return (
     <li
@@ -52,8 +57,8 @@ export default function PocActivityItem({ item, checked, onCheck }: PocActivityI
       {/* Answer options — locked after checked */}
       <AnswerOptions
         options={item.options}
-        selectedOptionId={item.selectedOptionId}
-        correctOptionId={checked ? item.correctOptionId : null}
+        selectedOptionIds={selectedOptionIds}
+        correctOptionIds={checked ? correctOptionIds : []}
         isAnswered={checked}
         onSelect={(optionId) => {
           if (!checked) selectOption(item.id, optionId);
@@ -93,10 +98,10 @@ export default function PocActivityItem({ item, checked, onCheck }: PocActivityI
           >
             {isCorrect ? '✅ Benar!' : '❌ Kurang Tepat'}
           </span>
-          {isWrong && correctOption && (
+          {isWrong && correctOptionTexts.length > 0 && (
             <p className="text-base text-neutral-700">
               <span className="font-black">Jawaban yang benar: </span>
-              <span className="font-bold text-accent-700">{correctOption.text}</span>
+              <span className="font-bold text-accent-700">{correctOptionTexts.join(', ')}</span>
             </p>
           )}
           <p className="text-base leading-relaxed text-neutral-600">{item.explanation}</p>

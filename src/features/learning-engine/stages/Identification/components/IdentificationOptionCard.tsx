@@ -4,8 +4,8 @@ import type { AnswerOption } from '../types';
 
 interface IdentificationOptionCardProps {
   option: AnswerOption;
-  selectedOptionId: string | null;
-  correctOptionId: string | null;
+  selectedOptionIds: string[];
+  correctOptionIds: string[] | null;
   isAnswered: boolean;
   disabled: boolean;
   onSelect: (optionId: string) => void;
@@ -13,14 +13,14 @@ interface IdentificationOptionCardProps {
 
 export default function IdentificationOptionCard({
   option,
-  selectedOptionId,
-  correctOptionId,
+  selectedOptionIds,
+  correctOptionIds,
   isAnswered,
   disabled,
   onSelect,
 }: IdentificationOptionCardProps) {
-  const isSelected = option.id === selectedOptionId;
-  const isCorrectOption = option.id === correctOptionId;
+  const isSelected = selectedOptionIds.includes(option.id);
+  const isCorrectOption = Boolean(correctOptionIds?.includes(option.id));
   const isWrong = isAnswered && isSelected && !isCorrectOption;
   const isRight = isAnswered && isCorrectOption;
 

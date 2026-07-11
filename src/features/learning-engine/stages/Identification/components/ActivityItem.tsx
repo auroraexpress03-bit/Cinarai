@@ -11,9 +11,14 @@ interface ActivityItemProps {
 export default function ActivityItem({ item }: ActivityItemProps) {
   const { selectOption } = useIdentificationContext();
 
+  const selectedOptionIds = item.selectedOptionIds ?? [];
+  const correctOptionIds = item.options.filter((option) => option.correct).map((option) => option.id);
   const isAnswered = item.answerStatus === 'SAVED';
-  const isCorrect = isAnswered && item.selectedOptionId === item.correctOptionId;
-  const correctOption = item.options.find((o) => o.id === item.correctOptionId);
+  const isCorrect = isAnswered
+    && selectedOptionIds.length === correctOptionIds.length
+    && correctOptionIds.every((optionId) => selectedOptionIds.includes(optionId))
+    && selectedOptionIds.every((optionId) => correctOptionIds.includes(optionId));
+  const correctOptionTexts = item.options.filter((option) => option.correct).map((option) => option.text);
 
   return (
     <li className={[
@@ -41,8 +46,8 @@ export default function ActivityItem({ item }: ActivityItemProps) {
       {/* Pilihan jawaban */}
       <AnswerOptions
         options={item.options}
-        selectedOptionId={item.selectedOptionId}
-        correctOptionId={isAnswered ? item.correctOptionId : null}
+        selectedOptionIds={selectedOptionIds}
+        correctOptionIds={isAnswered ? correctOptionIds : []}
         isAnswered={isAnswered}
         onSelect={(optionId) => selectOption(item.id, optionId)}
       />
@@ -59,10 +64,10 @@ export default function ActivityItem({ item }: ActivityItemProps) {
           ].join(' ')}>
             {isCorrect ? '✅ Benar!' : '❌ Kurang Tepat'}
           </span>
-          {!isCorrect && correctOption && (
+          {!isCorrect && correctOptionTexts.length > 0 && (
             <p className="text-base text-neutral-700">
               <span className="font-black">Jawaban yang benar: </span>
-              <span className="font-bold text-accent-700">{correctOption.text}</span>
+              <span className="font-bold text-accent-700">{correctOptionTexts.join(', ')}</span>
             </p>
           )}
           <p className="text-base leading-relaxed text-neutral-600">{item.explanation}</p>

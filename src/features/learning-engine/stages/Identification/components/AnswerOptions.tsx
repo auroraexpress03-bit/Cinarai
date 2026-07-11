@@ -1,27 +1,28 @@
 'use client';
 
+import React from 'react';
 import type { AnswerOption } from '../types';
 
 interface AnswerOptionsProps {
   options: AnswerOption[];
-  selectedOptionId: string | null;
-  correctOptionId: string | null;
+  selectedOptionIds: string[];
+  correctOptionIds: string[] | null;
   isAnswered: boolean;
   onSelect: (optionId: string) => void;
 }
 
 export default function AnswerOptions({
   options,
-  selectedOptionId,
-  correctOptionId,
+  selectedOptionIds,
+  correctOptionIds,
   isAnswered,
   onSelect,
 }: AnswerOptionsProps) {
   return (
-    <ul className="flex flex-col gap-2" role="radiogroup">
+    <ul className="flex flex-col gap-2" role="list">
       {options.map((option) => {
-        const isSelected = option.id === selectedOptionId;
-        const isCorrectOption = option.id === correctOptionId;
+        const isSelected = selectedOptionIds.includes(option.id);
+        const isCorrectOption = Boolean(correctOptionIds?.includes(option.id));
         const isWrong = isAnswered && isSelected && !isCorrectOption;
         const isRight = isAnswered && isCorrectOption;
 
@@ -29,7 +30,7 @@ export default function AnswerOptions({
           <li key={option.id}>
             <button
               type="button"
-              role="radio"
+              role="checkbox"
               aria-checked={isSelected}
               disabled={isAnswered}
               onClick={() => onSelect(option.id)}

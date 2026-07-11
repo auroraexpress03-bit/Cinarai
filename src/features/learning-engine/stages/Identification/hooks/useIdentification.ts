@@ -14,7 +14,6 @@ import {
   completeObserve,
   updateReason,
   saveReason,
-  resolveSelectedOptionId,
 } from '../services/identificationService';
 
 export interface UseIdentificationReturn {
@@ -97,10 +96,11 @@ export function useIdentification({
         const item = next.items.find((i) => i.targetIndex === answer.step);
         if (!item) continue;
         
-        // Support multiple selection dengan selectedOptionIds jika tersedia
-        const selectedIds = answer.selectedAnswerIds && answer.selectedAnswerIds.length > 0 
-          ? answer.selectedAnswerIds 
-          : [resolveSelectedOptionId(item, answer.selectedAnswer)].filter(Boolean) as string[];
+        const selectedIds = answer.selectedAnswerIds && answer.selectedAnswerIds.length > 0
+          ? answer.selectedAnswerIds
+          : item.options
+              .filter((option) => option.text === answer.selectedAnswer)
+              .map((option) => option.id);
         
         next = {
           ...next,

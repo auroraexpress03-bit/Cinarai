@@ -413,7 +413,7 @@ export function saveReason(state: IdentificationState, itemId: string): Identifi
     item.id === itemId
       ? {
           ...item,
-          status: item.selectedOptionId ? 'OBSERVED' : item.status,
+          status: (item.selectedOptionIds ?? []).length > 0 ? 'OBSERVED' : item.status,
           reasonStatus: item.reason.trim().length > 0 ? 'SAVED' : 'EMPTY',
         }
       : item

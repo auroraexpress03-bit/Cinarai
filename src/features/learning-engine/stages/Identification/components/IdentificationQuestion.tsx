@@ -23,11 +23,14 @@ export default function IdentificationQuestion({
   const { setCanAdvance, nextStage } = useLearningEngine();
   const [visibleTutorCount, setVisibleTutorCount] = useState(0);
 
-  const selectedOptionIds = useMemo(() => item.selectedOptionIds ?? (item.selectedOptionId ? [item.selectedOptionId] : []), [item.selectedOptionIds, item.selectedOptionId]);
+  const selectedOptionIds = useMemo(() => item.selectedOptionIds ?? [], [item.selectedOptionIds]);
   const selectedShapes = useMemo(() => item.options.filter((option) => selectedOptionIds.includes(option.id)).map((option) => option.text), [item.options, selectedOptionIds]);
+  const correctOptionIds = useMemo(() => item.options.filter((option) => option.correct).map((option) => option.id), [item.options]);
   const correctOptionTexts = useMemo(() => item.options.filter((option) => option.correct).map((option) => option.text), [item.options]);
   const hasSelection = selectedOptionIds.length > 0;
-  const isCorrect = selectedOptionIds.length === correctOptionTexts.length && correctOptionTexts.every((text) => selectedShapes.includes(text));
+  const isCorrect = selectedOptionIds.length === correctOptionIds.length
+    && correctOptionIds.every((optionId) => selectedOptionIds.includes(optionId))
+    && selectedOptionIds.every((optionId) => correctOptionIds.includes(optionId));
 
   const tutorExplanations = useMemo(() => buildIdentificationTutorExplanations(selectedShapes), [selectedShapes]);
 
