@@ -67,6 +67,44 @@ function detectProvider(url: string): ProviderInfo {
   return { provider: 'unknown', label: 'Tidak diketahui', embedUrl: url, canEmbed: false, openUrl: url };
 }
 
+type ChatRole = 'assistant' | 'user';
+
+type ChatMessage = {
+  id: number;
+  role: ChatRole;
+  content: string;
+};
+
+const OBJECT_HELP: Record<string, string> = {
+  Kubus: 'Kubus adalah bangun ruang dengan 6 sisi persegi yang sama panjang. Di dalam model 3D, kamu bisa melihat bahwa semua rusuknya sama dan bentuknya terlihat seperti kotak.',
+  Balok: 'Balok adalah bangun ruang dengan 6 sisi persegi panjang. Pada model 3D, bagian ini memiliki panjang, lebar, dan tinggi berbeda sehingga terlihat seperti peti.',
+  Limas: 'Limas adalah bangun ruang dengan alas segi empat dan sisi tegak berbentuk segitiga yang bertemu di satu titik puncak. Di model 3D, bentuknya terlihat runcing di atas.',
+  Prisma: 'Prisma adalah bangun ruang dengan dua alas sejajar dan sisi tegak yang sama bentuk. Model 3D prisma biasanya terlihat seperti jembatan dengan ujung sama di kedua sisi.',
+  Tabung: 'Tabung adalah bangun ruang dengan dua lingkaran sejajar dan permukaan melengkung di sekelilingnya. Di model 3D, kamu bisa melihat bagian atas dan bawah yang melingkar.',
+  Kerucut: 'Kerucut adalah bangun ruang dengan alas lingkaran dan puncak di atas. Model 3D kerucut terlihat seperti es krim tanpa sendok.',
+  Bola: 'Bola adalah bangun ruang yang semua titik di permukaannya jaraknya sama dari pusat. Di model 3D, bentuknya bulat sempurna seperti bola ping-pong.',
+};
+
+function detectObjectName(resolvedTitle: string, resolvedUrl: string) {
+  const normalized = `${resolvedTitle} ${resolvedUrl}`.toLowerCase();
+  if (normalized.includes('kubus')) return 'Kubus';
+  if (normalized.includes('balok')) return 'Balok';
+  if (normalized.includes('limas')) return 'Limas';
+  if (normalized.includes('prisma')) return 'Prisma';
+  if (normalized.includes('tabung')) return 'Tabung';
+  if (normalized.includes('kerucut')) return 'Kerucut';
+  if (normalized.includes('bola')) return 'Bola';
+  return 'Model 3D';
+}
+
+function buildTutorIntro(objectName: string) {
+  if (objectName === 'Model 3D') {
+    return 'Halo! Aku adalah AI Tutor CINARAI. Aku siap membantu memahami model 3D ini.';
+  }
+
+  return `Halo! Aku adalah AI Tutor CINARAI. Aku siap membantu memahami objek ${objectName}.`;
+}
+
 function ProviderBadge({ label }: { label: string }) {
   return (
     <span className="inline-flex w-fit rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
@@ -94,8 +132,32 @@ export default function Universal3DViewer({
   const [isQrOpen, setIsQrOpen] = useState(resolvedMode === 'qr');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrLoading, setQrLoading] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
+  const [showIntroBubble, setShowIntroBubble] = useState(false);
+  const [aiDraft, setAiDraft] = useState('');
+  const [aiMessages, setAiMessages] = useState<ChatMessage[]>([]);
+  const [isAiResponding, setIsAiResponding] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
   const isValidUrl = isValidHttpUrl(resolvedUrl);
   const providerInfo = useMemo(() => detectProvider(resolvedUrl), [resolvedUrl]);
+  const objectName = useMemo(() => detectObjectName(resolvedTitle, resolvedUrl), [resolvedTitle, resolvedUrl]);
+  const objectHelp = OBJECT_HELP[objectName] ?? 'Aku akan membantu menjelaskan bentuk ini dengan bahasa sederhana dan mudah dimengerti.';
+  const introBubbleText = objectName === 'Model 3D' ? `Aku siap membantu menjelaskan tentang objek 3D.` : `Aku siap membantu menjelaskan tentang "${objectName}" 😊`;
+  const suggestionChips = useMemo(() => {
+    if (objectName === 'Model 3D') {
+      return ['Apa itu objek ini?', 'Bagaimana bentuk ini dipakai?', 'Di bagian mana objek ini?'];
+    }
+
+    const compareShape = objectName === 'Balok' ? 'Kubus' : 'Balok';
+    return [
+      `Apa itu ${objectName}?`,
+      `Mengapa bagian ini berbentuk ${objectName}?`,
+      `Ada berapa sisi ${objectName}?`,
+      `Apa bedanya ${objectName} dan ${compareShape}?`,
+      `${objectName} berada di bagian mana pada Candi Jawi?`,
+    ];
+  }, [objectName]);
   const qrSource = resolvedUrl;
   const showQrButton = Boolean(qrSource && isValidUrl);
 
@@ -121,6 +183,18 @@ export default function Universal3DViewer({
       .finally(() => setQrLoading(false));
   }, [qrSource]);
 
+  useEffect(() => {
+    if (!isValidUrl) return undefined;
+
+    const enterDelay = window.setTimeout(() => setShowIntroBubble(true), 400);
+    const hideDelay = window.setTimeout(() => setShowIntroBubble(false), 5400);
+
+    return () => {
+      window.clearTimeout(enterDelay);
+      window.clearTimeout(hideDelay);
+    };
+  }, [isValidUrl, objectName]);
+
   const handleBack = () => {
     router.back();
   };
@@ -135,6 +209,48 @@ export default function Universal3DViewer({
     if (showQrButton) {
       setIsQrOpen(true);
     }
+  };
+
+  const handleAiOpen = () => {
+    setIsAiOpen(true);
+    if (aiMessages.length === 0) {
+      setAiMessages([{ id: 1, role: 'assistant', content: buildTutorIntro(objectName) }]);
+    }
+  };
+
+  const handleSuggestionClick = async (suggestion: string) => {
+    await handleSendAiMessage(suggestion);
+  };
+
+  const handleSendAiMessage = async (text?: string) => {
+    const message = text?.trim() || aiDraft.trim();
+    if (!message || isAiResponding) {
+      return;
+    }
+
+    setAiError(null);
+    setIsAiResponding(true);
+
+    const newMessage: ChatMessage = {
+      id: Date.now(),
+      role: 'user',
+      content: message,
+    };
+
+    setAiMessages((previous) => [...previous, newMessage]);
+    setAiDraft('');
+
+    const response = objectHelp;
+    const assistantMessage: ChatMessage = {
+      id: Date.now() + 1,
+      role: 'assistant',
+      content: `${response} ${message.endsWith('?') ? 'Sekarang aku akan menjawab pertanyaanmu.' : 'Jika kamu ingin tahu lebih banyak, kamu dapat tanya lagi.'}`,
+    };
+
+    window.setTimeout(() => {
+      setAiMessages((previous) => [...previous, assistantMessage]);
+      setIsAiResponding(false);
+    }, 250);
   };
 
   if (!resolvedUrl) {
@@ -324,6 +440,132 @@ export default function Universal3DViewer({
           />
         )}
       </div>
+
+      <div className="fixed inset-x-0 bottom-24 z-40 flex items-end justify-center px-4 sm:bottom-6 sm:justify-end">
+        <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-sm sm:px-5">
+          <div className="flex items-center gap-3 text-sm text-neutral-700">
+            <span className="rounded-full bg-primary-100 px-2.5 py-1 font-semibold text-primary-700">💡 Tips</span>
+            <span>Tekan AI Tutor untuk bertanya tentang bentuk, sifat, dan letak bangun ruang pada Candi Jawi.</span>
+          </div>
+        </div>
+      </div>
+
+      {showIntroBubble && (
+        <div className="fixed bottom-32 right-5 z-50 w-[260px] rounded-[28px] border border-primary-100 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.16)] animate-[fade-in_300ms_ease-out]">
+          <p className="text-sm font-bold text-neutral-900">👋 Halo!</p>
+          <p className="mt-2 text-sm leading-relaxed text-neutral-700">{introBubbleText}</p>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={handleAiOpen}
+        className="fixed bottom-6 right-6 z-50 flex h-[88px] w-[88px] items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-sky-600 text-white shadow-[0_32px_60px_rgba(59,130,246,0.30)] transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_36px_70px_rgba(59,130,246,0.36)] active:scale-95"
+        aria-label="Buka AI Tutor"
+      >
+        <span className="absolute inset-0 animate-pulse rounded-full bg-white/15" />
+        <div className="relative flex h-full w-full flex-col items-center justify-center gap-1 text-center px-2">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-primary-700 shadow-sm">
+            <img src="/images/ai/robot.svg" alt="AI" className="h-6 w-6" />
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-[0.22em]">AI Tutor</span>
+        </div>
+      </button>
+
+      {isAiOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-40 sm:left-6 sm:right-auto sm:bottom-6 sm:max-w-[420px] sm:rounded-[24px] rounded-t-[24px] bg-white shadow-[0_-24px_60px_rgba(15,23,42,0.20)]" style={{ maxHeight: '85vh' }}>
+          <div className="flex h-full flex-col overflow-hidden">
+            <div className="border-b border-neutral-200 bg-gradient-to-r from-primary-50 via-white to-sky-50 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black text-neutral-900">🤖 AI Tutor</p>
+                  <p className="mt-1 text-xs font-semibold text-primary-700">{objectName}</p>
+                  <p className="mt-1 text-xs text-neutral-600">Aku siap membantu memahami objek yang sedang kamu pelajari.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAiOpen(false)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition hover:bg-neutral-200 active:scale-95"
+                  aria-label="Tutup AI Tutor"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+              <div className="mb-4 rounded-[24px] bg-primary-50 p-4 shadow-sm">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary-700">Objek</p>
+                <p className="mt-2 text-lg font-black text-neutral-900">{objectName}</p>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-600">{objectHelp}</p>
+              </div>
+
+              <div className="mb-3 flex flex-wrap gap-2">
+                {suggestionChips.slice(0, 5).map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => void handleSuggestionClick(chip)}
+                    className="rounded-full border border-primary-200 bg-white px-3 py-2 text-xs font-semibold text-primary-700 transition hover:bg-primary-50 active:scale-95"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                {aiMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={
+                      message.role === 'assistant'
+                        ? 'rounded-[24px] bg-neutral-100 px-4 py-3 text-sm text-neutral-800'
+                        : 'ml-auto max-w-[85%] rounded-[24px] bg-primary-600 px-4 py-3 text-sm text-white'
+                    }
+                  >
+                    {message.content}
+                  </div>
+                ))}
+
+                {isAiResponding && (
+                  <div className="flex items-center gap-2 px-2">
+                    <div className="h-2.5 w-2.5 rounded-full bg-neutral-400 animate-bounce" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: '0.08s' }} />
+                    <div className="h-2.5 w-2.5 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: '0.16s' }} />
+                  </div>
+                )}
+
+                {aiError && (
+                  <div className="rounded-[20px] border border-error-100 bg-error-50 px-4 py-3 text-sm text-error-700">
+                    {aiError}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-neutral-200 bg-white p-4">
+              <div className="flex items-end gap-3">
+                <textarea
+                  value={aiDraft}
+                  onChange={(event) => setAiDraft(event.target.value)}
+                  rows={2}
+                  placeholder="Tanya AI Tutor tentang objek ini..."
+                  className="min-h-[56px] flex-1 resize-none rounded-[20px] border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-primary-300 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleSendAiMessage()}
+                  disabled={isAiResponding || !aiDraft.trim()}
+                  className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white transition hover:bg-primary-700 disabled:opacity-50 active:scale-95"
+                  aria-label="Kirim pesan AI Tutor"
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
