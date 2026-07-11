@@ -251,7 +251,10 @@ export function IdentificationProvider({
 
   const validationErrors = useMemo<string[]>(() => {
     const errors: string[] = [];
-    const unanswered = state.items.filter((i) => !i.selectedOptionId);
+    const unanswered = state.items.filter((i) => {
+      const selectedIds = i.selectedOptionIds ?? (i.selectedOptionId ? [i.selectedOptionId] : []);
+      return selectedIds.length === 0;
+    });
     if (unanswered.length > 0) {
       errors.push(`${unanswered.length} pertanyaan belum dipilih jawabannya.`);
     }

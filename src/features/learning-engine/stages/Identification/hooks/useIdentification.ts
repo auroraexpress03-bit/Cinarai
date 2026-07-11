@@ -96,16 +96,23 @@ export function useIdentification({
       for (const answer of answers) {
         const item = next.items.find((i) => i.targetIndex === answer.step);
         if (!item) continue;
+        
+        // Support multiple selection dengan selectedOptionIds jika tersedia
+        const selectedIds = answer.selectedAnswerIds && answer.selectedAnswerIds.length > 0 
+          ? answer.selectedAnswerIds 
+          : [resolveSelectedOptionId(item, answer.selectedAnswer)].filter(Boolean) as string[];
+        
         next = {
           ...next,
           items: next.items.map((i) =>
             i.targetIndex === answer.step
               ? {
                   ...i,
-                  selectedOptionId: resolveSelectedOptionId(i, answer.selectedAnswer),
+                  selectedOptionIds: selectedIds,
+                  selectedOptionId: selectedIds[0] ?? null,
                   note: answer.note,
                   reason: answer.reason,
-                  answerStatus: answer.selectedAnswer ? 'SAVED' : 'UNANSWERED',
+                  answerStatus: selectedIds.length > 0 ? 'SAVED' : 'UNANSWERED',
                   reasonStatus: answer.reason?.trim() ? 'SAVED' : 'EMPTY',
                   status: answer.reason?.trim() ? 'OBSERVED' : i.status,
                 }

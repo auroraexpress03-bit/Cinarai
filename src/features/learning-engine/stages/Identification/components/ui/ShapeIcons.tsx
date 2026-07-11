@@ -170,24 +170,39 @@ export function BolaIcon({ className = 'w-12 h-12' }: ShapeIconProps) {
 }
 
 // === Get icon component based on shape name ===
+// PENTING: Cek yang lebih specific DAHULU sebelum general fallback
 export function getShapeIcon(shape: string) {
   const shapeNormalized = shape.toLowerCase().trim();
 
+  // === Exact matches untuk setiap bangun ruang ===
+  
+  // KUBUS
   if (shapeNormalized === 'kubus') return KubusIcon;
+  
+  // BALOK
   if (shapeNormalized === 'balok') return BalokIcon;
   if (shapeNormalized === 'balok selasar') return BalokIcon;
   
+  // LIMAS - cek yang specific terlebih dahulu
   if (shapeNormalized === 'limas segitiga') return LimasSegitigaIcon;
-  if (shapeNormalized.includes('limas')) return LimasIcon; // Default to square pyramid
+  if (shapeNormalized === 'limas segi empat') return LimasIcon;
+  if (shapeNormalized === 'limas') return LimasIcon; // Default ke Limas Segi Empat
   
+  // PRISMA - cek yang specific terlebih dahulu
   if (shapeNormalized === 'prisma segitiga') return PrismaSegitigaIcon;
   if (shapeNormalized === 'prisma segi lima') return PrismaSegiLimaIcon;
   if (shapeNormalized === 'prisma segi enam') return PrismaSegiEnamIcon;
-  if (shapeNormalized.includes('prisma')) return PrismaIcon; // Default to rectangular prism
+  if (shapeNormalized === 'prisma') return PrismaIcon; // Default ke Prisma Segi Empat
   
+  // KERUCUT
   if (shapeNormalized === 'kerucut') return KerucutIcon;
+  
+  // TABUNG
   if (shapeNormalized === 'tabung') return TabungIcon;
+  
+  // BOLA
   if (shapeNormalized === 'bola') return BolaIcon;
 
-  return KubusIcon; // default fallback
+  // Default fallback
+  return KubusIcon;
 }
