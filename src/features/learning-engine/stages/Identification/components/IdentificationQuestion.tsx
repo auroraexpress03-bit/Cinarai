@@ -26,20 +26,46 @@ export default function IdentificationQuestion({
   const selectedOption = item.options.find((o) => o.id === item.selectedOptionId) ?? null;
   const correctOption = item.options.find((o) => o.id === item.correctOptionId) ?? null;
   const totalItems = state.items.length;
-  const hasImage = Boolean(item.image);
+  const hasImage = Boolean(item.image) && !imgError;
 
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-neutral-200 bg-white p-5 shadow-lg shadow-neutral-100 sm:p-6">
-      {/* Gambar objek */}
+
+      {/* ── Gambar objek ── */}
       <figure
-        className="overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50"
+        className="overflow-hidden rounded-2xl border border-neutral-100"
         aria-label={`Gambar soal ${item.targetIndex + 1}: ${item.imageAlt}`}
       >
-        <div
-          id={`img-desc-${item.id}`}
-          className="relative aspect-[16/10] w-full bg-neutral-900"
-        >
-          {!hasImage || imgError ? (
+        <div className="relative w-full" style={{ aspectRatio: '16/10' }}>
+          {hasImage ? (
+            <>
+              {/* Foto asli — 100% tajam, tanpa blur, tanpa overlay putih */}
+              <Image
+                src={item.image}
+                alt={item.imageAlt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
+                priority={item.targetIndex === 0}
+                loading={item.targetIndex === 0 ? undefined : 'lazy'}
+                aria-describedby={`question-${item.id}`}
+                onError={() => setImgError(true)}
+              />
+
+              {/* Overlay SVG — hanya outline tipis + label, pointer-events none */}
+              {item.highlight && (
+                <Image
+                  src={item.highlight}
+                  alt=""
+                  fill
+                  className="object-cover pointer-events-none"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
+                  aria-hidden="true"
+                />
+              )}
+            </>
+          ) : (
+            /* Placeholder edukatif — hanya muncul jika gambar benar-benar tidak ada */
             <div
               className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-primary-50 px-6 text-center"
               role="img"
@@ -47,50 +73,13 @@ export default function IdentificationQuestion({
             >
               <span className="text-5xl">🏛️</span>
               <p className="text-sm font-bold text-primary-700 leading-snug">{item.imageAlt}</p>
-              <p className="text-xs text-primary-400">Bayangkan bagian candi yang sedang diamati</p>
+              <p className="text-xs text-primary-400">Amati bagian candi yang disebutkan</p>
             </div>
-          ) : (
-            <>
-              <Image
-                src={item.image}
-                alt={item.imageAlt}
-                fill
-                className="object-contain"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
-                loading={item.targetIndex === 0 ? undefined : 'lazy'}
-                priority={item.targetIndex === 0}
-                aria-describedby={`question-${item.id}`}
-                onError={() => setImgError(true)}
-              />
-
-              <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-                {item.highlight && (
-                  <Image
-                    src={item.highlight}
-                    alt=""
-                    fill
-                    className="object-contain opacity-90 mix-blend-screen"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
-                  />
-                )}
-                {item.crop && (
-                  <div className="absolute bottom-3 right-3 h-20 w-28 overflow-hidden rounded-xl border border-white/70 bg-white/80 shadow-lg backdrop-blur-sm">
-                    <Image
-                      src={item.crop}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="112px"
-                    />
-                  </div>
-                )}
-              </div>
-            </>
           )}
         </div>
       </figure>
 
-      {/* Nomor soal + pertanyaan */}
+      {/* ── Nomor soal + pertanyaan ── */}
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-base font-black text-white">
           {item.targetIndex + 1}
@@ -118,7 +107,7 @@ export default function IdentificationQuestion({
         )}
       </div>
 
-      {/* Pilihan jawaban */}
+      {/* ── Pilihan jawaban ── */}
       <div className="space-y-3">
         <IdentificationOptionGrid
           options={item.options}
