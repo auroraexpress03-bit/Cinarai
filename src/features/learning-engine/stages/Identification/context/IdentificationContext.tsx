@@ -31,6 +31,8 @@ interface IdentificationComicMeta {
   cover: string;
   title: string;
   learningTargets: readonly string[];
+  comicSlug?: string;
+  pdfPath?: string | null;
 }
 
 export interface IdentificationContextValue
@@ -83,6 +85,8 @@ export function IdentificationProvider({
   cover,
   title,
   learningTargets,
+  comicSlug,
+  pdfPath,
   onCompleteChange,
   children,
 }: IdentificationProviderProps) {
@@ -93,7 +97,16 @@ export function IdentificationProvider({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
-  const identification = useIdentification({ comicId, lokasi, cover, title, learningTargets });
+  const identification = useIdentification({
+    comicId,
+    lokasi,
+    cover,
+    title,
+    learningTargets,
+    comicSlug,
+    pdfPath,
+    sourcePage: 1,
+  });
   const { state, reset: resetIdentification, applyAnswers } = identification;
 
   // Stable ref so persistItem always reads the latest state without stale closure

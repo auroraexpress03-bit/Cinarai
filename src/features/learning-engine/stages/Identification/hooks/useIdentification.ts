@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import { useComicReadingProgress } from '@/context/ComicReadingProgressContext';
 import type { IdentificationAnswerDocument } from '@/types/firestore';
 import type { IdentificationState } from '../types';
 import {
@@ -36,6 +37,9 @@ interface UseIdentificationOptions {
   cover: string;
   title: string;
   learningTargets: readonly string[];
+  comicSlug?: string;
+  sourcePage?: number;
+  pdfPath?: string | null;
 }
 
 export function useIdentification({
@@ -44,9 +48,18 @@ export function useIdentification({
   cover,
   title,
   learningTargets,
+  comicSlug,
+  sourcePage,
+  pdfPath,
 }: UseIdentificationOptions): UseIdentificationReturn {
+  const { getLastPage } = useComicReadingProgress();
+  const resolvedSourcePage = useMemo(() => {
+    if (typeof sourcePage === 'number' && sourcePage > 0) return sourcePage;
+    return getLastPage(comicId) || 1;
+  }, [comicId, getLastPage, sourcePage]);
+
   const [state, setState] = useState<IdentificationState>(() =>
-    createIdentificationState(comicId, lokasi, learningTargets, cover, title)
+    createIdentificationState(comicId, lokasi, learningTargets, cover, title, comicSlug, resolvedSourcePage, pdfPath)
   );
 
   const handleSetObserveNote = useCallback((note: string) => {

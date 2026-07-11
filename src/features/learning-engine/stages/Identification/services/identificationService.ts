@@ -1,3 +1,7 @@
+import {
+  buildObservationOverlaySvg,
+  resolveComicObservationImage,
+} from '@/lib/comic-image';
 import type {
   AnswerOption,
   IdentificationItem,
@@ -274,8 +278,17 @@ export function createIdentificationState(
   _learningTargets: readonly string[],
   _cover: string,
   title: string,
+  comicSlug = '',
+  sourcePage = 1,
+  pdfPath: string | null = null,
 ): IdentificationState {
   const questions = getQuestionsForComic(comicId, lokasi);
+  const observationImage = resolveComicObservationImage({
+    slug: comicSlug || `komik-${comicId}`,
+    pdfPath,
+    page: sourcePage,
+  });
+
   const items: IdentificationItem[] = questions.map((question, index) => {
     const id = `${comicId}-identification-${index}`;
     const options = buildShuffledOptions(id, question.options);
@@ -285,11 +298,16 @@ export function createIdentificationState(
       targetIndex: index,
       targetText: question.question,
       question: question.question,
-      image: question.image,
+      image: observationImage.imageSrc,
       imageAlt: question.imageAlt,
+      sourcePdfPath: observationImage.sourcePdfPath,
+      sourcePage: observationImage.sourcePage,
       overlayType: question.overlayType,
       crop: question.crop,
-      highlight: question.highlight,
+      highlight: buildObservationOverlaySvg({
+        label: `Soal ${index + 1}`,
+        description: question.question,
+      }),
       options,
       correctOptionId: correctOption?.id ?? options[0].id,
       explanation: question.explanation,

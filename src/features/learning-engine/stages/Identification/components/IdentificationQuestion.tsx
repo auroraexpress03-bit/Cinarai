@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { renderPdfPageToBlobUrl } from '@/lib/comic-image';
 import type { IdentificationItem } from '../types';
 import { useIdentificationContext } from '../context/IdentificationContext';
 import IdentificationOptionGrid from './IdentificationOptionGrid';
@@ -20,13 +21,35 @@ export default function IdentificationQuestion({
 }: IdentificationQuestionProps) {
   const { selectOption, state } = useIdentificationContext();
   const [imgError, setImgError] = useState(false);
+  const [renderedImageSrc, setRenderedImageSrc] = useState<string | null>(null);
 
   const hasSelection = item.selectedOptionId !== null;
   const isCorrect = item.selectedOptionId === item.correctOptionId;
   const selectedOption = item.options.find((o) => o.id === item.selectedOptionId) ?? null;
   const correctOption = item.options.find((o) => o.id === item.correctOptionId) ?? null;
   const totalItems = state.items.length;
-  const hasImage = Boolean(item.image) && !imgError;
+  const effectiveImageSrc = renderedImageSrc ?? item.image;
+  const hasImage = Boolean(effectiveImageSrc) && !imgError;
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function tryRenderPdfPage() {
+      if (!item.sourcePdfPath || !item.sourcePage || renderedImageSrc) return;
+      try {
+        const blobUrl = await renderPdfPageToBlobUrl(item.sourcePdfPath, item.sourcePage);
+        if (isActive) setRenderedImageSrc(blobUrl);
+      } catch {
+        if (isActive) setImgError(false);
+      }
+    }
+
+    void tryRenderPdfPage();
+
+    return () => {
+      isActive = false;
+    };
+  }, [item.sourcePdfPath, item.sourcePage, renderedImageSrc]);
 
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-neutral-200 bg-white p-5 shadow-lg shadow-neutral-100 sm:p-6">
@@ -41,7 +64,7 @@ export default function IdentificationQuestion({
             <>
               {/* Foto asli — 100% tajam, tanpa blur, tanpa overlay putih */}
               <Image
-                src={item.image}
+                src={effectiveImageSrc}
                 alt={item.imageAlt}
                 fill
                 className="object-cover"
@@ -58,7 +81,7 @@ export default function IdentificationQuestion({
                   src={item.highlight}
                   alt=""
                   fill
-                  className="object-cover pointer-events-none"
+                  className="pointer-events-none object-cover"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
                   aria-hidden="true"
                 />

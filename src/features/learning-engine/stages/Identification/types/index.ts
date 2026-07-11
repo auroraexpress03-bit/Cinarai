@@ -25,6 +25,8 @@ export interface IdentificationItem {
   readonly question: string;
   readonly image: string;
   readonly imageAlt: string;
+  readonly sourcePdfPath?: string | null;
+  readonly sourcePage?: number;
   readonly options: AnswerOption[];
   readonly correctOptionId: string;
   readonly overlayType?: string;

@@ -27,6 +27,8 @@ export default function IdentificationStage() {
       cover={comic.cover}
       title={comic.title}
       learningTargets={comic.learningTargets}
+      comicSlug={comic.slug}
+      pdfPath={comic.pdfPath}
       onCompleteChange={handleCompleteChange}
     >
       <IdentificationNavigation />
