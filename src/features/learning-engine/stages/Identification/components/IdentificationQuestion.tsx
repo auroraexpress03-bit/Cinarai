@@ -26,7 +26,6 @@ export default function IdentificationQuestion({
   const selectedOptionIds = useMemo(() => item.selectedOptionIds ?? [], [item.selectedOptionIds]);
   const selectedShapes = useMemo(() => item.options.filter((option) => selectedOptionIds.includes(option.id)).map((option) => option.text), [item.options, selectedOptionIds]);
   const correctOptionIds = useMemo(() => item.options.filter((option) => option.correct).map((option) => option.id), [item.options]);
-  const correctOptionTexts = useMemo(() => item.options.filter((option) => option.correct).map((option) => option.text), [item.options]);
   const hasSelection = selectedOptionIds.length > 0;
   const isCorrect = selectedOptionIds.length === correctOptionIds.length
     && correctOptionIds.every((optionId) => selectedOptionIds.includes(optionId))
@@ -113,7 +112,6 @@ export default function IdentificationQuestion({
           <IdentificationFeedback
             isCorrect={isCorrect}
             selectedOptionText={selectedShapes.join(', ') || 'Belum dijawab'}
-            correctOptionText={correctOptionTexts.join(', ') || '-'}
             explanation={item.explanation}
             showCorrectOption={!isCorrect}
           />

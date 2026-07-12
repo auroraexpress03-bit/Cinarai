@@ -59,13 +59,13 @@ export default function ReportClient() {
     ? introspection.aiReflection
     : null;
   const reportReady = Boolean(introspection?.completed);
-  const reportContent = useMemo(
-    () => (comic ? loadComicModule(comic.id).report : loadComicModule(0).report),
+  const packageContent = useMemo(
+    () => (comic ? loadComicModule(comic.id).packageContent : loadComicModule(0).packageContent),
     [comic?.id],
   );
   const learnedShapes = useMemo(
-    () => reportContent.learnedShapes.map((shape) => ({ id: shape, title: shape })),
-    [reportContent.learnedShapes],
+    () => packageContent.report.learnedShapes.map((shape) => ({ id: shape, title: shape })),
+    [packageContent.report.learnedShapes],
   );
 
   if (loading || isLoading) {
@@ -87,7 +87,7 @@ export default function ReportClient() {
           <p className="text-sm font-black uppercase tracking-[0.3em] text-primary-100">Laporan Belajar</p>
           <h1 className="mt-3 text-3xl font-black sm:text-4xl">Ringkasan perjalananmu</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-primary-100 sm:text-base">
-            {reportContent.summary || (comic?.title ? `Kamu telah menyelesaikan refleksi untuk ${comic.title}.` : 'Laporan ini merangkum hasil refleksi dan pemahamanmu.')}
+            {packageContent.report.summary || (comic?.title ? `Kamu telah menyelesaikan refleksi untuk ${comic.title}.` : 'Laporan ini merangkum hasil refleksi dan pemahamanmu.')}
           </p>
         </div>
 

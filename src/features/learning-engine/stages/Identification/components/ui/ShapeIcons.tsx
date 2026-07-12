@@ -312,11 +312,11 @@ export function getShapeIcon(shape: string) {
   if (shapeNormalized === 'balok') return BalokIcon;
   if (shapeNormalized === 'balok selasar') return BalokIcon;
   
-  // LIMAS - sekarang hanya 'limas' saja
-  if (shapeNormalized === 'limas') return LimasIcon;
+  // LIMAS
+  if (shapeNormalized === 'limas' || shapeNormalized === 'limas segi empat' || shapeNormalized.includes('limas segi empat')) return LimasIcon;
   
-  // PRISMA - sekarang hanya 'prisma' saja
-  if (shapeNormalized === 'prisma') return PrismaIcon;
+  // PRISMA
+  if (shapeNormalized === 'prisma' || shapeNormalized === 'prisma segi empat' || shapeNormalized.includes('prisma segi empat')) return PrismaIcon;
   
   // KERUCUT
   if (shapeNormalized === 'kerucut') return KerucutIcon;
