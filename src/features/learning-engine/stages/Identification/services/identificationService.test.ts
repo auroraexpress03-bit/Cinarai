@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { getComicModule } from '@/features/comics';
+import { getShapeIcon } from '../components/ui/ShapeIcons';
 import { buildIdentificationFeedback, buildIdentificationTutorExplanations, buildIdentificationTutorExplanation, createIdentificationState, resolveSelectedOptionId } from './identificationService';
 
 test('createIdentificationState builds state from explicit identification data without comicId branching', () => {
@@ -104,6 +106,66 @@ test('identification state preserves per-question images and nulls PDF fallback 
           ],
           explanation: 'Pada Candi Jawi, bangun ruang utama terlihat pada keseluruhan komik.',
         },
+        {
+          id: 'comic-1-2',
+          question: 'Bangun ruang mana yang paling cocok untuk menggambarkan pilar utama?',
+          image: '/images/identification/komik1-soal2.jpg',
+          imageAlt: 'Zoom bagian kaki Candi Jawi.',
+          highlight: '/images/identification/komik1-soal2-kaki-candi.svg',
+          options: [
+            { text: 'Kubus', correct: true },
+            { text: 'Balok', correct: false },
+            { text: 'Prisma Segi Empat', correct: false },
+            { text: 'Limas Segi Empat', correct: false },
+            { text: 'Kerucut', correct: false },
+          ],
+          explanation: 'Pilar utama candi sering tersusun dari bentuk kotak.',
+        },
+        {
+          id: 'comic-1-3',
+          question: 'Bagian badan candi paling mirip dengan bangun ruang apa?',
+          image: '/images/identification/komik1-soal3.jpg',
+          imageAlt: 'Zoom badan tengah Candi Jawi.',
+          highlight: '/images/identification/komik1-soal3-puncak-candi.svg',
+          options: [
+            { text: 'Balok', correct: true },
+            { text: 'Kubus', correct: false },
+            { text: 'Prisma Segi Empat', correct: false },
+            { text: 'Limas Segi Empat', correct: false },
+            { text: 'Kerucut', correct: false },
+          ],
+          explanation: 'Badan candi menyerupai bangun ruang balok.',
+        },
+        {
+          id: 'comic-1-4',
+          question: 'Struktur puncak yang meruncing bisa diterangkan dengan bangun ruang apa?',
+          image: '/images/identification/komik1-soal4.jpg',
+          imageAlt: 'Zoom atap Candi Jawi.',
+          highlight: '/images/identification/komik1-soal4-atap-candi.svg',
+          options: [
+            { text: 'Limas Segi Empat', correct: true },
+            { text: 'Kerucut', correct: true },
+            { text: 'Kubus', correct: false },
+            { text: 'Balok', correct: false },
+            { text: 'Prisma Segi Empat', correct: false },
+          ],
+          explanation: 'Puncak candi meniru limas dan kerucut karena meruncing ke satu titik.',
+        },
+        {
+          id: 'comic-1-5',
+          question: 'Bagian mana yang paling cocok disebut kerucut?',
+          image: '/images/identification/komik1-soal5.jpg',
+          imageAlt: 'Zoom bagian puncak Candi Jawi.',
+          highlight: '/images/identification/komik1-soal5-puncak-candi.svg',
+          options: [
+            { text: 'Kerucut', correct: true },
+            { text: 'Kubus', correct: false },
+            { text: 'Balok', correct: false },
+            { text: 'Prisma Segi Empat', correct: false },
+            { text: 'Limas Segi Empat', correct: false },
+          ],
+          explanation: 'Puncak candi meruncing seperti kerucut.',
+        },
       ],
       feedback: {
         complete: 'Selesai',
@@ -201,11 +263,33 @@ test('comic 1 identification options are built from comic knowledge and include 
     },
   );
   const firstItem = state.items[0];
-  const correctLabels = firstItem.options.filter((option) => option.correct).map((option) => option.text);
+  const correctLabels = firstItem.options.filter((option) => option.correct).map((option) => option.text).sort();
 
-  assert.deepEqual(correctLabels, ['Balok', 'Kubus', 'Limas', 'Prisma', 'Kerucut']);
-  assert.equal(firstItem.options.find((option) => option.text === 'Bola')?.correct, false);
-  assert.equal(firstItem.options.find((option) => option.text === 'Tabung')?.correct, false);
+  assert.deepEqual(correctLabels, ['Balok', 'Kerucut', 'Kubus', 'Limas Segi Empat', 'Prisma Segi Empat']);
+  assert.ok(!firstItem.options.some((option) => option.text === 'Bola'));
+  assert.ok(!firstItem.options.some((option) => option.text === 'Tabung'));
+});
+
+test('comic 1 identification options only use shapes present in Candi Jawi content', () => {
+  const comicModule = getComicModule(1);
+  const optionLabels = comicModule.identification.questions.flatMap((question) => question.options.map((option) => option.text));
+  const disallowedShapes = ['Tabung', 'Bola'];
+
+  for (const shape of disallowedShapes) {
+    assert.ok(!optionLabels.includes(shape), `expected ${shape} to be removed from comic 1 identification options`);
+  }
+
+  assert.ok(optionLabels.includes('Kubus'));
+  assert.ok(optionLabels.includes('Balok'));
+  assert.ok(optionLabels.includes('Prisma Segi Empat'));
+  assert.ok(optionLabels.includes('Limas Segi Empat'));
+  assert.ok(optionLabels.includes('Kerucut'));
+});
+
+test('getShapeIcon maps comic 1 shape names to the correct icon component', () => {
+  assert.equal(getShapeIcon('Prisma Segi Empat').name, 'PrismaIcon');
+  assert.equal(getShapeIcon('Limas Segi Empat').name, 'LimasIcon');
+  assert.equal(getShapeIcon('Kerucut').name, 'KerucutIcon');
 });
 
 test('buildIdentificationTutorExplanation explains selected shapes in child-friendly language', () => {

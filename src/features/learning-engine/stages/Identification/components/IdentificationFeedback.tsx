@@ -3,7 +3,6 @@
 interface IdentificationFeedbackProps {
   isCorrect: boolean;
   selectedOptionText: string;
-  correctOptionText: string;
   explanation: string;
   showCorrectOption: boolean;
 }
@@ -11,7 +10,6 @@ interface IdentificationFeedbackProps {
 export default function IdentificationFeedback({
   isCorrect,
   selectedOptionText,
-  correctOptionText,
   explanation,
   showCorrectOption,
 }: IdentificationFeedbackProps) {
@@ -38,7 +36,7 @@ export default function IdentificationFeedback({
 
       {!isCorrect && showCorrectOption && (
         <p className="text-sm font-semibold text-neutral-700">
-          Jawaban yang benar: {correctOptionText}
+          Coba amati lagi bagian komik dan kaitkan dengan ciri-ciri bangun ruang yang paling terlihat.
         </p>
       )}
     </div>
