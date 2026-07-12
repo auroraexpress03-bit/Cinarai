@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getRoleBasedDashboardPath } from '@/lib/auth/redirects';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,8 +15,7 @@ export const LoginForm: React.FC = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      const dest = user.role === 'teacher' ? '/dashboard/guru' : '/dashboard/siswa';
-      router.replace(dest);
+      router.replace(getRoleBasedDashboardPath(user.role));
     }
   }, [user, loading, router]);
 

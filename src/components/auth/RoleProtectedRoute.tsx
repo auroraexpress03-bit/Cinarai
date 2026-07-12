@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getRoleBasedDashboardPath } from '@/lib/auth/redirects';
 
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
@@ -10,9 +11,7 @@ interface RoleProtectedRouteProps {
 }
 
 function roleToDashboard(role: string): string {
-  if (role === 'teacher') return '/dashboard/guru';
-  if (role === 'admin') return '/dashboard/admin';
-  return '/dashboard/siswa';
+  return getRoleBasedDashboardPath(role as 'student' | 'teacher' | 'admin');
 }
 
 export const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({

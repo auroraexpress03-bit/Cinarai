@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getRoleBasedDashboardPath } from '@/lib/auth/redirects';
 
 export const SignUpForm: React.FC = () => {
   const [displayName, setDisplayName] = useState('');
@@ -33,8 +34,7 @@ export const SignUpForm: React.FC = () => {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName, role);
-      const dest = role === 'teacher' ? '/dashboard/guru' : '/dashboard/siswa';
-      router.push(dest);
+      router.push(getRoleBasedDashboardPath(role));
     } catch (err) {
       console.error('Sign up error:', err);
     } finally {

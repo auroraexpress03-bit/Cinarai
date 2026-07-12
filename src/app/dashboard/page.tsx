@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getRoleBasedDashboardPath } from '@/lib/auth/redirects';
 
 export default function DashboardRouter() {
   const { user, loading } = useAuth();
@@ -14,13 +15,7 @@ export default function DashboardRouter() {
       router.replace('/auth/login');
       return;
     }
-    if (user.role === 'teacher') {
-      router.replace('/dashboard/guru');
-    } else if (user.role === 'admin') {
-      router.replace('/dashboard/admin');
-    } else {
-      router.replace('/dashboard/siswa');
-    }
+    router.replace(getRoleBasedDashboardPath(user.role));
   }, [user, loading, router]);
 
   return (
