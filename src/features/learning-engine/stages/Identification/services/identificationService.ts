@@ -7,7 +7,7 @@ import type {
   IdentificationItem,
   IdentificationState,
 } from '../types';
-import { getLearningContentPackage } from '../../../content/contentPackages';
+// Avoid importing types from contentPackages in service layer; receive package data via DI.
 import { getShapeKnowledgeEntry } from './shapeKnowledge';
 
 /** Fisher-Yates shuffle — urutan berbeda setiap kali dipanggil */
@@ -234,23 +234,21 @@ function buildFallbackQuestions(lokasi: string): RawQuestion[] {
   ];
 }
 
-function getQuestionsForComic(comicId: number, lokasi: string): RawQuestion[] {
-  const packageContent = getLearningContentPackage(comicId);
-  if (packageContent.identification.questions.length > 0) {
-    return packageContent.identification.questions.map((question) => ({
+function getQuestionsFromPackage(identificationPackage: { questions?: any[] } | null | undefined, lokasi: string): RawQuestion[] {
+  const packageQuestions = identificationPackage?.questions ?? [];
+  if (packageQuestions.length > 0) {
+    return packageQuestions.map((question: any) => ({
       question: question.question,
       imageAlt: question.imageAlt,
       image: question.image,
       overlayType: question.overlayType,
       crop: question.crop,
       highlight: question.highlight,
-      options: question.options.map((option) => ({ text: option.text, correct: option.correct })),
+      options: question.options.map((option: any) => ({ text: option.text, correct: option.correct })),
       explanation: question.explanation,
     }));
   }
 
-  if (comicId === 1) return KOMIK_1_QUESTIONS;
-  if (comicId === 2) return KOMIK_2_QUESTIONS;
   return buildFallbackQuestions(lokasi);
 }
 
@@ -269,6 +267,7 @@ function buildShuffledOptions(itemId: string, rawOptions: RawOption[]): AnswerOp
  * correctOptionId ditentukan dari option.correct === true setelah shuffle.
  */
 export function createIdentificationState(
+  identificationPackage: { questions?: any[] } | null | undefined,
   comicId: number,
   lokasi: string,
   _learningTargets: readonly string[],
@@ -278,7 +277,15 @@ export function createIdentificationState(
   sourcePage = 1,
   pdfPath: string | null = null,
 ): IdentificationState {
-  const questions = getQuestionsForComic(comicId, lokasi);
+  let questions = getQuestionsFromPackage(identificationPackage, lokasi);
+  // If package provided no questions and the caller passed a comicId, keep old comic-specific fallbacks
+  if ((questions?.length ?? 0) === 0) {
+    if (comicId === 1) {
+      questions = KOMIK_1_QUESTIONS;
+    } else if (comicId === 2) {
+      questions = KOMIK_2_QUESTIONS;
+    }
+  }
   const observationImage = resolveComicObservationImage({
     slug: comicSlug || `komik-${comicId}`,
     pdfPath,

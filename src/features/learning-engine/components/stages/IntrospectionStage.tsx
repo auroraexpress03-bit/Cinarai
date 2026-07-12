@@ -13,12 +13,10 @@ import { getCurrentUser } from '@/lib/firebase/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/context/SnackbarContext';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
-import { getLearningContentPackage } from '../../content/contentPackages';
 
-function getChecklistItems(comicId: number) {
-  const packageContent = getLearningContentPackage(comicId);
-  if (packageContent.introspection.checklist.length > 0) {
-    return packageContent.introspection.checklist as readonly string[];
+function getChecklistItems(checklist: readonly string[]) {
+  if (checklist.length > 0) {
+    return checklist as readonly string[];
   }
 
   return [
@@ -61,11 +59,11 @@ type ApplicationActivitySummary = {
 
 export default function IntrospectionStage() {
   const router = useRouter();
-  const { comic, progress, completeCurrentStage } = useLearningEngine();
+  const { comic, comicModule, progress, completeCurrentStage } = useLearningEngine();
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
 
-  const checklistItems = useMemo(() => getChecklistItems(comic.id), [comic.id]);
+  const checklistItems = useMemo(() => getChecklistItems(comicModule.introspection.checklist), [comicModule.introspection.checklist]);
   const [checked, setChecked] = useState<boolean[]>(() => checklistItems.map(() => false));
   const [rating, setRating] = useState<number | null>(null);
   const [reflectionText, setReflectionText] = useState('');

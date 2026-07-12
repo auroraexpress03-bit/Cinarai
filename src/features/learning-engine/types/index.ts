@@ -1,5 +1,6 @@
 import type { Comic } from '@/types/comic';
 import type { ComicProgressState, Sintaks, SintaksStatus } from '@/types/progress';
+import type { ComicModule } from '@/features/comics';
 
 export type { Sintaks, SintaksStatus };
 
@@ -52,6 +53,7 @@ export interface LearningContextValue {
   // Data
   comicId: number;
   comic: Comic;
+  comicModule: ComicModule;
   progress: ComicProgressState;
   currentStage: Stage;
   completedStages: Sintaks[];

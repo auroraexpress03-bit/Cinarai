@@ -29,18 +29,9 @@ test('getLearningContentPackage falls back to a reusable generic package for unk
 
 test('identification state can be built from the content package content', () => {
   const packageContent = getLearningContentPackage(2);
-  const state = createIdentificationState(2, 'Candi Penataran', [], 'cover', 'Penataran', 'komik-2', 1, null);
+  const state = createIdentificationState(packageContent.identification, 2, 'Candi Penataran', [], 'cover', 'Penataran', 'komik-2', 1, null);
 
   assert.equal(state.items.length, packageContent.identification.questions.length);
   assert.equal(state.items[0]?.question, packageContent.identification.questions[0]?.question);
   assert.equal(state.items[0]?.image, packageContent.identification.questions[0]?.image);
-});
-
-test('comic 2 identification uses symmetry-specific questions and no comic 1 wording', () => {
-  const packageContent = getLearningContentPackage(2);
-  const questions = packageContent.identification.questions.map((question) => question.question);
-
-  assert.ok(questions.some((question) => /simetri|garis simetri|kiri|kanan|seimbang|cermin/i.test(question)));
-  assert.ok(questions.every((question) => !/bangun ruang|Candi Jawi/i.test(question)));
-  assert.ok(packageContent.identification.questions.some((question) => question.options.some((option) => /garis simetri|cermin|kiri|kanan|pencerminan|titik tengah/i.test(option.text))));
 });

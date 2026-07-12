@@ -15,6 +15,7 @@ import {
   updateReason,
   saveReason,
 } from '../services/identificationService';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 
 export interface UseIdentificationReturn {
   state: IdentificationState;
@@ -51,6 +52,7 @@ export function useIdentification({
   sourcePage,
   pdfPath,
 }: UseIdentificationOptions): UseIdentificationReturn {
+  const { comicModule } = useLearningEngine();
   const { getLastPage } = useComicReadingProgress();
   const resolvedSourcePage = useMemo(() => {
     if (typeof sourcePage === 'number' && sourcePage > 0) return sourcePage;
@@ -58,7 +60,7 @@ export function useIdentification({
   }, [comicId, getLastPage, sourcePage]);
 
   const [state, setState] = useState<IdentificationState>(() =>
-    createIdentificationState(comicId, lokasi, learningTargets, cover, title, comicSlug, resolvedSourcePage, pdfPath)
+    createIdentificationState(comicModule?.identification ?? null, comicId, lokasi, learningTargets, cover, title, comicSlug, resolvedSourcePage, pdfPath)
   );
 
   const handleSetObserveNote = useCallback((note: string) => {

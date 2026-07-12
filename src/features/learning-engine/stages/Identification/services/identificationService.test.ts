@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildIdentificationFeedback, buildIdentificationTutorExplanations, buildIdentificationTutorExplanation, createIdentificationState, resolveSelectedOptionId } from './identificationService';
+import { getLearningContentPackage } from '@/features/learning-engine/content/contentPackages';
 
 test('identification questions for comic 1 use dedicated Candi Jawi photo assets', () => {
+  const packageContent = getLearningContentPackage(1);
   const state = createIdentificationState(
+    packageContent.identification,
     1,
     'Candi Jawi',
     [],
@@ -25,7 +28,9 @@ test('identification questions for comic 1 use dedicated Candi Jawi photo assets
 });
 
 test('identification state preserves per-question images and nulls PDF fallback for dedicated identification assets', () => {
+  const packageContent2 = getLearningContentPackage(1);
   const state = createIdentificationState(
+    packageContent2.identification,
     1,
     'Candi Jawi',
     [],
@@ -44,7 +49,9 @@ test('identification state preserves per-question images and nulls PDF fallback 
 });
 
 test('stored answer text resolves to the shuffled option id', () => {
+  const packageContent3 = getLearningContentPackage(2);
   const state = createIdentificationState(
+    packageContent3.identification,
     2,
     'Candi Penataran',
     [],
@@ -61,7 +68,9 @@ test('stored answer text resolves to the shuffled option id', () => {
 });
 
 test('comic 1 identification options are built from comic knowledge and include kerucut as a correct shape', () => {
+  const packageContent4 = getLearningContentPackage(1);
   const state = createIdentificationState(
+    packageContent4.identification,
     1,
     'Candi Jawi',
     [],

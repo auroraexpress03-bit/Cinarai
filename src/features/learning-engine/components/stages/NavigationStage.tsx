@@ -7,7 +7,6 @@ import { useSnackbar } from '@/context/SnackbarContext';
 import type { ComicAssetEntry } from '@/services/comic-assets/types';
 import { Hero3DViewer } from './Hero3DViewer';
 import { AssemblrCard } from './AssemblrCard';
-import { getLearningContentPackage } from '../../content/contentPackages';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -25,12 +24,11 @@ function isValidUrl(url: string): boolean {
 
 export default function NavigationStage() {
   const router = useRouter();
-  const { comic, setCanAdvance, unregisterSlideNav, nextStage } = useLearningEngine();
+  const { comic, comicModule, setCanAdvance, unregisterSlideNav, nextStage } = useLearningEngine();
   const { showSnackbar } = useSnackbar();
-  const packageContent = useMemo(() => getLearningContentPackage(comic.id), [comic.id]);
   const navigationObjects = useMemo<ComicAssetEntry[]>(
     () =>
-      packageContent.learningObjects.map((object) => ({
+      comicModule.navigation.learningObjects.map((object) => ({
         page: object.page,
         title: object.title,
         description: object.description,
@@ -43,7 +41,7 @@ export default function NavigationStage() {
         aiPrompt: object.aiPrompt,
         knowledgeText: object.description,
       })),
-    [packageContent.learningObjects],
+    [comicModule.navigation.learningObjects],
   );
   const primaryEntry = navigationObjects[0] ?? null;
   const [activeObjectId, setActiveObjectId] = useState<string | null>(null);

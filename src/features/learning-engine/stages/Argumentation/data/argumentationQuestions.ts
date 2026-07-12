@@ -1,4 +1,4 @@
-import { getLearningContentPackage } from '../../../content/contentPackages';
+// Note: avoid importing runtime or type dependency on contentPackages from Stage layer.
 
 export interface ArgumentationLearningObject {
   id: string;
@@ -138,12 +138,11 @@ export function getArgumentationLearningObjects(): ArgumentationLearningObject[]
 }
 
 export function getArgumentationQuestions(
-  comicId: number,
+  argumentationPackage: { questions?: any[] } | null | undefined,
   lokasi: string,
   cover: string,
 ): ArgumentationQuestion[] {
-  const packageContent = getLearningContentPackage(comicId);
-  const packageQuestions = packageContent.argumentation.questions;
+  const packageQuestions = argumentationPackage?.questions ?? [];
 
   if (packageQuestions.length > 0) {
     return packageQuestions.map((question) => ({

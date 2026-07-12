@@ -6,7 +6,6 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
-import { getLearningContentPackage } from '../../content/contentPackages';
 
 type CoachSummary = {
   mastered: string[];
@@ -19,11 +18,6 @@ type CoachResponse = {
   message: string;
   summary: CoachSummary;
 };
-
-function getApplicationConfig(comicId: number) {
-  const packageContent = getLearningContentPackage(comicId);
-  return packageContent.application;
-}
 
 function shuffle<T>(array: ReadonlyArray<T>): T[] {
   const result = [...array];
@@ -52,7 +46,7 @@ function saveLocalApplicationActivity(comicId: number, payload: Record<string, u
 }
 
 export default function ApplicationStage() {
-  const { comic, setCanAdvance, completeCurrentStage } = useLearningEngine();
+  const { comic, comicModule, setCanAdvance, completeCurrentStage } = useLearningEngine();
   const { user } = useAuth();
   const [selectedAnswer, setSelectedAnswer] = useState<string[]>([]);
   const [studentReason, setStudentReason] = useState('');
@@ -69,10 +63,9 @@ export default function ApplicationStage() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
   const [attemptCount, setAttemptCount] = useState(0);
-  const packageContent = useMemo(() => getLearningContentPackage(comic.id), [comic.id]);
-  const applicationConfig = useMemo(() => getApplicationConfig(comic.id), [comic.id]);
+  const applicationConfig = comicModule.application;
   const options = useMemo(() => shuffle(applicationConfig.options.map((option) => option.value)), [applicationConfig.options]);
-  const arViewerUrl = packageContent.model3D[0]?.embedUrl || packageContent.model3D[0]?.arUrl || null;
+  const arViewerUrl = comicModule.navigation.model3D?.[0]?.embedUrl || comicModule.navigation.model3D?.[0]?.arUrl || null;
 
   const hasCompletedPreparation = arViewed && explorationCompleted;
   const minReasonLength = studentReason.trim().length;

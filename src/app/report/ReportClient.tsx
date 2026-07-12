@@ -9,7 +9,7 @@ import { firestore } from '@/lib/firebase/client';
 import { getComicById } from '@/lib/comicRepository';
 import type { Comic } from '@/types/comic';
 import type { ComicProgressDocument } from '@/types/firestore';
-import { getLearningContentPackage } from '@/features/learning-engine/content/contentPackages';
+import { loadComicModule } from '@/features/comics';
 
 export default function ReportClient() {
   const router = useRouter();
@@ -59,7 +59,10 @@ export default function ReportClient() {
     ? introspection.aiReflection
     : null;
   const reportReady = Boolean(introspection?.completed);
-  const packageContent = useMemo(() => getLearningContentPackage(comic?.id ?? 0), [comic?.id]);
+  const packageContent = useMemo(
+    () => (comic ? loadComicModule(comic.id).packageContent : loadComicModule(0).packageContent),
+    [comic?.id],
+  );
   const learnedShapes = useMemo(
     () => packageContent.report.learnedShapes.map((shape) => ({ id: shape, title: shape })),
     [packageContent.report.learnedShapes],

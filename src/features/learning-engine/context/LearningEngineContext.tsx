@@ -13,6 +13,7 @@ import { useSnackbar } from '@/context/SnackbarContext';
 import { createInitialProgressState } from '@/lib/progressEngine';
 import type { ComicProgressState, Sintaks } from '@/types/progress';
 import type { Comic } from '@/types/comic';
+import { loadComicModule } from '@/features/comics';
 import {
   subscribeToLearningProgress,
   completeStage as persistCompleteStage,
@@ -48,6 +49,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   const { user, loading: authLoading } = useAuth();
   const { showSnackbar } = useSnackbar();
   const comicId = comic.id;
+  const comicModule = useMemo(() => loadComicModule(comicId), [comicId]);
 
   const [progress, setProgress] = useState<ComicProgressState>(
     createInitialProgressState(comicId)
@@ -302,6 +304,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
     () => ({
       comicId,
       comic,
+      comicModule,
       progress,
       currentStage,
       completedStages,
@@ -326,6 +329,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
     [
       comicId,
       comic,
+      comicModule,
       progress,
       currentStage,
       completedStages,
