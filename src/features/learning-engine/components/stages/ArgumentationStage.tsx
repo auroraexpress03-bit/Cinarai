@@ -81,7 +81,7 @@ function ShapeIcon({ solid, className }: { solid: string; className?: string }) 
 }
 
 function getQuestionForObject(object: ArgumentationLearningObject) {
-  return `Mengapa ${object.objectName.toLowerCase()} Candi Jawi dapat dimodelkan sebagai ${object.solid.toLowerCase()}?`;
+  return object.question || `Mengapa ${object.objectName.toLowerCase()} Candi Jawi dapat dimodelkan sebagai ${object.solid.toLowerCase()}?`;
 }
 
 function FeedbackCard({ feedback, studentAnswer }: { feedback: AiFeedback; studentAnswer: string }) {
@@ -117,7 +117,7 @@ function FeedbackCard({ feedback, studentAnswer }: { feedback: AiFeedback; stude
 }
 
 export default function ArgumentationStage() {
-  const { comic, setCanAdvance, nextStage } = useLearningEngine();
+  const { comic, comicModule, setCanAdvance, nextStage } = useLearningEngine();
   const { user } = useAuth();
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState<AiFeedback | null>(null);
@@ -140,7 +140,10 @@ export default function ArgumentationStage() {
     };
   }, [comic.id, user?.uid]);
 
-  const learningObject = useMemo(() => getArgumentationLearningObject(selectedShapes), [selectedShapes]);
+  const learningObject = useMemo(
+    () => getArgumentationLearningObject(selectedShapes, comicModule.argumentation),
+    [selectedShapes, comicModule.argumentation],
+  );
   const question = learningObject ? getQuestionForObject(learningObject) : 'Mengapa bagian candi ini dapat dimodelkan sebagai bangun ruang?';
   const charCount = answer.trim().length;
   const canSubmit = charCount >= 20 && !isSubmitting && !feedback;
@@ -199,7 +202,7 @@ export default function ArgumentationStage() {
     );
   }
 
-  const feedbackCards = getArgumentationLearningObjects().filter((entry) => entry.id !== learningObject.id).slice(0, 4);
+  const feedbackCards = getArgumentationLearningObjects(comicModule.argumentation).filter((entry) => entry.id !== learningObject.id).slice(0, 4);
 
   return (
     <div className="flex flex-col gap-4 animate-fade-in-up">
@@ -214,8 +217,18 @@ export default function ArgumentationStage() {
       </div>
 
       <div className="rounded-[24px] border border-neutral-200 bg-white p-3 shadow-sm">
-        <div className="overflow-hidden rounded-[20px] bg-neutral-50">
+        <div className="relative overflow-hidden rounded-[20px] bg-neutral-50">
           <img src={learningObject.image} alt={learningObject.objectName} className="h-56 w-full object-cover sm:h-64" />
+          {learningObject.overlaySrc ? (
+            <img
+              src={learningObject.overlaySrc}
+              alt={`${learningObject.objectName} overlay`}
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-90"
+            />
+          ) : null}
+          <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-black uppercase tracking-[0.35em] text-secondary-700 shadow-sm">
+            📍 {learningObject.objectName}
+          </div>
         </div>
         <div className="mt-4 flex flex-col items-center gap-3 rounded-[20px] bg-white p-4">
           <div className="text-[10px] font-black uppercase tracking-[0.35em] text-neutral-400">Dimodelkan sebagai</div>
