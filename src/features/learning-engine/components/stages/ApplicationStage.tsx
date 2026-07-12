@@ -19,6 +19,8 @@ type CoachResponse = {
   summary: CoachSummary;
 };
 
+type ApplicationOption = { value: string; label: string };
+type ApplicationImage = { src: string; alt: string; label: string; description: string };
 
 function shuffle<T>(array: ReadonlyArray<T>): T[] {
   const result = [...array];
@@ -51,6 +53,14 @@ export default function ApplicationStage() {
   const { user } = useAuth();
   const [selectedAnswer, setSelectedAnswer] = useState<string[]>([]);
   const [studentReason, setStudentReason] = useState('');
+  const applicationConfig = comicModule.application as {
+    title: string;
+    intro: string;
+    prompt: string;
+    context: string;
+    images: ApplicationImage[];
+    options: ApplicationOption[];
+  };
   const [arViewed, setArViewed] = useState(false);
   const [explorationCompleted, setExplorationCompleted] = useState(false);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
@@ -64,7 +74,6 @@ export default function ApplicationStage() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
   const [attemptCount, setAttemptCount] = useState(0);
-  const applicationConfig = comicModule.application;
   const options = useMemo(() => shuffle(applicationConfig.options.map((option) => option.value)), [applicationConfig.options]);
   const arViewerUrl = comicModule.navigation.model3D?.[0]?.embedUrl || comicModule.navigation.model3D?.[0]?.arUrl || null;
 

@@ -33,6 +33,16 @@ type RawQuestion = {
   explanation: string;
 };
 
+interface IdentificationStateContext {
+  comicId: number;
+  lokasi: string;
+  cover: string;
+  title: string;
+  comicSlug?: string;
+  sourcePage?: number;
+  pdfPath?: string | null;
+}
+
 type IdentificationData = ComicModuleLike['identification'];
 function buildQuestionsForIdentification(identificationData: IdentificationData): RawQuestion[] {
   return identificationData.questions.map((question) => ({
