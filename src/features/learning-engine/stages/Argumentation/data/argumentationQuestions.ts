@@ -180,10 +180,6 @@ export function getArgumentationLearningObject(
     .map((shape) => shape?.trim())
     .filter(Boolean);
 
-  if (normalized.length === 0) {
-    return ARGUMENTATION_OBJECTS[0] ?? null;
-  }
-
   const packageObjects = argumentationPackage?.questions ? mapPackageQuestionsToLearningObjects(argumentationPackage.questions) : ARGUMENTATION_OBJECTS;
 
   if (normalized.length === 0) {

@@ -67,14 +67,20 @@ export interface ComicContentPackageLike {
   argumentation: {
     questions: Array<{
       id: string;
+      title?: string;
       templePart: string;
       question: string;
       photoSrc: string;
+      image?: string;
       photoAlt: string;
       overlaySrc?: string;
+      shape?: string;
       shapeName: string;
       shapeKey: string;
       shapeSrc: string;
+      icon?: string;
+      aiContext?: string;
+      feedback?: string;
       highlightColor: string;
     }>;
   };
@@ -170,14 +176,20 @@ export interface ComicModuleLike {
   argumentation: {
     questions: Array<{
       id: string;
+      title?: string;
       templePart: string;
       question: string;
       photoSrc: string;
+      image?: string;
       photoAlt: string;
       overlaySrc?: string;
+      shape?: string;
       shapeName: string;
       shapeKey: string;
       shapeSrc: string;
+      icon?: string;
+      aiContext?: string;
+      feedback?: string;
       highlightColor: string;
     }>;
   };
