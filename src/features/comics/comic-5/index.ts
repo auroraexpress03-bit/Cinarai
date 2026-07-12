@@ -1,35 +1,29 @@
-import { getLearningContentPackage } from '@/features/learning-engine/content/contentPackages';
-import type { ComicModule } from '../types';
+import { metadata } from './content/metadata';
+import { navigation } from './content/navigation';
+import { identification } from './content/identification';
+import { argumentation } from './content/argumentation';
+import { resolution } from './content/resolution';
+import { application } from './content/application';
+import { introspection } from './content/introspection';
+import { report } from './content/report';
+import { ai } from './content/ai';
 
-const packageContent = getLearningContentPackage(5);
-
-const Comic5Module: ComicModule = {
-  comicId: 5,
-  metadata: packageContent.metadata,
-  cover: packageContent.metadata.cover,
-  contextualization: {
-    pdfPath: null,
-  },
-  identification: packageContent.identification,
-  navigation: {
-    learningObjects: packageContent.learningObjects,
-    model3D: packageContent.model3D,
-    qrCode: packageContent.qrCode,
-    aiPrompt: packageContent.aiPrompt.navigation,
-  },
-  argumentation: packageContent.argumentation,
-  resolution: packageContent.resolution,
-  application: packageContent.application,
-  introspection: packageContent.introspection,
-  report: packageContent.report,
-  ai: packageContent.aiPrompt,
-  qr: packageContent.qrCode,
-  assets: {
-    thumbnail: packageContent.metadata.thumbnail,
-  },
-  objects: packageContent.learningObjects,
-  progressConfig: {},
-  packageContent,
+const objects = navigation.learningObjects;
+const assets = {
+  qrCode: navigation.qrCode,
+  model3D: navigation.model3D,
 };
 
-export default Comic5Module;
+export const Comic5Module = {
+  metadata,
+  navigation,
+  identification,
+  argumentation,
+  resolution,
+  application,
+  introspection,
+  report,
+  ai,
+  assets,
+  objects,
+};

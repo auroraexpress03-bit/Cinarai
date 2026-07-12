@@ -7,7 +7,7 @@ import type {
   IdentificationItem,
   IdentificationState,
 } from '../types';
-// Avoid importing types from contentPackages in service layer; receive package data via DI.
+import type { ComicModuleLike } from '@/features/comics/types';
 import { getShapeKnowledgeEntry } from './shapeKnowledge';
 
 /** Fisher-Yates shuffle — urutan berbeda setiap kali dipanggil */
@@ -33,223 +33,18 @@ type RawQuestion = {
   explanation: string;
 };
 
-const SHAPE_OPTIONS: RawOption[] = [
-  ...['balok', 'kubus', 'limas', 'prisma', 'kerucut'].map((id) => {
-    const entry = getShapeKnowledgeEntry(id);
-    return { text: entry?.title ?? id, correct: true };
-  }),
-  ...['bola', 'tabung'].map((id) => {
-    const entry = getShapeKnowledgeEntry(id);
-    return { text: entry?.title ?? id, correct: false };
-  }),
-];
-
-/**
- * Soal Komik 2 — Candi Penataran, Blitar.
- * Soal ini fokus pada bangun datar, pola, dan simetri pada relief dan arsitektur candi.
- */
-const KOMIK_2_QUESTIONS: RawQuestion[] = [
-  {
-    question: 'Perhatikan pola relief pada bagian ini. Bangun datar apa yang paling terlihat berulang pada susunan pola Candi Penataran?',
-    imageAlt: 'Relief Candi Penataran memperlihatkan pola simetri dan susunan persegi yang teratur.',
-    image: '/assets/qr/komik-2/13-objek-1.jpeg',
-    overlayType: '/assets/qr/komik-2/13-objek-1.jpeg',
-    crop: '/assets/qr/komik-2/13-objek-1.jpeg',
-    highlight: '/assets/qr/komik-2/13-objek-1.jpeg',
-    options: [
-      { text: 'Persegi', correct: true },
-      { text: 'Segitiga', correct: false },
-      { text: 'Lingkaran', correct: false },
-      { text: 'Trapesium', correct: false },
-    ],
-    explanation: 'Pola relief yang teratur dan sama di kiri kanan menunjukkan bentuk persegi yang sering dipakai dalam susunan dekoratif.',
-  },
-  {
-    question: 'Amati bidang panjang pada bagian ini. Bangun datar apa yang paling sesuai dengan bentuknya?',
-    imageAlt: 'Bagian bidang Candi Penataran tampak memanjang dan memiliki sisi berhadapan sama panjang.',
-    image: '/assets/qr/komik-2/15-objek-2.jpeg',
-    overlayType: '/assets/qr/komik-2/15-objek-2.jpeg',
-    crop: '/assets/qr/komik-2/15-objek-2.jpeg',
-    highlight: '/assets/qr/komik-2/15-objek-2.jpeg',
-    options: [
-      { text: 'Persegi panjang', correct: true },
-      { text: 'Belah ketupat', correct: false },
-      { text: 'Jajar genjang', correct: false },
-      { text: 'Segi enam', correct: false },
-    ],
-    explanation: 'Bangun datar ini memiliki dua pasang sisi yang sama panjang dan keempat sudutnya siku-siku, sehingga disebut persegi panjang.',
-  },
-  {
-    question: 'Lihat bagian bentuk lancip pada ornamen candi. Bangun datar apa yang paling cocok untuk menggambarkannya?',
-    imageAlt: 'Ornamen Candi Penataran menampilkan bentuk segitiga yang tajam dan simetris.',
-    image: '/assets/qr/komik-2/17-objek-3.jpeg',
-    overlayType: '/assets/qr/komik-2/17-objek-3.jpeg',
-    crop: '/assets/qr/komik-2/17-objek-3.jpeg',
-    highlight: '/assets/qr/komik-2/17-objek-3.jpeg',
-    options: [
-      { text: 'Segitiga', correct: true },
-      { text: 'Trapesium', correct: false },
-      { text: 'Lingkaran', correct: false },
-      { text: 'Layang-layang', correct: false },
-    ],
-    explanation: 'Bentuk yang memiliki tiga sisi dan tiga sudut ini disebut segitiga.',
-  },
-  {
-    question: 'Pola pada relief ini tampak memiliki sepasang sisi sejajar. Bangun datar mana yang paling tepat?',
-    imageAlt: 'Pola relief Candi Penataran menunjukkan bentuk trapesium dengan dua sisi sejajar.',
-    image: '/assets/qr/komik-2/18-objek-4.jpeg',
-    overlayType: '/assets/qr/komik-2/18-objek-4.jpeg',
-    crop: '/assets/qr/komik-2/18-objek-4.jpeg',
-    highlight: '/assets/qr/komik-2/18-objek-4.jpeg',
-    options: [
-      { text: 'Trapesium', correct: true },
-      { text: 'Persegi', correct: false },
-      { text: 'Segitiga', correct: false },
-      { text: 'Persegi panjang', correct: false },
-    ],
-    explanation: 'Trapesium adalah bangun datar yang memiliki sepasang sisi sejajar, sesuai dengan bentuk pola yang diamati.',
-  },
-  {
-    question: 'Jika kamu melipat bentuk ini pada sumbu tengah, apakah bentuk ini memiliki simetri lipat?',
-    imageAlt: 'Relief Candi Penataran menunjukkan bentuk yang seimbang sehingga mudah dicerminkan pada sumbu tengah.',
-    image: '/comics/komik-2/cover.png',
-    overlayType: '/comics/komik-2/cover.png',
-    crop: '/comics/komik-2/cover.png',
-    highlight: '/comics/komik-2/cover.png',
-    options: [
-      { text: 'Ya, ada simetri lipat', correct: true },
-      { text: 'Tidak ada simetri lipat', correct: false },
-      { text: 'Hanya simetri putar', correct: false },
-      { text: 'Tidak bisa ditentukan', correct: false },
-    ],
-    explanation: 'Bentuk yang seimbang di kiri dan kanan memiliki simetri lipat karena dapat dilipat menjadi dua bagian yang sama.',
-  },
-];
-
-const KOMIK_1_QUESTIONS: RawQuestion[] = [
-  {
-    question: 'Apa saja bangun ruang yang kamu temukan di Candi Jawi?',
-    imageAlt: 'Foto keseluruhan Candi Jawi dengan overlay bangun ruang dominan.',
-    image: '/images/identification/komik1-soal1.jpg',
-    highlight: '/images/identification/komik1-soal1-tubuh-candi.svg',
-    options: SHAPE_OPTIONS,
-    explanation: 'Pada Candi Jawi, bentuk yang benar-benar terlihat adalah kubus, balok, limas, dan prisma. Bangun ruang lain seperti bola, tabung, dan prisma segi enam merupakan distractor yang tidak menjadi bagian utama candi.',
-  },
-  {
-    question: 'Apa saja bangun ruang yang kamu temukan di Candi Jawi?',
-    imageAlt: 'Zoom bagian kaki Candi Jawi dengan highlight bentuk kubus dan balok.',
-    image: '/images/identification/komik1-soal2.jpg',
-    highlight: '/images/identification/komik1-soal2-kaki-candi.svg',
-    options: SHAPE_OPTIONS,
-    explanation: 'Susunan batu pada kaki candi membantu mengidentifikasi kubus dan balok. Bangun ruang yang lain tidak menjadi bentuk utama pada struktur candi.',
-  },
-  {
-    question: 'Apa saja bangun ruang yang kamu temukan di Candi Jawi?',
-    imageAlt: 'Zoom badan tengah Candi Jawi dengan highlight bentuk balok.',
-    image: '/images/identification/komik1-soal3.jpg',
-    highlight: '/images/identification/komik1-soal3-puncak-candi.svg',
-    options: SHAPE_OPTIONS,
-    explanation: 'Badan candi banyak menyerupai balok, sementara kubus dan limas terlihat pada bagian yang lain. Bentuk seperti bola dan tabung tidak muncul sebagai bagian utama.',
-  },
-  {
-    question: 'Apa saja bangun ruang yang kamu temukan di Candi Jawi?',
-    imageAlt: 'Zoom atap Candi Jawi dengan highlight bentuk limas segi empat.',
-    image: '/images/identification/komik1-soal4.jpg',
-    highlight: '/images/identification/komik1-soal4-atap-candi.svg',
-    options: SHAPE_OPTIONS,
-    explanation: 'Atap Candi Jawi memberi kesan limas, sedangkan bagian lain candi menampilkan kubus, balok, dan prisma. Distractor seperti bola dan tabung tidak sesuai.',
-  },
-  {
-    question: 'Apa saja bangun ruang yang kamu temukan di Candi Jawi?',
-    imageAlt: 'Foto keseluruhan Candi Jawi dengan highlight kombinasi kubus, balok, dan limas.',
-    image: '/images/identification/komik1-soal5.jpg',
-    highlight: '/images/identification/komik1-soal5-dinding-candi.svg',
-    options: SHAPE_OPTIONS,
-    explanation: 'Candi Jawi tersusun dari bangun ruang yang dapat diamati secara keseluruhan: kubus, balok, limas, dan prisma. Bentuk yang lain adalah distractor untuk melatih identifikasi.',
-  },
-];
-
-function buildFallbackQuestions(lokasi: string): RawQuestion[] {
-  return [
-    {
-      question: `Bangun ruang apa yang paling banyak kamu temukan saat mengamati ${lokasi}?`,
-      imageAlt: `Ilustrasi bangun ruang pada ${lokasi}`,
-      image: '',
-      options: [
-        { text: 'Balok', correct: true },
-        { text: 'Kerucut', correct: false },
-        { text: 'Limas', correct: false },
-        { text: 'Prisma', correct: false },
-      ],
-      explanation: 'Balok adalah bangun ruang yang paling umum ditemukan pada bangunan bersejarah.',
-    },
-    {
-      question: `Bagian mana dari ${lokasi} yang paling mirip dengan bentuk kubus?`,
-      imageAlt: `Ilustrasi kaki bangunan ${lokasi}`,
-      image: '',
-      options: [
-        { text: 'Susunan batu kaki bangunan', correct: true },
-        { text: 'Atap yang meruncing', correct: false },
-        { text: 'Puncak menara', correct: false },
-        { text: 'Tangga masuk', correct: false },
-      ],
-      explanation: 'Susunan batu pada kaki bangunan umumnya berbentuk kotak-kotak yang menyerupai kubus.',
-    },
-    {
-      question: `Bangun ruang apa yang paling tepat menggambarkan puncak ${lokasi}?`,
-      imageAlt: `Ilustrasi puncak ${lokasi}`,
-      image: '',
-      options: [
-        { text: 'Limas segi empat', correct: true },
-        { text: 'Kubus', correct: false },
-        { text: 'Balok', correct: false },
-        { text: 'Tabung', correct: false },
-      ],
-      explanation: 'Puncak bangunan yang meruncing ke satu titik dengan alas berbentuk persegi adalah ciri khas limas segi empat.',
-    },
-    {
-      question: `Bagian dinding ${lokasi} paling mirip dengan bangun ruang apa?`,
-      imageAlt: `Ilustrasi dinding ${lokasi}`,
-      image: '',
-      options: [
-        { text: 'Prisma segi empat', correct: true },
-        { text: 'Kerucut', correct: false },
-        { text: 'Bola', correct: false },
-        { text: 'Limas', correct: false },
-      ],
-      explanation: 'Dinding bangunan yang memiliki dua alas sejajar dan sisi-sisi tegak adalah ciri khas prisma segi empat.',
-    },
-    {
-      question: `Bangun ruang apa yang paling tepat menggambarkan atap ${lokasi}?`,
-      imageAlt: `Ilustrasi atap ${lokasi}`,
-      image: '',
-      options: [
-        { text: 'Kerucut', correct: true },
-        { text: 'Kubus', correct: false },
-        { text: 'Balok', correct: false },
-        { text: 'Prisma', correct: false },
-      ],
-      explanation: 'Atap yang meruncing ke satu titik di atas dengan alas berbentuk lingkaran adalah ciri khas kerucut.',
-    },
-  ];
-}
-
-function getQuestionsFromPackage(identificationPackage: { questions?: any[] } | null | undefined, lokasi: string): RawQuestion[] {
-  const packageQuestions = identificationPackage?.questions ?? [];
-  if (packageQuestions.length > 0) {
-    return packageQuestions.map((question: any) => ({
-      question: question.question,
-      imageAlt: question.imageAlt,
-      image: question.image,
-      overlayType: question.overlayType,
-      crop: question.crop,
-      highlight: question.highlight,
-      options: question.options.map((option: any) => ({ text: option.text, correct: option.correct })),
-      explanation: question.explanation,
-    }));
-  }
-
-  return buildFallbackQuestions(lokasi);
+type IdentificationData = ComicModuleLike['identification'];
+function buildQuestionsForIdentification(identificationData: IdentificationData): RawQuestion[] {
+  return identificationData.questions.map((question) => ({
+    question: question.question,
+    imageAlt: question.imageAlt,
+    image: question.image,
+    overlayType: question.overlayType,
+    crop: question.crop,
+    highlight: question.highlight,
+    options: question.options.map((option) => ({ text: option.text, correct: option.correct })),
+    explanation: question.explanation,
+  }));
 }
 
 function buildShuffledOptions(itemId: string, rawOptions: RawOption[]): AnswerOption[] {
@@ -267,33 +62,18 @@ function buildShuffledOptions(itemId: string, rawOptions: RawOption[]): AnswerOp
  * correctOptionId ditentukan dari option.correct === true setelah shuffle.
  */
 export function createIdentificationState(
-  identificationPackage: { questions?: any[] } | null | undefined,
-  comicId: number,
-  lokasi: string,
-  _learningTargets: readonly string[],
-  _cover: string,
-  title: string,
-  comicSlug = '',
-  sourcePage = 1,
-  pdfPath: string | null = null,
+  identificationData: IdentificationData,
+  context: IdentificationStateContext,
 ): IdentificationState {
-  let questions = getQuestionsFromPackage(identificationPackage, lokasi);
-  // If package provided no questions and the caller passed a comicId, keep old comic-specific fallbacks
-  if ((questions?.length ?? 0) === 0) {
-    if (comicId === 1) {
-      questions = KOMIK_1_QUESTIONS;
-    } else if (comicId === 2) {
-      questions = KOMIK_2_QUESTIONS;
-    }
-  }
+  const questions = buildQuestionsForIdentification(identificationData);
   const observationImage = resolveComicObservationImage({
-    slug: comicSlug || `komik-${comicId}`,
-    pdfPath,
-    page: sourcePage,
+    slug: context.comicSlug || `komik-${context.comicId}`,
+    pdfPath: context.pdfPath ?? null,
+    page: context.sourcePage ?? 1,
   });
 
   const items: IdentificationItem[] = questions.map((question, index) => {
-    const id = `${comicId}-identification-${index}`;
+    const id = `${context.comicId}-identification-${index}`;
     const options = buildShuffledOptions(id, question.options);
     const correctOption = options.find((o) => o.correct);
     const imageSrc = question.image || observationImage.imageSrc;
@@ -327,10 +107,10 @@ export function createIdentificationState(
   });
 
   return {
-    comicId,
-    lokasi,
-    cover: _cover,
-    title,
+    comicId: context.comicId,
+    lokasi: context.lokasi,
+    cover: context.cover,
+    title: context.title,
     observe: { note: '', isDone: false },
     items,
     observedCount: 0,

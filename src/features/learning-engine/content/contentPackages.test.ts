@@ -29,7 +29,15 @@ test('getLearningContentPackage falls back to a reusable generic package for unk
 
 test('identification state can be built from the content package content', () => {
   const packageContent = getLearningContentPackage(2);
-  const state = createIdentificationState(packageContent.identification, 2, 'Candi Penataran', [], 'cover', 'Penataran', 'komik-2', 1, null);
+  const state = createIdentificationState(packageContent.identification, {
+    comicId: 2,
+    lokasi: 'Candi Penataran',
+    cover: 'cover',
+    title: 'Penataran',
+    comicSlug: 'komik-2',
+    sourcePage: 1,
+    pdfPath: null,
+  });
 
   assert.equal(state.items.length, packageContent.identification.questions.length);
   assert.equal(state.items[0]?.question, packageContent.identification.questions[0]?.question);

@@ -15,7 +15,7 @@ import {
   updateReason,
   saveReason,
 } from '../services/identificationService';
-import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
+import { getComicModule } from '@/features/comics';
 
 export interface UseIdentificationReturn {
   state: IdentificationState;
@@ -47,21 +47,29 @@ export function useIdentification({
   lokasi,
   cover,
   title,
-  learningTargets,
+  learningTargets: _learningTargets,
   comicSlug,
   sourcePage,
   pdfPath,
 }: UseIdentificationOptions): UseIdentificationReturn {
-  const { comicModule } = useLearningEngine();
   const { getLastPage } = useComicReadingProgress();
   const resolvedSourcePage = useMemo(() => {
     if (typeof sourcePage === 'number' && sourcePage > 0) return sourcePage;
     return getLastPage(comicId) || 1;
   }, [comicId, getLastPage, sourcePage]);
 
-  const [state, setState] = useState<IdentificationState>(() =>
-    createIdentificationState(comicModule?.identification ?? null, comicId, lokasi, learningTargets, cover, title, comicSlug, resolvedSourcePage, pdfPath)
-  );
+  const [state, setState] = useState<IdentificationState>(() => {
+    const comicModule = getComicModule(comicId);
+    return createIdentificationState(comicModule.identification, {
+      comicId,
+      lokasi,
+      cover,
+      title,
+      comicSlug,
+      sourcePage: resolvedSourcePage,
+      pdfPath,
+    });
+  });
 
   const handleSetObserveNote = useCallback((note: string) => {
     setState((prev) => setObserveNote(prev, note));
@@ -97,7 +105,7 @@ export function useIdentification({
       for (const answer of answers) {
         const item = next.items.find((i) => i.targetIndex === answer.step);
         if (!item) continue;
-        
+
         const selectedIds = Array.from(new Set(
           (answer.selectedAnswerIds && answer.selectedAnswerIds.length > 0
             ? answer.selectedAnswerIds
@@ -105,7 +113,7 @@ export function useIdentification({
                 .filter((option) => option.text === answer.selectedAnswer)
                 .map((option) => option.id))
         ));
-        
+
         next = {
           ...next,
           items: next.items.map((i) =>
@@ -120,6 +128,25 @@ export function useIdentification({
                   status: answer.reason?.trim() ? 'OBSERVED' : i.status,
                 }
               : i
+          ),
+        };
+      }
+      const observedCount = next.items.filter((i) => i.status === 'OBSERVED').length;
+      return { ...next, observedCount, isComplete: next.items.every((i) => i.reasonStatus === 'SAVED') };
+    });
+  }, []);
+
+  const reset = useCallback(() => {
+    setState((prev) => resetIdentificationState(prev));
+  }, []);
+
+  const percentage = useMemo(() => {
+    if (state.items.length === 0) return 0;
+    return Math.round((state.observedCount / state.items.length) * 100);
+  }, [state.observedCount, state.items.length]);
+
+  return { state, setObserveNote: handleSetObserveNote, completeObserve: handleCompleteObserve, selectOption, setNote, save, setReason: handleSetReason, saveReason: handleSaveReason, applyAnswers, reset, percentage };
+}
           ),
         };
       }
