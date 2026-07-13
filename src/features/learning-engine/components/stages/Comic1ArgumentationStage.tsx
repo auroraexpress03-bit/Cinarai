@@ -4,11 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import type { Comic1ArgumentationQuestion } from '@/features/comics/comic-1/content/types';
-import BalokAsset from '@/features/comics/comic-1/assets/argumentation/Balok.png';
-import KerucutAsset from '@/features/comics/comic-1/assets/argumentation/Kerucut.png';
-import KubusAsset from '@/features/comics/comic-1/assets/argumentation/Kubus.png';
-import LimassegiempatAsset from '@/features/comics/comic-1/assets/argumentation/Limassegiempat.png';
-import PrismasegiempatAsset from '@/features/comics/comic-1/assets/argumentation/Prismasegiempat.png';
 
 type FeedbackLevel = 'SANGAT_BAIK' | 'HAMPIR_BENAR' | 'PERLU_PERBAIKAN';
 
@@ -29,19 +24,6 @@ interface Comic1ArgumentationStageProps {
   comicTitle: string;
   comicLocation: string;
   classLevel: string;
-}
-
-const shapePreviews: Record<string, { src: string; width: number; height: number }> = {
-  kubus: { src: KubusAsset.src, width: KubusAsset.width, height: KubusAsset.height },
-  balok: { src: BalokAsset.src, width: BalokAsset.width, height: BalokAsset.height },
-  'prisma segi empat': { src: PrismasegiempatAsset.src, width: PrismasegiempatAsset.width, height: PrismasegiempatAsset.height },
-  'limas segi empat': { src: LimassegiempatAsset.src, width: LimassegiempatAsset.width, height: LimassegiempatAsset.height },
-  kerucut: { src: KerucutAsset.src, width: KerucutAsset.width, height: KerucutAsset.height },
-};
-
-function getShapePreview(shapeName: string) {
-  const normalized = shapeName.trim().toLowerCase();
-  return shapePreviews[normalized] ?? shapePreviews.kubus;
 }
 
 function FeedbackCard({ feedback }: { feedback: AiFeedback }) {
@@ -111,7 +93,6 @@ export default function Comic1ArgumentationStage({
 
   const charCount = answer.trim().length;
   const canSubmit = charCount >= 20 && !isSubmitting && !feedback;
-  const shapePreview = getShapePreview(question.shapeName);
 
   const adjustTextareaHeight = useCallback(() => {
     if (!textareaRef.current) return;
@@ -194,39 +175,14 @@ export default function Comic1ArgumentationStage({
           </div>
 
           <div className="overflow-hidden rounded-[24px] border border-neutral-200 bg-white p-4">
-            <div className="flex flex-col items-center justify-center gap-4 md:flex-row md:gap-6">
-              <div className="flex w-full max-w-[300px] overflow-hidden rounded-[24px] bg-neutral-100">
-                <Image
-                  src={question.photoSrc}
-                  alt={question.photoAlt ?? 'Foto bagian candi'}
-                  width={1200}
-                  height={800}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-
-              <div className="flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" className="text-neutral-500">
-                  <path
-                    d="M4 12h16M14 6l6 6-6 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-
-              <div className="flex h-[170px] w-[170px] items-center justify-center overflow-hidden rounded-[24px] bg-neutral-100">
-                <Image
-                  src={shapePreview.src}
-                  alt={`Ilustrasi bangun ruang`}
-                  width={shapePreview.width}
-                  height={shapePreview.height}
-                  className="h-full w-auto object-contain"
-                />
-              </div>
+            <div className="overflow-hidden rounded-[24px] bg-neutral-100">
+              <Image
+                src={question.image ?? question.photoSrc}
+                alt={question.photoAlt ?? 'Argumentation asset'}
+                width={1200}
+                height={800}
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
 
