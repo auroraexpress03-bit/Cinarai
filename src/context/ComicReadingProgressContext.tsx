@@ -38,6 +38,20 @@ export function useComicReadingProgress(): ComicReadingProgressContextValue {
   return ctx;
 }
 
+function logReadingProgress(functionName: string, comicId: number, page: number, totalPages: number, completed: boolean) {
+  // eslint-disable-next-line no-console
+  console.log('[reading-progress]', {
+    comicId,
+    currentPage: page,
+    totalPages,
+    completed,
+    timestamp: new Date().toISOString(),
+    functionName,
+  });
+  // eslint-disable-next-line no-console
+  console.log('[reading-progress-stack]', new Error().stack?.split('\n').slice(1, 4).join(' | '));
+}
+
 function mapStoredProgress(data: Record<number, StoredComicReadingProgress>): Record<number, ComicReadingProgress> {
   return Object.entries(data).reduce<Record<number, ComicReadingProgress>>((acc, [key, value]) => {
     const comicId = Number(key);
@@ -54,6 +68,8 @@ function mapStoredProgress(data: Record<number, StoredComicReadingProgress>): Re
   }, {});
 }
 
+// Global `__cinaraiDebug` declared in src/types/cinarai-debug.d.ts
+
 interface ComicReadingProgressProviderProps {
   children: React.ReactNode;
 }
@@ -66,6 +82,7 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
 
   useEffect(() => {
     const handleReset = (event: Event) => {
+      logReadingProgress('ComicReadingProgressContext:handleReset', (event as CustomEvent<{ comicId?: number }>).detail?.comicId ?? 0, 1, 1, false);
       const detail = (event as CustomEvent<{ comicId?: number }>).detail;
       if (detail?.comicId !== undefined) {
         const comicId = detail.comicId;
@@ -105,6 +122,7 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
   }, [allProgress]);
 
   const updateProgress = useCallback((comicId: number, page: number, totalPages: number) => {
+    logReadingProgress('updateProgress', comicId, page, totalPages, false);
     setCurrentComicId(comicId);
     setAllProgress((prev) => {
       const nextPage = Math.max(1, Math.min(page, totalPages));
@@ -140,6 +158,7 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
   }, []);
 
   const markCompleted = useCallback((comicId: number, totalPages: number) => {
+    logReadingProgress('markCompleted', comicId, totalPages, totalPages, true);
     setCurrentComicId(comicId);
     setAllProgress((prev) => {
       const current = prev[comicId] || {
@@ -174,6 +193,7 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
   }, []);
 
   const clearProgress = useCallback((comicId: number) => {
+    logReadingProgress('clearProgress', comicId, 1, 1, false);
     setCurrentComicId((current) => (current === comicId ? null : current));
     setAllProgress((prev) => {
       if (!(comicId in prev)) return prev;
@@ -193,6 +213,20 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
   }, [allProgress]);
 
   const progress = currentComicId ? allProgress[currentComicId] ?? null : null;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const debugApi = window.__cinaraiDebug ?? {};
+    window.__cinaraiDebug = {
+      ...debugApi,
+      triggerReadingProgressUpdate: (comicId: number, page: number, totalPages: number) => {
+        updateProgress(comicId, page, totalPages);
+      },
+      triggerReadingProgressComplete: (comicId: number, totalPages: number) => {
+        markCompleted(comicId, totalPages);
+      },
+    };
+  }, [updateProgress, markCompleted]);
 
   const value: ComicReadingProgressContextValue = {
     progress,

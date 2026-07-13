@@ -21,6 +21,29 @@ import {
 import type { ComicProgressDocument } from '@/types/firestore';
 import type { ComicProgressState } from '@/types/progress';
 
+// Global `__cinaraiDebug` declared in src/types/cinarai-debug.d.ts
+
+function logProgressWrite(functionName: string, comicId: number, state: ComicProgressState, extraData?: Record<string, unknown>) {
+  const payload = {
+    comicId,
+    currentPage: state.completedCount,
+    totalPages: state.sintaksList.length,
+    completed: state.isCompleted,
+    timestamp: new Date().toISOString(),
+    functionName,
+  };
+  // eslint-disable-next-line no-console
+  console.log('[progress-write]', payload);
+  if (typeof window !== 'undefined' && typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[progress-write-stack]', new Error().stack?.split('\n').slice(1, 4).join(' | '));
+  }
+  if (extraData) {
+    // eslint-disable-next-line no-console
+    console.log('[progress-write-extra]', { comicId, extraData });
+  }
+}
+
 // ─── Error helper ─────────────────────────────────────────────────────────────
 
 /**
@@ -178,6 +201,8 @@ export async function saveComicProgress(
     ...(extraData ?? {}),
   };
 
+  logProgressWrite('saveComicProgress', comicId, state, extraData);
+
   try {
     // merge: true → creates document automatically if it does not exist
     await setDoc(ref, payload, { merge: true });
@@ -222,6 +247,8 @@ export async function resetComicProgress(userId: string, comicId: number): Promi
     introspection: null,
   };
 
+  logProgressWrite('resetComicProgress', comicId, initialState);
+
   try {
     await Promise.all([
       setDoc(ref, resetDoc),
@@ -261,6 +288,14 @@ export function subscribeToComicProgress(
       onError?.(error);
     }
   );
+}
+
+if (typeof window !== 'undefined') {
+  window.__cinaraiDebug = {
+    ...window.__cinaraiDebug,
+    resetComicProgress,
+    saveComicProgress,
+  };
 }
 
 /** Subscribe to all comics' progress for a user in realtime. */

@@ -28,6 +28,20 @@ import {
 } from '../types';
 import { extractFirebaseErrorCode } from '@/services/comicProgress';
 
+function logLearningEngine(functionName: string, comicId: number, page: number, totalPages: number, completed: boolean) {
+  // eslint-disable-next-line no-console
+  console.log('[learning-engine]', {
+    comicId,
+    currentPage: page,
+    totalPages,
+    completed,
+    timestamp: new Date().toISOString(),
+    functionName,
+  });
+  // eslint-disable-next-line no-console
+  console.log('[learning-engine-stack]', new Error().stack?.split('\n').slice(1, 4).join(' | '));
+}
+
 const LearningContext = createContext<LearningContextValue | null>(null);
 
 /** Map Stage enum → Sintaks string (Firestore uses Sintaks strings) */
@@ -40,6 +54,8 @@ function stageToSintaks(stage: Stage): Sintaks | null {
 function sintaksToStage(sintaks: Sintaks): Stage {
   return Stage[sintaks as keyof typeof Stage] ?? Stage.Cover;
 }
+
+// Global `__cinaraiDebug` declared in src/types/cinarai-debug.d.ts
 
 interface LearningEngineProviderProps {
   comic: Comic;
@@ -281,6 +297,7 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
   }, []);
 
   const resetProgress = useCallback(async () => {
+    logLearningEngine('LearningEngineContext.resetProgress', comicId, 1, 1, false);
     if (!user?.uid) {
       showSnackbar('Gagal mengulang pembelajaran: login diperlukan.', 'error');
       return;
@@ -301,6 +318,17 @@ export function LearningEngineProvider({ comic, children }: LearningEngineProvid
       showSnackbar(`Tidak dapat mengatur ulang progres. Silakan coba lagi. (${code})`, 'error');
     }
   }, [user, comicId, showSnackbar]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const debugApi = window.__cinaraiDebug ?? {};
+    window.__cinaraiDebug = {
+      ...debugApi,
+      resetLearningEngineProgress: async () => {
+        await resetProgress();
+      },
+    };
+  }, [resetProgress]);
 
   const value = useMemo<LearningContextValue>(
     () => ({

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Document, pdfjs } from "react-pdf";
 import { usePdfSize } from "@/hooks/usePdfSize";
+import { markNextDocumentLoadAsInitial, shouldNotifyPageChange } from "./pdfViewerProgress";
 import PdfError from "./PdfError";
 import PdfLoading from "./PdfLoading";
 import PdfNavigation from "./PdfNavigation";
@@ -51,6 +52,7 @@ export default function PdfViewer({
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -62,7 +64,9 @@ export default function PdfViewer({
   }, []);
 
   useEffect(() => {
-    if (numPages > 0) onPageChange?.(page, numPages);
+    if (shouldNotifyPageChange({ numPages, initialLoadRef })) {
+      onPageChange?.(page, numPages);
+    }
   }, [numPages, onPageChange, page]);
 
   useEffect(() => {
@@ -70,6 +74,10 @@ export default function PdfViewer({
       const nextPage = Math.max(1, initialPage ?? 1);
       return current === nextPage ? current : nextPage;
     });
+    // When the PDF source or initialPage changes (new document), treat
+    // the next numPages update as the initial load and avoid
+    // reporting it as user activity.
+    markNextDocumentLoadAsInitial(initialLoadRef);
   }, [initialPage, pdfPath]);
 
   useEffect(() => {

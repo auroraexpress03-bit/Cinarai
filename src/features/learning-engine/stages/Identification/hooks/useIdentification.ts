@@ -59,6 +59,15 @@ export function useIdentification({
   }, [comicId, getLastPage, sourcePage]);
 
   const [state, setState] = useState<IdentificationState>(() => {
+    // eslint-disable-next-line no-console
+    console.log('[identification-hook]', {
+      comicId,
+      currentPage: resolvedSourcePage,
+      totalPages: 37,
+      completed: false,
+      timestamp: new Date().toISOString(),
+      functionName: 'useIdentification',
+    });
     const comicModule = getComicModule(comicId);
     return createIdentificationState(comicModule.identification, {
       comicId,
