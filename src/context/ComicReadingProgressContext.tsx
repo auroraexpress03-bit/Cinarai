@@ -79,6 +79,11 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
     mapStoredProgress(getStoredComicReadingProgress())
   );
   const [currentComicId, setCurrentComicId] = useState<number | null>(null);
+  // Suppress resuming for comics that were just reset. When a comic is reset,
+  // we want to ignore any stored `lastPage` until the user explicitly
+  // navigates (updateProgress) for that comic. Use a ref to avoid
+  // re-renders when the set changes.
+  const suppressedResumesRef = React.useRef<Set<number>>(new Set());
 
   useEffect(() => {
     const handleReset = (event: Event) => {
@@ -93,6 +98,8 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
           return next;
         });
         setCurrentComicId((current) => (current === comicId ? null : current));
+        // Mark this comic to ignore resume until the user interacts.
+        suppressedResumesRef.current.add(comicId);
         return;
       }
 
@@ -123,6 +130,9 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
 
   const updateProgress = useCallback((comicId: number, page: number, totalPages: number) => {
     logReadingProgress('updateProgress', comicId, page, totalPages, false);
+    // User-initiated progress update — clear any suppression so resume is
+    // allowed on subsequent opens.
+    suppressedResumesRef.current.delete(comicId);
     setCurrentComicId(comicId);
     setAllProgress((prev) => {
       const nextPage = Math.max(1, Math.min(page, totalPages));
@@ -202,9 +212,13 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
       return next;
     });
     clearStoredComicReadingProgressEntry(comicId);
+    // Also suppress resume after an explicit clear so the reader opens at
+    // page 1 until the user navigates.
+    suppressedResumesRef.current.add(comicId);
   }, []);
 
   const getLastPage = useCallback((comicId: number): number => {
+    if (suppressedResumesRef.current.has(comicId)) return 1;
     return allProgress[comicId]?.lastPage ?? 1;
   }, [allProgress]);
 
