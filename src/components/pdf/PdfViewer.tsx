@@ -129,7 +129,9 @@ export default function PdfViewer({
   const onDocumentLoadSuccess = useCallback(
     ({ numPages: n }: { numPages: number }) => {
       setNumPages(n);
-      setPage(Math.min(Math.max(initialPage ?? 1, 1), n));
+      const requestedPage = initialPage ?? 1;
+      const resolvedPage = requestedPage < 1 || requestedPage > n ? 1 : requestedPage;
+      setPage(resolvedPage);
     },
     [initialPage]
   );

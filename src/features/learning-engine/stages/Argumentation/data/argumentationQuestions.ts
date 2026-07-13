@@ -18,6 +18,7 @@ export interface ArgumentationQuestion {
   photoSrc: string;
   photoAlt: string;
   overlaySrc?: string;
+  shape?: string;
   shapeName: string;
   shapeKey: string;
   shapeSrc: string;

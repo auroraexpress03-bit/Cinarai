@@ -17,7 +17,10 @@ interface ComicReadingProgressContextValue {
   markCompleted: (comicId: number, totalPages: number) => void;
   getLastPage: (comicId: number) => number;
   isComicCompleted: (comicId: number) => boolean;
+  clearProgress: (comicId: number) => void;
 }
+
+const STORAGE_EVENT = 'cinarai:comic-reading-progress-cleared';
 
 const ComicReadingProgressContext = createContext<ComicReadingProgressContextValue | null>(null);
 
@@ -50,6 +53,43 @@ function saveStoredProgress(data: Record<number, ComicReadingProgress>): void {
   }
 }
 
+function dispatchProgressClearedEvent(comicId?: number): void {
+  if (typeof window === 'undefined') return;
+  const event = new CustomEvent(STORAGE_EVENT, { detail: { comicId } });
+  window.dispatchEvent(event);
+}
+
+export function clearStoredComicReadingProgress(comicId?: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+
+    const parsed = JSON.parse(stored) as Record<number, ComicReadingProgress>;
+    if (!parsed || typeof parsed !== 'object') {
+      localStorage.removeItem(STORAGE_KEY);
+      dispatchProgressClearedEvent(comicId);
+      return;
+    }
+
+    if (typeof comicId === 'number') {
+      delete parsed[comicId];
+      if (Object.keys(parsed).length === 0) {
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      }
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    dispatchProgressClearedEvent(comicId);
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    dispatchProgressClearedEvent(comicId);
+  }
+}
+
 interface ComicReadingProgressProviderProps {
   children: React.ReactNode;
 }
@@ -59,6 +99,30 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
     getStoredProgress()
   );
   const [currentComicId, setCurrentComicId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleStorageClear = (event: Event) => {
+      const detail = (event as CustomEvent<{ comicId?: number }>).detail;
+      const clearedComicId = detail?.comicId;
+
+      setAllProgress((prev) => {
+        if (typeof clearedComicId !== 'number') {
+          return {};
+        }
+        if (!(clearedComicId in prev)) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[clearedComicId];
+        return next;
+      });
+
+      setCurrentComicId((current) => (current === clearedComicId ? null : current));
+    };
+
+    window.addEventListener(STORAGE_EVENT, handleStorageClear);
+    return () => window.removeEventListener(STORAGE_EVENT, handleStorageClear);
+  }, []);
 
   // Sync state to localStorage whenever it changes
   useEffect(() => {
@@ -134,6 +198,17 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
     });
   }, []);
 
+  const clearProgress = useCallback((comicId: number) => {
+    setCurrentComicId((current) => (current === comicId ? null : current));
+    setAllProgress((prev) => {
+      if (!(comicId in prev)) return prev;
+      const next = { ...prev };
+      delete next[comicId];
+      return next;
+    });
+    clearStoredComicReadingProgress(comicId);
+  }, []);
+
   const getLastPage = useCallback((comicId: number): number => {
     return allProgress[comicId]?.lastPage ?? 1;
   }, [allProgress]);
@@ -150,6 +225,7 @@ export function ComicReadingProgressProvider({ children }: ComicReadingProgressP
     markCompleted,
     getLastPage,
     isComicCompleted,
+    clearProgress,
   };
 
   return (
