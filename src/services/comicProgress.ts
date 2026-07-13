@@ -1,111 +1,61 @@
 'use client';
 
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  serverTimestamp,
-  setDoc,
-  query,
-  type Unsubscribe,
-} from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, setDoc, serverTimestamp, type Unsubscribe } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 import { getAllComics } from '@/lib/comicRepository';
-import { createInitialProgressState, restoreProgressState } from '@/lib/progressEngine';
 import { deleteFirestoreDocument, queryFirestoreCollection } from '@/services/firestore';
-import {
-  clearStoredComicReadingProgressEntry,
-  dispatchComicReadingProgressReset,
-} from '@/lib/comicReadingProgressStorage';
-import type { ComicProgressDocument } from '@/types/firestore';
+import { clearStoredComicReadingProgressEntry, dispatchComicReadingProgressReset } from '@/lib/comicReadingProgressStorage';
 import type { ComicProgressState } from '@/types/progress';
+import { SINTAKS } from '@/types/progress';
 
-// Global `__cinaraiDebug` declared in src/types/cinarai-debug.d.ts
+// New minimal Firestore shape (Progress Engine V2)
+interface ComicProgressV2 {
+  comicId: number;
+  currentStage: string;
+  completedStages: string[];
+  readerPage?: number;
+  readerCompleted?: boolean;
+  lastOpened?: any;
+  updatedAt?: any;
+}
 
-function logProgressWrite(functionName: string, comicId: number, state: ComicProgressState, extraData?: Record<string, unknown>) {
-  const payload = {
-    comicId,
-    currentPage: state.completedCount,
-    totalPages: state.sintaksList.length,
-    completed: state.isCompleted,
-    timestamp: new Date().toISOString(),
-    functionName,
-  };
+function log(...args: unknown[]) {
   // eslint-disable-next-line no-console
-  console.log('[progress-write]', payload);
-  if (typeof window !== 'undefined' && typeof window !== 'undefined') {
-    // eslint-disable-next-line no-console
-    console.log('[progress-write-stack]', new Error().stack?.split('\n').slice(1, 4).join(' | '));
-  }
-  if (extraData) {
-    // eslint-disable-next-line no-console
-    console.log('[progress-write-extra]', { comicId, extraData });
-  }
+  console.log('[comic-progress-v2]', ...args);
 }
 
-// ─── Error helper ─────────────────────────────────────────────────────────────
-
-/**
- * Extract the Firebase error code (e.g. 'permission-denied', 'unauthenticated',
- * 'network-request-failed') so callers can display the real cause instead of a
- * generic message.
- */
-export function extractFirebaseErrorCode(error: unknown): string {
-  if (error && typeof error === 'object' && 'code' in error) {
-    return String((error as { code: string }).code);
-  }
-  return error instanceof Error ? error.message : String(error);
-}
-
-// ─── Path helpers ─────────────────────────────────────────────────────────────
-
-/** Doc ID for a comic progress: comic-{comicId} */
-function comicDocId(comicId: number): string {
+function comicDocId(comicId: number) {
   return `comic-${comicId}`;
 }
 
-/** Firestore ref: users/{uid}/progress/comic-{comicId} */
 function progressDocRef(userId: string, comicId: number) {
   return doc(firestore, 'users', userId, 'progress', comicDocId(comicId));
 }
 
-/** Firestore ref: users/{uid}/progress (collection) */
-function progressColRef(userId: string) {
-  return collection(firestore, 'users', userId, 'progress');
-}
 
-// ─── Mapping ──────────────────────────────────────────────────────────────────
+function buildCompatState(comicId: number, doc: ComicProgressV2 | null): ComicProgressState {
+  // Build a compatible `ComicProgressState` used by existing UI code
+  const completedSet = new Set((doc?.completedStages ?? []) as string[]);
+  const current = doc?.currentStage ?? SINTAKS[0];
 
-function currentStage(state: ComicProgressState): string {
-  return state.sintaksList.find((s) => s.status === 'CURRENT')?.sintaks ?? 'Cover';
-}
+  const sintaksList = SINTAKS.map((s) => {
+    if (completedSet.has(s)) return { sintaks: s, status: 'COMPLETED' } as const;
+    if (s === current) return { sintaks: s, status: 'CURRENT' } as const;
+    return { sintaks: s, status: 'LOCKED' } as const;
+  });
 
-function deriveStatus(state: ComicProgressState): ComicProgressDocument['status'] {
-  if (state.isCompleted) return 'completed';
-  if (state.completedCount > 0) return 'in_progress';
-  return 'not_started';
-}
-
-function toDocument(state: ComicProgressState): Omit<ComicProgressDocument, 'id'> {
+  const completedCount = sintaksList.filter((s) => s.status === 'COMPLETED').length;
+  const percentage = Math.round((completedCount / SINTAKS.length) * 1000) / 10;
   return {
-    comicId: state.comicId,
-    completedStage: currentStage(state),
-    completedPages: state.completedCount,
-    percentage: state.percentage,
-    status: deriveStatus(state),
-    sintaksList: state.sintaksList,
-    updatedAt: serverTimestamp(),
+    comicId,
+    sintaksList: sintaksList as any,
+    completedCount,
+    percentage,
+    isCompleted: completedCount === SINTAKS.length,
   };
 }
 
-function fromDocument(comicId: number, data: ComicProgressDocument): ComicProgressState {
-  if (data.sintaksList?.length) {
-    return restoreProgressState(comicId, data.sintaksList);
-  }
-  return createInitialProgressState(comicId);
-}
-
+// Helpers to clear related documents when resetting a comic progress
 async function clearIdentificationAnswers(userId: string, comicId: number): Promise<void> {
   const answers = await queryFirestoreCollection('identification_answers', {
     filters: [
@@ -115,7 +65,7 @@ async function clearIdentificationAnswers(userId: string, comicId: number): Prom
   });
 
   await Promise.all(
-    answers.map((answer) => deleteFirestoreDocument('identification_answers', answer.id ?? `${userId}_${comicId}_${answer.step}`))
+    answers.map((a) => deleteFirestoreDocument('identification_answers', a.id ?? `${userId}_${comicId}_${(a as any).step}`))
   );
 }
 
@@ -128,29 +78,19 @@ async function clearApplicationActivities(userId: string, comicId: number): Prom
   });
 
   await Promise.all(
-    activities.map((activity) => deleteFirestoreDocument('application_activity', activity.id ?? `${userId}_${comicId}_${activity.attempt}`))
+    activities.map((a) => deleteFirestoreDocument('application_activity', a.id ?? `${userId}_${comicId}_${(a as any).attempt}`))
   );
 }
 
 async function clearReflectionDocuments(userId: string, comicId: number): Promise<void> {
-  const reflections = await queryFirestoreCollection('reflection', {
-    filters: [{ field: 'userId', operator: '==', value: userId }],
+  const reflections = await queryFirestoreCollection('reflection', { filters: [{ field: 'userId', operator: '==', value: userId }] });
+  const matching = reflections.filter((r) => {
+    const rid = (r as any).id;
+    return rid?.startsWith(`${userId}_${comicId}_`) || String((r as any).comicId) === String(comicId);
   });
-
-  const matchingReflections = reflections.filter((reflection) => {
-    const reflectionComicId = reflection.comicId;
-    const reflectionId = reflection.id;
-    return reflectionId?.startsWith(`${userId}_${comicId}_`) || String(reflectionComicId) === String(comicId);
-  });
-
-  await Promise.all(
-    matchingReflections.map((reflection) => deleteFirestoreDocument('reflection', reflection.id ?? `${userId}_${comicId}_reflection`))
-  );
+  await Promise.all(matching.map((r) => deleteFirestoreDocument('reflection', (r as any).id ?? `${userId}_${comicId}_reflection`)));
 }
 
-// ─── Create ───────────────────────────────────────────────────────────────────
-
-/** Create initial progress documents for all comics when user first logs in. */
 export async function initializeUserProgress(userId: string): Promise<void> {
   const comics = getAllComics();
   await Promise.all(
@@ -159,164 +99,133 @@ export async function initializeUserProgress(userId: string): Promise<void> {
       try {
         const snap = await getDoc(ref);
         if (snap.exists()) return;
-        const state = createInitialProgressState(comic.id);
-        await setDoc(ref, toDocument(state));
-      } catch {
+        const initial: ComicProgressV2 = {
+          comicId: comic.id,
+          currentStage: SINTAKS[0],
+          completedStages: [],
+          readerPage: 1,
+          readerCompleted: false,
+          updatedAt: serverTimestamp(),
+        };
+        await setDoc(ref, initial);
+      } catch (e) {
+        // ignore
       }
     })
   );
 }
 
-// ─── Update ───────────────────────────────────────────────────────────────────
-
-/** Read a single comic progress document by comicId. */
 export async function getComicProgress(userId: string, comicId: number): Promise<ComicProgressState> {
-  if (!userId) {
-    throw new Error('unauthenticated');
-  }
-
+  if (!userId) throw new Error('unauthenticated');
   const ref = progressDocRef(userId, comicId);
   const snap = await getDoc(ref);
-  return snap.exists()
-    ? fromDocument(comicId, { id: snap.id, ...snap.data() } as ComicProgressDocument)
-    : createInitialProgressState(comicId);
+  if (!snap.exists()) return buildCompatState(comicId, null);
+  const data = snap.data() as ComicProgressV2;
+  return buildCompatState(comicId, data);
 }
 
-/** Persist updated progress state to Firestore. Creates the document if it does not exist (merge: true). */
+export function extractFirebaseErrorCode(error: unknown): string {
+  if (error && typeof error === 'object' && 'code' in error) {
+    return String((error as { code: string }).code);
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function saveComicProgress(
   userId: string,
   comicId: number,
-  state: ComicProgressState,
+  stateOrPayload: ComicProgressState | Partial<ComicProgressV2>,
   extraData?: Record<string, unknown>
 ): Promise<void> {
-  // ── Auth guard ────────────────────────────────────────────────────────────
-  if (!userId) {
-    throw new Error('unauthenticated');
+  if (!userId) throw new Error('unauthenticated');
+  const ref = progressDocRef(userId, comicId);
+
+  // Backwards-compatible: if a full ComicProgressState is supplied, convert
+  // it to the V2 payload shape. Otherwise assume it's already a V2 partial.
+  let payload: Partial<ComicProgressV2>;
+  if ((stateOrPayload as ComicProgressState).sintaksList !== undefined) {
+    const st = stateOrPayload as ComicProgressState;
+    const completedStages = st.sintaksList.filter((s) => s.status === 'COMPLETED').map((s) => s.sintaks);
+    const current = st.sintaksList.find((s) => s.status === 'CURRENT')?.sintaks ?? SINTAKS[0];
+    payload = {
+      comicId: st.comicId,
+      currentStage: current,
+      completedStages,
+      updatedAt: serverTimestamp(),
+      ...(extraData ?? {}),
+    } as Partial<ComicProgressV2>;
+  } else {
+    payload = stateOrPayload as Partial<ComicProgressV2>;
+    (payload as any).updatedAt = serverTimestamp();
   }
 
-  const ref = progressDocRef(userId, comicId);
-  const payload = {
-    ...toDocument(state),
-    ...(state.isCompleted ? { completedAt: serverTimestamp() } : {}),
-    ...(extraData ?? {}),
-  };
-
-  logProgressWrite('saveComicProgress', comicId, state, extraData);
-
+  const docPayload = {
+    ...payload,
+    comicId,
+    updatedAt: serverTimestamp(),
+  } as any;
+  log('saveComicProgress', userId, comicId, docPayload);
   try {
-    // merge: true → creates document automatically if it does not exist
-    await setDoc(ref, payload, { merge: true });
+    await setDoc(ref, docPayload, { merge: true } as any);
   } catch (error) {
     const code = extractFirebaseErrorCode(error);
-    // Re-throw with the Firebase error code as the message so callers can surface it
     throw new Error(code);
   }
 }
 
-/** Reset a comic's learning progress back to the initial state and clear saved answers. */
-export async function resumeComicProgress(
-  userId: string,
-  comicId: number,
-  state: ComicProgressState,
-  extraData?: Record<string, unknown>
-): Promise<void> {
-  return saveComicProgress(userId, comicId, state, extraData);
-}
-
-export async function completeComicProgress(
-  userId: string,
-  comicId: number,
-  state: ComicProgressState,
-  extraData?: Record<string, unknown>
-): Promise<void> {
-  return saveComicProgress(userId, comicId, state, extraData);
-}
-
-export async function resetComicProgress(userId: string, comicId: number): Promise<ComicProgressState> {
-  if (!userId) {
-    throw new Error('unauthenticated');
-  }
-
-  const initialState = createInitialProgressState(comicId);
-  const ref = progressDocRef(userId, comicId);
-
-  // Full overwrite (no merge) so stale fields like completedAt/introspection are removed
-  const resetDoc = {
-    ...toDocument(initialState),
-    completedAt: null,
-    introspection: null,
-  };
-
-  logProgressWrite('resetComicProgress', comicId, initialState);
-
+export async function resetComicProgress(userId: string, comicId: number): Promise<void> {
+  if (!userId) throw new Error('unauthenticated');
+  // Delete the progress document and related artifacts
   try {
+    const ref = progressDocRef(userId, comicId);
+    await setDoc(ref, { comicId, currentStage: SINTAKS[0], completedStages: [], readerPage: 1, readerCompleted: false, updatedAt: serverTimestamp() });
     await Promise.all([
-      setDoc(ref, resetDoc),
       clearIdentificationAnswers(userId, comicId),
       clearApplicationActivities(userId, comicId),
       clearReflectionDocuments(userId, comicId),
     ]);
-
     clearStoredComicReadingProgressEntry(comicId);
     dispatchComicReadingProgressReset(comicId);
-    return initialState;
-  } catch (error) {
-    const code = extractFirebaseErrorCode(error);
-    throw new Error(code);
+  } catch (e) {
+    throw new Error((e as Error).message ?? 'reset failed');
   }
 }
 
-// ─── Subscribe ────────────────────────────────────────────────────────────────
+export function subscribeToComicProgress(userId: string, comicId: number, cb: (s: ComicProgressState) => void, onError?: (e: Error) => void): Unsubscribe {
+  return onSnapshot(progressDocRef(userId, comicId), (snap) => {
+    const data = snap.exists() ? (snap.data() as ComicProgressV2) : null;
+    cb(buildCompatState(comicId, data));
+  }, onError);
+}
 
-/** Subscribe to a single comic's progress in realtime. */
-export function subscribeToComicProgress(
-  userId: string,
-  comicId: number,
-  callback: (state: ComicProgressState) => void,
-  onError?: (error: Error) => void
-): Unsubscribe {
+export function subscribeToAllComicProgress(userId: string, cb: (states: ComicProgressState[]) => void, onError?: (e: Error) => void): Unsubscribe {
+  // Subscribe to the entire progress collection under user
   return onSnapshot(
-    progressDocRef(userId, comicId),
-    (snap) => {
-      callback(
-        snap.exists()
-          ? fromDocument(comicId, { id: snap.id, ...snap.data() } as ComicProgressDocument)
-          : createInitialProgressState(comicId)
-      );
+    // use onSnapshot on collection reference
+    // build a query reference manually
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - use client SDK collection ref
+    (doc as any)(firestore, 'users', userId, 'progress'),
+    (snap: any) => {
+      const docs = snap.docs ?? [];
+      const states = docs
+        .map((d: any) => {
+          const data = { id: d.id, ...d.data() } as ComicProgressV2;
+          const cid = data.comicId ?? Number(d.id.replace('comic-', ''));
+          if (!cid) return null;
+          return buildCompatState(cid, data);
+        })
+        .filter((s: any) => s !== null) as ComicProgressState[];
+      cb(states);
     },
-    (error) => {
-      onError?.(error);
-    }
+    onError
   );
 }
 
 if (typeof window !== 'undefined') {
-  window.__cinaraiDebug = {
-    ...window.__cinaraiDebug,
+  (window as any).__cinaraiDebug = {
+    ...(window as any).__cinaraiDebug,
     resetComicProgress,
     saveComicProgress,
   };
-}
-
-/** Subscribe to all comics' progress for a user in realtime. */
-export function subscribeToAllComicProgress(
-  userId: string,
-  callback: (states: ComicProgressState[]) => void,
-  onError?: (error: Error) => void
-): Unsubscribe {
-  return onSnapshot(
-    query(progressColRef(userId)),
-    (snap) => {
-      callback(
-        snap.docs.map((d) => {
-          const data = { id: d.id, ...d.data() } as ComicProgressDocument;
-          // Fallback: parse comicId from doc ID ("comic-{n}") if field is missing
-          const comicId = data.comicId ?? parseInt(d.id.replace('comic-', ''), 10);
-          if (!comicId || isNaN(comicId)) return null;
-          return fromDocument(comicId, { ...data, comicId });
-        }).filter((s): s is ComicProgressState => s !== null)
-      );
-    },
-    onError
-  );
 }
