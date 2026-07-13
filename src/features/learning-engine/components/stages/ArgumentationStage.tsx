@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { loadIdentificationAnswers } from '../../stages/Identification/services/identificationAnswerService';
 import { getArgumentationLearningObject } from '../../stages/Argumentation/data/argumentationQuestions';
+import type { Comic1ArgumentationQuestion } from '@/features/comics/comic-1/content/types';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -14,6 +15,7 @@ interface AiFeedback {
   level: FeedbackLevel;
   score: number;
   feedback: string;
+  suggestion?: string;
 }
 
 function ShapeIcon({ solid, className }: { solid: string; className?: string }) {
@@ -115,8 +117,26 @@ function FeedbackCard({ feedback, studentAnswer }: { feedback: AiFeedback; stude
           <p className="mt-1 text-sm italic leading-relaxed text-neutral-600">“{studentAnswer}”</p>
         </div>
         <p className="text-sm leading-relaxed text-neutral-800">{feedback.feedback}</p>
+        {feedback.suggestion ? (
+          <div className="mt-2 rounded-lg border border-neutral-100 bg-neutral-50 p-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Saran</p>
+            <p className="mt-1 text-sm leading-relaxed text-neutral-700">{feedback.suggestion}</p>
+          </div>
+        ) : null}
       </div>
     </div>
+  );
+}
+
+function isComic1ArgumentationQuestion(question: unknown): question is Comic1ArgumentationQuestion {
+  return (
+    typeof question === 'object' &&
+    question !== null &&
+    'argumentationPhoto' in question &&
+    'argumentationHighlight' in question &&
+    'argumentationPrompt' in question &&
+    'argumentationQuestion' in question &&
+    'argumentationTitle' in question
   );
 }
 
@@ -211,18 +231,104 @@ export default function ArgumentationStage() {
     );
   }
 
+  // If this is Comic 1, render the new CINARAI Blueprint UI
+  if (comic.id === 1) {
+    // Find matching argumentation question for selected shape or default to first
+    const argObjs = comicModule.argumentation?.questions ?? [];
+    const argObj = learningObject && argObjs.length > 0
+      ? argObjs.find((q) => q.shapeName === learningObject.solid || q.shapeKey === learningObject.solid?.toLowerCase()) ?? argObjs[0]
+      : argObjs[0] ?? null;
+
+    const isComic1ArgObj = isComic1ArgumentationQuestion(argObj);
+    const photoSrc = isComic1ArgObj ? argObj.argumentationPhoto : argObj?.image ?? argObj?.photoSrc ?? '';
+    const overlaySrc = isComic1ArgObj ? argObj.argumentationHighlight : argObj?.photoSrc ?? argObj?.image ?? null;
+    const questionText = isComic1ArgObj ? argObj.argumentationQuestion : argObj?.question ?? question;
+
+    return (
+      <div className="flex flex-col gap-4 animate-fade-in-up">
+        <header className="rounded-[24px] bg-gradient-to-br from-secondary-400 to-secondary-600 px-4 py-5 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/80">ARGUMENTATION</p>
+        </header>
+
+        <div className="rounded-[24px] bg-white p-4 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-secondary-600">Card Pertanyaan</p>
+          <p className="mt-3 text-base font-black leading-relaxed text-neutral-900">{questionText}</p>
+        </div>
+
+        <div className="overflow-hidden rounded-[24px] bg-white p-0 shadow-sm">
+          <div className="relative w-full">
+            <img src={photoSrc} alt={argObj?.photoAlt ?? argObj?.title ?? 'Foto bagian candi'} className="w-full object-cover" style={{ maxHeight: 420 }} />
+            {overlaySrc ? (
+              <img src={overlaySrc} alt="highlight" className="pointer-events-none absolute inset-0 w-full h-full object-cover opacity-70" />
+            ) : null}
+          </div>
+        </div>
+
+        <div className="rounded-[24px] bg-white p-4 shadow-sm grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-[16px] border border-neutral-200 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Bagian Candi</p>
+            <p className="mt-2 text-lg font-black text-neutral-900">{argObj?.templePart}</p>
+          </div>
+          <div className="rounded-[16px] border border-neutral-200 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Bangun Ruang</p>
+            <p className="mt-2 text-lg font-black text-neutral-900">{argObj?.shapeName}</p>
+          </div>
+        </div>
+
+        {!feedback ? (
+          <div className="rounded-[24px] bg-white p-4 shadow-sm">
+            <label htmlFor="argumentation-answer" className="mb-2 block text-sm font-black text-neutral-700">Jawabanmu</label>
+            <textarea
+              id="argumentation-answer"
+              value={answer}
+              onChange={(event) => setAnswer(event.target.value)}
+              placeholder="Tuliskan alasanmu di sini..."
+              className="w-full resize-none rounded-[16px] border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-relaxed text-neutral-800 outline-none transition focus:border-secondary-400 focus:bg-white"
+              style={{ minHeight: 150 }}
+            />
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className={charCount < 20 ? 'font-semibold text-warning-600' : 'font-semibold text-accent-600'}>
+                {charCount < 20 ? `Minimal 20 karakter (${charCount}/20)` : `${charCount} karakter ✓`}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleSubmit()}
+              disabled={!canSubmit}
+              className="mt-4 w-full rounded-[16px] bg-secondary-500 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-secondary-600 disabled:cursor-not-allowed disabled:bg-neutral-300"
+            >
+              {isSubmitting ? 'Sedang menganalisis...' : 'Kirim Jawaban'}
+            </button>
+          </div>
+        ) : (
+          <FeedbackCard feedback={feedback} studentAnswer={answer} />
+        )}
+
+        {feedback && (
+          <button
+            type="button"
+            onClick={() => void nextStage()}
+            className="w-full rounded-[20px] bg-accent-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-accent-700"
+          >
+            Lanjut
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback: existing behavior for other comics
   return (
-    <div className="flex flex-col gap-4 animate-fade-in-up">
+    <div className="flex flex-col gap-4 animate-fade-in-up">{/* original UI preserved for non-comic1 */}
       <header className="rounded-[24px] bg-gradient-to-br from-secondary-400 to-secondary-600 px-4 py-5 shadow-sm">
         <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/80">Argumentation</p>
         <h2 className="mt-1 text-lg font-black text-white">Jelaskan alasanmu berdasarkan objek yang kamu pilih.</h2>
       </header>
-
+      {/* reuse previous UI sections for non-comic1 */}
       <div className="rounded-[24px] bg-white p-4 shadow-sm">
         <p className="text-[10px] font-black uppercase tracking-[0.35em] text-secondary-600">Pertanyaan Argumentasi</p>
         <p className="mt-3 text-base font-black leading-relaxed text-neutral-900">{question}</p>
       </div>
-
       <div className="grid gap-4 rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm sm:grid-cols-[240px_1fr]">
         <div className="overflow-hidden rounded-[24px] bg-neutral-50">
           <img src={learningObject.image} alt={learningObject.objectName} className="h-64 w-full object-cover" />
