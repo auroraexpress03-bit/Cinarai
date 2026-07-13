@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { loadIdentificationAnswers } from '../../stages/Identification/services/identificationAnswerService';
@@ -15,6 +16,8 @@ interface AiFeedback {
   level: FeedbackLevel;
   score: number;
   feedback: string;
+  strength?: string;
+  improvement?: string;
   suggestion?: string;
 }
 
@@ -99,32 +102,51 @@ function FeedbackCard({ feedback, studentAnswer }: { feedback: AiFeedback; stude
         : { label: 'Hampir Benar', emoji: '✨' };
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-accent-200 bg-accent-50 shadow-sm">
-      <div className="flex items-center gap-3 border-b border-accent-100 bg-white/70 px-4 py-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-100 text-xl">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="overflow-hidden rounded-[24px] border border-emerald-200 bg-emerald-50 shadow-sm"
+    >
+      <div className="flex items-center gap-3 border-b border-emerald-100 bg-white/90 px-4 py-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-lg">
           🤖
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-accent-700">AI Feedback</p>
-          <p className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-black text-accent-700">
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-emerald-700">AI Feedback</p>
+          <p className="mt-0.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-black text-emerald-700">
             {badge.emoji} {badge.label}
           </p>
         </div>
       </div>
-      <div className="space-y-3 px-4 py-4">
-        <div className="rounded-2xl bg-white/80 p-3">
+      <div className="space-y-4 px-4 py-4">
+        <div className="rounded-2xl bg-white p-4 shadow-sm">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Jawabanmu</p>
-          <p className="mt-1 text-sm italic leading-relaxed text-neutral-600">“{studentAnswer}”</p>
+          <p className="mt-2 text-sm italic leading-relaxed text-neutral-600">“{studentAnswer}”</p>
         </div>
-        <p className="text-sm leading-relaxed text-neutral-800">{feedback.feedback}</p>
-        {feedback.suggestion ? (
-          <div className="mt-2 rounded-lg border border-neutral-100 bg-neutral-50 p-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Saran</p>
-            <p className="mt-1 text-sm leading-relaxed text-neutral-700">{feedback.suggestion}</p>
-          </div>
-        ) : null}
+        <div className="space-y-3 text-sm leading-relaxed text-neutral-800">
+          <p>{feedback.feedback}</p>
+          {feedback.strength ? (
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Kekuatan</p>
+              <p className="mt-1 text-sm text-neutral-700">{feedback.strength}</p>
+            </div>
+          ) : null}
+          {feedback.improvement ? (
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Perbaikan</p>
+              <p className="mt-1 text-sm text-neutral-700">{feedback.improvement}</p>
+            </div>
+          ) : null}
+          {feedback.suggestion ? (
+            <div className="rounded-lg border border-neutral-100 bg-neutral-50 p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Saran</p>
+              <p className="mt-1 text-sm leading-relaxed text-neutral-700">{feedback.suggestion}</p>
+            </div>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -147,6 +169,7 @@ export default function ArgumentationStage() {
   const [feedback, setFeedback] = useState<AiFeedback | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (!user?.uid || !comic.id) return;
@@ -171,6 +194,12 @@ export default function ArgumentationStage() {
   const question = learningObject ? learningObject.question : 'Mengapa bagian candi ini dapat dimodelkan sebagai bangun ruang?';
   const charCount = answer.trim().length;
   const canSubmit = charCount >= 20 && !isSubmitting && !feedback;
+
+  const adjustTextareaHeight = useCallback(() => {
+    if (!textareaRef.current) return;
+    textareaRef.current.style.height = 'auto';
+    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+  }, []);
 
   useEffect(() => {
     setCanAdvance(Boolean(feedback));
@@ -198,6 +227,9 @@ export default function ArgumentationStage() {
 
       const data = (await response.json()) as {
         feedback?: string;
+        strength?: string;
+        improvement?: string;
+        suggestion?: string;
         level?: FeedbackLevel;
         score?: number;
       };
@@ -206,6 +238,9 @@ export default function ArgumentationStage() {
         level: data.level ?? 'HAMPIR_BENAR',
         score: Math.min(5, Math.max(1, Number(data.score) || 4)),
         feedback: data.feedback ?? learningObject.aiFeedback,
+        strength: data.strength,
+        improvement: data.improvement,
+        suggestion: data.suggestion,
       });
     } catch {
       setFeedback({
@@ -233,45 +268,73 @@ export default function ArgumentationStage() {
 
   // If this is Comic 1, render the new CINARAI Blueprint UI
   if (comic.id === 1) {
-    // Find matching argumentation question for selected shape or default to first
     const argObjs = comicModule.argumentation?.questions ?? [];
     const argObj = learningObject && argObjs.length > 0
       ? argObjs.find((q) => q.shapeName === learningObject.solid || q.shapeKey === learningObject.solid?.toLowerCase()) ?? argObjs[0]
       : argObjs[0] ?? null;
 
     const isComic1ArgObj = isComic1ArgumentationQuestion(argObj);
-    const photoSrc = isComic1ArgObj ? argObj.argumentationPhoto : argObj?.image ?? argObj?.photoSrc ?? '';
-    const overlaySrc = isComic1ArgObj ? argObj.argumentationHighlight : argObj?.photoSrc ?? argObj?.image ?? null;
     const questionText = isComic1ArgObj ? argObj.argumentationQuestion : argObj?.question ?? question;
+    const photoSrc = isComic1ArgObj ? argObj.argumentationPhoto : argObj?.image ?? argObj?.photoSrc ?? '';
+    const shapeImage = isComic1ArgObj ? argObj.image ?? argObj.photoSrc ?? '' : argObj?.image ?? argObj?.photoSrc ?? '';
+    const promptText = isComic1ArgObj ? argObj.argumentationPrompt : argObj?.question ?? '';
 
     return (
-      <div className="flex flex-col gap-4 animate-fade-in-up">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className="flex flex-col gap-4"
+      >
         <header className="rounded-[24px] bg-gradient-to-br from-secondary-400 to-secondary-600 px-4 py-5 shadow-sm">
           <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/80">ARGUMENTATION</p>
         </header>
 
         <div className="rounded-[24px] bg-white p-4 shadow-sm">
-          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-secondary-600">Card Pertanyaan</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-secondary-600">Pertanyaan Argumentasi</p>
           <p className="mt-3 text-base font-black leading-relaxed text-neutral-900">{questionText}</p>
         </div>
 
-        <div className="overflow-hidden rounded-[24px] bg-white p-0 shadow-sm">
-          <div className="relative w-full">
-            <img src={photoSrc} alt={argObj?.photoAlt ?? argObj?.title ?? 'Foto bagian candi'} className="w-full object-cover" style={{ maxHeight: 420 }} />
-            {overlaySrc ? (
-              <img src={overlaySrc} alt="highlight" className="pointer-events-none absolute inset-0 w-full h-full object-cover opacity-70" />
-            ) : null}
+        <div className="grid gap-4 rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm lg:grid-cols-[1.3fr_1fr]">
+          <div className="overflow-hidden rounded-[24px] bg-neutral-100">
+            <img
+              src={photoSrc}
+              alt={argObj?.photoAlt ?? 'Foto bagian candi'}
+              className="h-full w-full object-cover"
+              style={{ minHeight: 320 }}
+            />
           </div>
-        </div>
-
-        <div className="rounded-[24px] bg-white p-4 shadow-sm grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-[16px] border border-neutral-200 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Bagian Candi</p>
-            <p className="mt-2 text-lg font-black text-neutral-900">{argObj?.templePart}</p>
-          </div>
-          <div className="rounded-[16px] border border-neutral-200 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Bangun Ruang</p>
-            <p className="mt-2 text-lg font-black text-neutral-900">{argObj?.shapeName}</p>
+          <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-5">
+            <div className="space-y-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Bangun Ruang</p>
+                <p className="mt-3 text-3xl font-black text-neutral-900">{argObj?.shapeName}</p>
+              </div>
+              <div className="rounded-[20px] border border-secondary-100 bg-white p-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary-700">Ilustrasi Bangun Ruang</p>
+                {shapeImage ? (
+                  <img src={shapeImage} alt={`Ilustrasi ${argObj?.shapeName}`} className="mt-4 h-48 w-full object-contain" />
+                ) : (
+                  <p className="mt-4 text-sm text-neutral-500">Ilustrasi tidak tersedia.</p>
+                )}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[18px] border border-neutral-200 bg-white p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Bagian Candi</p>
+                  <p className="mt-2 text-lg font-black text-neutral-900">{argObj?.templePart}</p>
+                </div>
+                <div className="rounded-[18px] border border-neutral-200 bg-white p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Judul</p>
+                  <p className="mt-2 text-lg font-black text-neutral-900">{isComic1ArgObj ? argObj.argumentationTitle : argObj?.title ?? argObj?.templePart}</p>
+                </div>
+              </div>
+              {promptText ? (
+                <div className="rounded-[18px] border border-neutral-200 bg-white p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Petunjuk Jawaban</p>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-700">{promptText}</p>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -280,11 +343,15 @@ export default function ArgumentationStage() {
             <label htmlFor="argumentation-answer" className="mb-2 block text-sm font-black text-neutral-700">Jawabanmu</label>
             <textarea
               id="argumentation-answer"
+              ref={textareaRef}
               value={answer}
-              onChange={(event) => setAnswer(event.target.value)}
+              onChange={(event) => {
+                setAnswer(event.target.value);
+                requestAnimationFrame(adjustTextareaHeight);
+              }}
               placeholder="Tuliskan alasanmu di sini..."
-              className="w-full resize-none rounded-[16px] border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-relaxed text-neutral-800 outline-none transition focus:border-secondary-400 focus:bg-white"
-              style={{ minHeight: 150 }}
+              className="min-h-[160px] w-full resize-none rounded-[20px] border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm leading-relaxed text-neutral-800 outline-none transition focus:border-secondary-400 focus:bg-white"
+              style={{ minHeight: 160 }}
             />
             <div className="mt-3 flex items-center justify-between text-sm">
               <span className={charCount < 20 ? 'font-semibold text-warning-600' : 'font-semibold text-accent-600'}>
@@ -295,7 +362,7 @@ export default function ArgumentationStage() {
               type="button"
               onClick={() => void handleSubmit()}
               disabled={!canSubmit}
-              className="mt-4 w-full rounded-[16px] bg-secondary-500 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-secondary-600 disabled:cursor-not-allowed disabled:bg-neutral-300"
+              className="mt-4 w-full rounded-[20px] bg-secondary-500 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-secondary-600 disabled:cursor-not-allowed disabled:bg-neutral-300"
             >
               {isSubmitting ? 'Sedang menganalisis...' : 'Kirim Jawaban'}
             </button>
@@ -313,7 +380,7 @@ export default function ArgumentationStage() {
             Lanjut
           </button>
         )}
-      </div>
+      </motion.div>
     );
   }
 

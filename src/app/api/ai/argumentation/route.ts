@@ -20,6 +20,9 @@ type ArgumentationResponse = {
   level: FeedbackLevel;
   score: number;
   feedback: string;
+  strength?: string;
+  improvement?: string;
+  suggestion?: string;
 };
 
 const SHAPE_VALIDATION_RULES: Record<
@@ -148,7 +151,10 @@ function buildArgumentationPrompt(body: ArgumentationRequestBody): string {
     '{',
     '  "level": "SANGAT_BAIK" | "HAMPIR_BENAR" | "PERLU_PERBAIKAN",',
     '  "score": 1 | 2 | 3 | 4 | 5,',
-    '  "feedback": "teks umpan balik untuk siswa"',
+    '  "feedback": "teks umpan balik untuk siswa",',
+    '  "strength": "poin kuat dari jawaban siswa",',
+    '  "improvement": "saran peningkatan singkat",',
+    '  "suggestion": "saran berikutnya untuk memperbaiki jawaban"',
     '}',
     '',
     'KONTEKS',
@@ -181,6 +187,9 @@ function parseArgumentationResponse(raw: string): ArgumentationResponse | null {
         level: parsed.level as FeedbackLevel,
         score: Math.min(5, Math.max(1, parsed.score)),
         feedback: parsed.feedback,
+        strength: typeof parsed.strength === 'string' ? parsed.strength : undefined,
+        improvement: typeof parsed.improvement === 'string' ? parsed.improvement : undefined,
+        suggestion: typeof parsed.suggestion === 'string' ? parsed.suggestion : undefined,
       };
     }
   } catch {
@@ -215,6 +224,9 @@ export async function POST(request: NextRequest) {
       level: feedback.level,
       score: feedback.score,
       feedback: feedback.feedback,
+      strength: feedback.strength,
+      improvement: feedback.improvement,
+      suggestion: feedback.suggestion,
       provider: response?.provider,
     });
   } catch (error) {
