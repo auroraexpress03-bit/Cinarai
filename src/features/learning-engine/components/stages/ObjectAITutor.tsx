@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComicAssetEntry } from '@/services/comic-assets/types';
 import { getShapeKnowledgeEntry, buildShapeKnowledgeContext } from '@/features/learning-engine/stages/Identification/services/shapeKnowledge';
@@ -159,7 +160,7 @@ export function ObjectAITutor({
     <div className="mt-4 rounded-[24px] border border-primary-100 bg-primary-50/70 p-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm">
-          <img src="/images/ai/robot.svg" alt="AI Tutor" className="h-8 w-8" />
+          <Image src="/images/ai/robot.svg" alt="AI Tutor" width={32} height={32} className="h-8 w-8" />
         </div>
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.3em] text-primary-700">AI Tutor</p>

@@ -14,14 +14,13 @@ function run() {
 
   const firstItem = state.items[0];
 
-  console.log('---- Identification State Snapshot ----');
-  console.log('package.id:', comicId);
-  console.log('item.question:', firstItem.question);
-  console.log('renderedQuestion (component would render):', firstItem.question);
-  console.log('all options:', firstItem.options.map(o => ({ id: o.id, text: o.text, correct: o.correct })));
-  console.log('image:', firstItem.image);
-  console.log('--- JSON item ---');
-  console.log(JSON.stringify(firstItem, null, 2));
+  process.stdout.write('---- Identification State Snapshot ----\n');
+  process.stdout.write(`package.id: ${comicId}\n`);
+  process.stdout.write(`item.question: ${firstItem.question}\n`);
+  process.stdout.write(`renderedQuestion (component would render): ${firstItem.question}\n`);
+  process.stdout.write(`all options: ${JSON.stringify(firstItem.options.map((o) => ({ id: o.id, text: o.text, correct: o.correct })), null, 2)}\n`);
+  process.stdout.write(`image: ${firstItem.image}\n`);
+  process.stdout.write(`--- JSON item ---\n${JSON.stringify(firstItem, null, 2)}\n`);
 }
 
 run();
