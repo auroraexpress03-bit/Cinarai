@@ -7,11 +7,11 @@ import qr23BalokSelasar from '@/features/comics/comic-1/assets/qr/23-balok-selas
 import qr27LimasTepi from '@/features/comics/comic-1/assets/qr/27-limas-tepi.jpeg';
 import qr28Kerucut from '@/features/comics/comic-1/assets/qr/28-kerucut.jpeg';
 import coverImg from '@/features/comics/comic-1/assets/cover/cover.png';
-import identKubus from '@/features/comics/comic-1/assets/identification/Kubus.png';
-import identBalok from '@/features/comics/comic-1/assets/identification/Balok.png';
-import identPrisma from '@/features/comics/comic-1/assets/identification/Prismasegiempat.png';
-import identLimas from '@/features/comics/comic-1/assets/identification/Limassegiempat.png';
-import identKerucut from '@/features/comics/comic-1/assets/identification/Kerucut.png';
+import appKubus from '@/features/comics/comic-1/assets/application/Kubus.png';
+import appBalok from '@/features/comics/comic-1/assets/application/Balok.png';
+import appPrisma from '@/features/comics/comic-1/assets/application/Prismasegiempat.png';
+import appLimas from '@/features/comics/comic-1/assets/application/Limassegiempat.png';
+import appKerucut from '@/features/comics/comic-1/assets/application/Kerucut.png';
 
 /**
  * Hasil QR Classifier per komik.
@@ -39,7 +39,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         image: '',
         title: 'Kubus',
         description: 'Bangun ruang dengan 6 sisi persegi yang sama besar. Temukan bagian Candi Jawi yang menyerupai kubus.',
-        previewImage: identKubus.src,
+        previewImage: appKubus.src,
         qrUrl: 'https://asblr.com/2DCN6k',
         qrImage: qr13Kubus.src,
       },
@@ -50,7 +50,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         image: '',
         title: 'Balok',
         description: 'Bangun ruang dengan 6 sisi persegi panjang. Tubuh utama Candi Jawi dapat dimodelkan sebagai balok.',
-        previewImage: identBalok.src,
+        previewImage: appBalok.src,
         qrUrl: 'https://asblr.com/KjCtQB',
         qrImage: qr16Balok.src,
       },
@@ -61,7 +61,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         image: '',
         title: 'Limas',
         description: 'Bangun ruang dengan alas persegi dan 4 sisi segitiga yang bertemu di satu titik puncak. Mirip dengan atap bertingkat candi.',
-        previewImage: identLimas.src,
+        previewImage: appLimas.src,
         qrUrl: 'https://asblr.com/3oXoRI',
         qrImage: qr17Limas.src,
       },
@@ -72,7 +72,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         image: '',
         title: 'Prisma',
         description: 'Bangun ruang dengan dua alas sejajar berbentuk segitiga dan tiga sisi persegi panjang. Ditemukan pada bagian dinding candi.',
-        previewImage: identKerucut.src,
+        previewImage: appPrisma.src,
         qrUrl: 'https://asblr.com/pxMwEe',
         qrImage: qr22Prisma.src,
       },
@@ -83,7 +83,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         image: '',
         title: 'Balok Selasar',
         description: 'Balok yang membentuk selasar atau lorong pada Candi Jawi. Perhatikan perbedaan ukuran panjang, lebar, dan tingginya.',
-        previewImage: identKubus.src,
+        previewImage: appBalok.src,
         qrUrl: 'https://asblr.com/UyBHgG',
         qrImage: qr23BalokSelasar.src,
       },
@@ -94,7 +94,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         image: '',
         title: 'Limas Tepi',
         description: 'Limas yang berada di bagian tepi atau sudut Candi Jawi. Amati bentuk alasnya dan jumlah sisi segitiganya.',
-        previewImage: identLimas.src,
+        previewImage: appLimas.src,
         qrUrl: 'https://asblr.com/xCZJvU',
         qrImage: qr27LimasTepi.src,
       },
@@ -105,7 +105,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         image: '',
         title: 'Kerucut',
         description: 'Bangun ruang dengan alas lingkaran dan meruncing ke satu titik puncak. Puncak Candi Jawi menyerupai kerucut.',
-        previewImage: identPrisma.src,
+        previewImage: appKerucut.src,
         qrUrl: 'https://asblr.com/G3F41T',
         qrImage: qr28Kerucut.src,
       },

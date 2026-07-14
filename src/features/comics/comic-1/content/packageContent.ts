@@ -7,11 +7,16 @@ import qrKerucut from '@/features/comics/comic-1/assets/qr/28-kerucut.jpeg';
 
 import coverImg from '@/features/comics/comic-1/assets/cover/cover.png';
 
+import appKubus from '@/features/comics/comic-1/assets/application/Kubus.png';
+import appBalok from '@/features/comics/comic-1/assets/application/Balok.png';
+import appPrisma from '@/features/comics/comic-1/assets/application/Prismasegiempat.png';
+import appLimas from '@/features/comics/comic-1/assets/application/Limassegiempat.png';
+import appKerucut from '@/features/comics/comic-1/assets/application/Kerucut.png';
+
 import identKubus from '@/features/comics/comic-1/assets/identification/Kubus.png';
 import identBalok from '@/features/comics/comic-1/assets/identification/Balok.png';
 import identPrisma from '@/features/comics/comic-1/assets/identification/Prismasegiempat.png';
 import identLimas from '@/features/comics/comic-1/assets/identification/Limassegiempat.png';
-import identKerucut from '@/features/comics/comic-1/assets/identification/Kerucut.png';
 
 import argKubus from '@/features/comics/comic-1/assets/argumentation/Kubus.png';
 import argBalok from '@/features/comics/comic-1/assets/argumentation/Balok.png';
@@ -48,7 +53,7 @@ export const packageContent: Comic1PackageContent = {
       description: 'Bentuk kotak pada bagian pilar utama candi.',
       page: 1,
       qrImage: qrKubus.src,
-      objectImage: identKubus.src,
+      objectImage: appKubus.src,
       modelUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       embedUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       viewerType: 'embed',
@@ -64,7 +69,7 @@ export const packageContent: Comic1PackageContent = {
       description: 'Bentuk persegi panjang yang menyusun badan candi.',
       page: 2,
       qrImage: qrBalok.src,
-      objectImage: identBalok.src,
+      objectImage: appBalok.src,
       modelUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       embedUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       viewerType: 'embed',
@@ -80,7 +85,7 @@ export const packageContent: Comic1PackageContent = {
       description: 'Bentuk prisma pada sisi bangunan yang tegak.',
       page: 3,
       qrImage: qrPrisma.src,
-      objectImage: identPrisma.src,
+      objectImage: appPrisma.src,
       modelUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       embedUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       viewerType: 'embed',
@@ -96,7 +101,7 @@ export const packageContent: Comic1PackageContent = {
       description: 'Puncak bangunan yang meruncing ke satu titik.',
       page: 4,
       qrImage: qrLimas.src,
-      objectImage: identLimas.src,
+      objectImage: appLimas.src,
       modelUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       embedUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       viewerType: 'embed',
@@ -112,7 +117,7 @@ export const packageContent: Comic1PackageContent = {
       description: 'Bagian atap yang meruncing ke atas.',
       page: 5,
       qrImage: qrKerucut.src,
-      objectImage: identKerucut.src,
+      objectImage: appKerucut.src,
       modelUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       embedUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
       viewerType: 'embed',
@@ -217,9 +222,9 @@ export const packageContent: Comic1PackageContent = {
     prompt: 'Pilih bangun ruang yang paling cocok untuk menjelaskan objek yang kamu lihat dan jelaskan alasanmu.',
     context: 'Objek baru yang menyimpan bentuk serupa dengan bangun ruang yang dipelajari di candi.',
     images: [
-      { src: identKubus.src, alt: 'Tampak depan', label: 'Tampak Depan', description: 'Perhatikan bentuk utama dari depan.' },
-      { src: identPrisma.src, alt: 'Sudut puncak', label: 'Sudut Puncak', description: 'Perhatikan bentuk puncak yang meruncing.' },
-      { src: identPrisma.src, alt: 'Sudut samping', label: 'Sudut Samping', description: 'Perhatikan sisi samping dan bentuk bidangnya.' },
+      { src: appKubus.src, alt: 'Tampak depan', label: 'Tampak Depan', description: 'Perhatikan bentuk utama dari depan.' },
+      { src: appPrisma.src, alt: 'Sudut puncak', label: 'Sudut Puncak', description: 'Perhatikan bentuk puncak yang meruncing.' },
+      { src: appPrisma.src, alt: 'Sudut samping', label: 'Sudut Samping', description: 'Perhatikan sisi samping dan bentuk bidangnya.' },
     ],
     options: [
       { value: 'Kubus', label: 'Kubus' },
