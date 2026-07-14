@@ -53,7 +53,7 @@ export function AssemblrCard({
             disabled={!isValidUrl}
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[20px] bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Eksplorasi Objek
+            Explore
           </button>
         ) : (
           <>

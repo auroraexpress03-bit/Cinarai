@@ -140,6 +140,7 @@ export default function NavigationStage() {
       if ((entry as any).navImage) {
         params.set('navImage', (entry as any).navImage as string);
       }
+      if (openQr) params.set('mode', 'qr');
       router.push(`/viewer/3d?${params.toString()}`);
       return;
     }

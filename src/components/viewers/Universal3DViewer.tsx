@@ -334,43 +334,67 @@ export default function Universal3DViewer({
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-600">Universal 3D Viewer</p>
+        {isDetailExperience && String(resolvedComicId) === '1' ? (
+          <div className="flex items-center justify-between">
             <h1 className="text-lg font-black text-neutral-900">{resolvedTitle}</h1>
-            <p className="text-sm text-neutral-500">
-              Komik {resolvedComicId} • Halaman {resolvedPage}
-            </p>
-            <div className="mt-2">
-              <ProviderBadge label={providerInfo.label} />
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleOpenExternal}
-              className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-base font-semibold text-primary-700"
-            >
-              Lihat Model 3D
-            </button>
-            {showQrButton && (
+            <div className="flex items-center gap-2">
+              {showQrButton && (
+                <button
+                  type="button"
+                  onClick={handleOpenQr}
+                  className="inline-flex min-h-[40px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700"
+                >
+                  Lihat QR
+                </button>
+              )}
               <button
                 type="button"
-                onClick={handleOpenQr}
+                onClick={handleBack}
+                className="inline-flex min-h-[40px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700"
+              >
+                Tutup Viewer
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-600">Universal 3D Viewer</p>
+              <h1 className="text-lg font-black text-neutral-900">{resolvedTitle}</h1>
+              <p className="text-sm text-neutral-500">
+                Komik {resolvedComicId} • Halaman {resolvedPage}
+              </p>
+              <div className="mt-2">
+                <ProviderBadge label={providerInfo.label} />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleOpenExternal}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-base font-semibold text-primary-700"
+              >
+                Lihat Model 3D
+              </button>
+              {showQrButton && (
+                <button
+                  type="button"
+                  onClick={handleOpenQr}
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-base font-semibold text-neutral-700"
+                >
+                  Tampilkan QR
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleBack}
                 className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-base font-semibold text-neutral-700"
               >
-                Tampilkan QR
+                Tutup Viewer
               </button>
-            )}
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-base font-semibold text-neutral-700"
-            >
-              Tutup Viewer
-            </button>
+            </div>
           </div>
-        </div>
+        )}
       </header>
 
       <div className="flex-1 bg-neutral-100">
