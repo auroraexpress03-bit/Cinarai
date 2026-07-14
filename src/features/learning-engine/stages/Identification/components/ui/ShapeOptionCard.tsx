@@ -1,6 +1,11 @@
 'use client';
 
-import { getShapeIcon } from './ShapeIcons';
+import Image from 'next/image';
+import kubusIcon from '@/features/comics/comic-1/assets/identification/Kubus.png';
+import balokIcon from '@/features/comics/comic-1/assets/identification/Balok.png';
+import prismaIcon from '@/features/comics/comic-1/assets/identification/Prismasegiempat.png';
+import limasIcon from '@/features/comics/comic-1/assets/identification/Limassegiempat.png';
+import kerucutIcon from '@/features/comics/comic-1/assets/identification/Kerucut.png';
 
 interface ShapeOptionCardProps {
   label: string;
@@ -10,7 +15,15 @@ interface ShapeOptionCardProps {
 }
 
 export default function ShapeOptionCard({ label, selected, disabled = false, onToggle }: ShapeOptionCardProps) {
-  const IconComponent = getShapeIcon(label);
+  const iconMap: Record<string, typeof kubusIcon> = {
+    Kubus: kubusIcon,
+    'Prisma Segi Empat': prismaIcon,
+    Balok: balokIcon,
+    'Limas Segi Empat': limasIcon,
+    Kerucut: kerucutIcon,
+  };
+
+  const iconSrc = iconMap[label] ?? kubusIcon;
 
   return (
     <button
@@ -26,8 +39,8 @@ export default function ShapeOptionCard({ label, selected, disabled = false, onT
       ].join(' ')}
     >
       {/* Icon */}
-      <div className="flex-shrink-0">
-        <IconComponent className="w-12 h-12" />
+      <div className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center overflow-hidden">
+        <Image src={iconSrc} alt={label} width={52} height={52} className="h-[52px] w-[52px] object-contain" />
       </div>
 
       {/* Label */}

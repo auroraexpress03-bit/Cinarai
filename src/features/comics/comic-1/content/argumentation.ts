@@ -1,11 +1,7 @@
 import { packageContent } from './packageContent';
 
 import type { StaticImageData } from 'next/image';
-import KubusImg from '@/features/comics/comic-1/assets/argumentation/Kubus.png';
-import BalokImg from '@/features/comics/comic-1/assets/argumentation/Balok.png';
-import PrismaImg from '@/features/comics/comic-1/assets/argumentation/Prismasegiempat.png';
-import LimasImg from '@/features/comics/comic-1/assets/argumentation/Limassegiempat.png';
-import KerucutImg from '@/features/comics/comic-1/assets/argumentation/Kerucut.png';
+import { KubusImg, BalokImg, PrismaImg, LimasImg, KerucutImg } from '@/features/comics/comic-1/assets/argument';
 
 const assetMap: Record<string, StaticImageData> = {
 	'kubus.png': KubusImg,

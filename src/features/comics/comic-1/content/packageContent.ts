@@ -7,22 +7,14 @@ import qrKerucut from '@/features/comics/comic-1/assets/qr/28-kerucut.jpeg';
 
 import coverImg from '@/features/comics/comic-1/assets/cover/cover.png';
 
-import appKubus from '@/features/comics/comic-1/assets/application/Kubus.png';
-import appBalok from '@/features/comics/comic-1/assets/application/Balok.png';
-import appPrisma from '@/features/comics/comic-1/assets/application/Prismasegiempat.png';
-import appLimas from '@/features/comics/comic-1/assets/application/Limassegiempat.png';
-import appKerucut from '@/features/comics/comic-1/assets/application/Kerucut.png';
+import { KubusImg as appKubus, BalokImg as appBalok, PrismaImg as appPrisma, LimasImg as appLimas, KerucutImg as appKerucut } from '@/features/comics/comic-1/assets/application';
 
 import identKubus from '@/features/comics/comic-1/assets/identification/Kubus.png';
 import identBalok from '@/features/comics/comic-1/assets/identification/Balok.png';
 import identPrisma from '@/features/comics/comic-1/assets/identification/Prismasegiempat.png';
 import identLimas from '@/features/comics/comic-1/assets/identification/Limassegiempat.png';
 
-import argKubus from '@/features/comics/comic-1/assets/argumentation/Kubus.png';
-import argBalok from '@/features/comics/comic-1/assets/argumentation/Balok.png';
-import argPrisma from '@/features/comics/comic-1/assets/argumentation/Prismasegiempat.png';
-import argLimas from '@/features/comics/comic-1/assets/argumentation/Limassegiempat.png';
-import argKerucut from '@/features/comics/comic-1/assets/argumentation/Kerucut.png';
+import { KubusImg as argKubus, BalokImg as argBalok, PrismaImg as argPrisma, LimasImg as argLimas, KerucutImg as argKerucut } from '@/features/comics/comic-1/assets/argument';
 
 import navKubus from '@/features/comics/comic-1/assets/navigation/kubus.svg';
 import navBalok from '@/features/comics/comic-1/assets/navigation/balok.svg';
