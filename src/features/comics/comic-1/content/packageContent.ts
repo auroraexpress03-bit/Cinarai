@@ -7,12 +7,17 @@ import qrKerucut from '@/features/comics/comic-1/assets/qr/28-kerucut.jpeg';
 
 import coverImg from '@/features/comics/comic-1/assets/cover/cover.png';
 
-import { KubusImg as appKubus, BalokImg as appBalok, PrismaImg as appPrisma, LimasImg as appLimas, KerucutImg as appKerucut } from '@/features/comics/comic-1/assets/application';
+import { AtapImg as appAtap, OrnamentImg as appOrnament, TanggaImg as appTangga } from '@/features/comics/comic-1/assets/application';
 
 import identKubus from '@/features/comics/comic-1/assets/identification/Kubus.png';
 import identBalok from '@/features/comics/comic-1/assets/identification/Balok.png';
 import identPrisma from '@/features/comics/comic-1/assets/identification/Prismasegiempat.png';
 import identLimas from '@/features/comics/comic-1/assets/identification/Limassegiempat.png';
+import appKubus from '@/features/comics/comic-1/assets/identification/Kubus.png';
+import appBalok from '@/features/comics/comic-1/assets/identification/Balok.png';
+import appPrisma from '@/features/comics/comic-1/assets/identification/Prismasegiempat.png';
+import appLimas from '@/features/comics/comic-1/assets/identification/Limassegiempat.png';
+import appKerucut from '@/features/comics/comic-1/assets/identification/Kerucut.png';
 
 import { KubusImg as argKubus, BalokImg as argBalok, PrismaImg as argPrisma, LimasImg as argLimas, KerucutImg as argKerucut } from '@/features/comics/comic-1/assets/argument';
 
@@ -214,9 +219,9 @@ export const packageContent: Comic1PackageContent = {
     prompt: 'Pilih bangun ruang yang paling cocok untuk menjelaskan objek yang kamu lihat dan jelaskan alasanmu.',
     context: 'Objek baru yang menyimpan bentuk serupa dengan bangun ruang yang dipelajari di candi.',
     images: [
-      { src: appKubus.src, alt: 'Tampak depan', label: 'Tampak Depan', description: 'Perhatikan bentuk utama dari depan.' },
-      { src: appPrisma.src, alt: 'Sudut puncak', label: 'Sudut Puncak', description: 'Perhatikan bentuk puncak yang meruncing.' },
-      { src: appPrisma.src, alt: 'Sudut samping', label: 'Sudut Samping', description: 'Perhatikan sisi samping dan bentuk bidangnya.' },
+      { src: appAtap.src, alt: 'Tampak depan', label: 'Tampak Depan', description: 'Perhatikan bentuk utama dari depan.' },
+      { src: appOrnament.src, alt: 'Detail ornamen', label: 'Detail Ornamen', description: 'Perhatikan ornamen dan detailnya.' },
+      { src: appTangga.src, alt: 'Tangga candi', label: 'Tangga', description: 'Perhatikan bentuk tangga dan sudutnya.' },
     ],
     options: [
       { value: 'Kubus', label: 'Kubus' },

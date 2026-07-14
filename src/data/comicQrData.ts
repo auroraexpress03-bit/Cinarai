@@ -7,7 +7,11 @@ import qr23BalokSelasar from '@/features/comics/comic-1/assets/qr/23-balok-selas
 import qr27LimasTepi from '@/features/comics/comic-1/assets/qr/27-limas-tepi.jpeg';
 import qr28Kerucut from '@/features/comics/comic-1/assets/qr/28-kerucut.jpeg';
 import coverImg from '@/features/comics/comic-1/assets/cover/cover.png';
-import { KubusImg as appKubus, BalokImg as appBalok, PrismaImg as appPrisma, LimasImg as appLimas, KerucutImg as appKerucut } from '@/features/comics/comic-1/assets/application';
+import appKubus from '@/features/comics/comic-1/assets/identification/Kubus.png';
+import appBalok from '@/features/comics/comic-1/assets/identification/Balok.png';
+import appPrisma from '@/features/comics/comic-1/assets/identification/Prismasegiempat.png';
+import appLimas from '@/features/comics/comic-1/assets/identification/Limassegiempat.png';
+import appKerucut from '@/features/comics/comic-1/assets/identification/Kerucut.png';
 
 /**
  * Hasil QR Classifier per komik.
