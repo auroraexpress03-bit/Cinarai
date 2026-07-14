@@ -79,7 +79,7 @@ export default function ObjectDetailClient({ id }: { id: string }) {
           provider={obj.provider}
           comicPage={obj.page}
           modelUrl={obj.modelUrl}
-          entry={obj as ComicAssetEntry}
+          entry={obj as unknown as ComicAssetEntry}
           initialPrompt={obj.aiPrompt}
         />
       </div>
