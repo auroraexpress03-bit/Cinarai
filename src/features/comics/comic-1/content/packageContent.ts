@@ -1,4 +1,5 @@
 import type { Comic1PackageContent } from './types';
+import qrCandiJawi from '@/features/comics/comic-1/assets/qr/candi-jawi.png';
 import qrKubus from '@/features/comics/comic-1/assets/qr/kubus.png';
 import qrBalok from '@/features/comics/comic-1/assets/qr/balok.png';
 import qrPrisma from '@/features/comics/comic-1/assets/qr/prisma-segi-empat.png';
@@ -131,6 +132,7 @@ export const packageContent: Comic1PackageContent = {
     },
   ],
   qrCode: [
+    { id: 'komik1-qr-candi-jawi', imageSrc: qrCandiJawi.src, alt: 'QR Candi Jawi', label: 'Candi Jawi', description: 'Pindai QR ini untuk melihat model 3D Candi Jawi.' },
     { id: 'komik1-qr-1', imageSrc: qrKubus.src, alt: 'QR Kubus', label: 'Kubus', description: 'Pindai QR ini untuk melihat model 3D kubus terkait bagian Candi Jawi.' },
     { id: 'komik1-qr-2', imageSrc: qrBalok.src, alt: 'QR Balok', label: 'Balok', description: 'Pindai QR ini untuk melihat model 3D balok terkait bagian Candi Jawi.' },
     { id: 'komik1-qr-3', imageSrc: qrPrisma.src, alt: 'QR Prisma', label: 'Prisma Segi Empat', description: 'Pindai QR ini untuk melihat model 3D prisma segi empat terkait bagian Candi Jawi.' },
@@ -138,7 +140,7 @@ export const packageContent: Comic1PackageContent = {
     { id: 'komik1-qr-5', imageSrc: qrKerucut.src, alt: 'QR Kerucut', label: 'Kerucut', description: 'Pindai QR ini untuk melihat model 3D kerucut terkait bagian Candi Jawi.' },
   ],
   model3D: [
-    { id: 'komik1-model-candi-jawi', title: 'Candi Jawi', arUrl: 'https://sketchfab.com/3d-models/candi-jawi-with-precision-geometry-83da3450467747fda7872c5a9392ffac', page: 0, description: 'Model 3D lengkap Candi Jawi yang sesuai dengan QR Candi Jawi.', provider: 'Sketchfab' },
+    { id: 'komik1-model-candi-jawi', title: 'Candi Jawi', arUrl: 'https://skfb.ly/6tTpq', embedUrl: 'https://sketchfab.com/models/83da3450467747fda7872c5a9392ffac/embed', viewerType: 'embed', page: 0, description: 'Model 3D lengkap Candi Jawi yang sesuai dengan QR Candi Jawi.', provider: 'Sketchfab' },
     { id: 'komik1-model-1', title: 'Kubus', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-eGQgkYkAKlbGegmVGej', page: 1, description: 'Model 3D kubus yang sesuai dengan bagian bangunan Candi Jawi.', provider: 'Assemblr' },
     { id: 'komik1-model-2', title: 'Balok', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-hwhAtiZhyCivpQ2Jl5Z', page: 2, description: 'Model 3D balok yang sesuai dengan bagian struktur Candi Jawi.', provider: 'Assemblr' },
     { id: 'komik1-model-3', title: 'Prisma Segi Empat', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-PdcSjQ4sYkREdgHK3rX', page: 3, description: 'Model 3D prisma segi empat yang sesuai dengan bagian ornamen candi.', provider: 'Assemblr' },
