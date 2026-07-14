@@ -61,6 +61,14 @@ export default function PdfNavigation({
     );
   }
 
+  const handleNextClick = () => {
+    if (isLastPage && onCompleteRef.current) {
+      onCompleteRef.current();
+      return;
+    }
+    onNext();
+  };
+
   return (
     <div
       className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 pt-2.5"
@@ -79,8 +87,8 @@ export default function PdfNavigation({
           Sebelumnya
         </button>
         <button
-          onClick={onNext}
-          disabled={isLastPage}
+          onClick={handleNextClick}
+          disabled={isLastPage && !onComplete}
           aria-label="Halaman berikutnya"
           className="flex min-h-[48px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary-600 text-base font-black text-white shadow-sm transition-colors hover:bg-primary-700 active:bg-primary-800 disabled:cursor-not-allowed disabled:opacity-30"
         >
