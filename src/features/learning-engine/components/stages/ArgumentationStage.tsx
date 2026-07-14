@@ -34,7 +34,7 @@ function isComic1ArgumentationQuestion(question: unknown): question is Comic1Arg
 }
 
 export default function ArgumentationStage() {
-  const { comic, comicModule, setCanAdvance, nextStage } = useLearningEngine();
+  const { comic, comicModule, setCanAdvance, nextStage, registerSlideNav, unregisterSlideNav } = useLearningEngine();
   const { user } = useAuth();
   const [feedback, setFeedback] = useState<AiFeedback | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -49,10 +49,40 @@ export default function ArgumentationStage() {
   );
 
   const learningObject = orderedLearningObjects[currentIndex] ?? null;
+  const totalPages = orderedLearningObjects.length || 1;
+
+  const goPrevPage = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+      setFeedback(null);
+    }
+  }, [currentIndex]);
+
+  const goNextPage = useCallback(() => {
+    if (currentIndex < totalPages - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setFeedback(null);
+    }
+  }, [currentIndex, totalPages]);
 
   useEffect(() => {
     setCanAdvance(Boolean(feedback) && completedIndices.includes(orderedLearningObjects.length - 1));
   }, [completedIndices, feedback, orderedLearningObjects.length, setCanAdvance]);
+
+  useEffect(() => {
+    registerSlideNav({
+      slideIndex: currentIndex,
+      totalSlides: totalPages,
+      canGoNext: currentIndex < totalPages - 1,
+      canGoPrev: currentIndex > 0,
+      goNext: goNextPage,
+      goPrev: goPrevPage,
+    });
+
+    return () => {
+      unregisterSlideNav();
+    };
+  }, [currentIndex, goNextPage, goPrevPage, registerSlideNav, totalPages, unregisterSlideNav]);
 
   const persistArgumentationProgress = useCallback(async () => {
     if (!user?.uid || !hasHydratedProgress) return;

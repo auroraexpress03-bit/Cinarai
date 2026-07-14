@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { buildResolutionTutorExplanation, type ResolutionMission } from './resolutionStage.helpers';
 import RobotMascot from '@/components/ai/RobotMascot';
@@ -40,7 +40,6 @@ export default function ResolutionStage() {
   const [hasRestored, setHasRestored] = useState(false);
 
   const { comic, comicModule, setCanAdvance, nextStage } = useLearningEngine();
-  const { user } = useAuth();
   const missions = comicModule.resolution.missions;
   const currentMission = missions[currentIndex];
   const displayedProgress = useMemo(
@@ -51,52 +50,6 @@ export default function ResolutionStage() {
   useEffect(() => {
     setCanAdvance(false);
   }, [misiStarted, setCanAdvance]);
-
-  useEffect(() => {
-    if (!user?.uid || !comic.id || hasRestored) return;
-    let isMounted = true;
-    void (async () => {
-      try {
-        const progressDoc = await loadComicProgress(user.uid, comic.id);
-        const persisted = progressDoc?.stageData?.resolution as PersistedResolutionState | undefined;
-        if (!isMounted || !persisted) {
-          setHasRestored(true);
-          return;
-        }
-        setCurrentIndex(typeof persisted.currentIndex === 'number' ? persisted.currentIndex : 0);
-        setCompletedMissionIds(Array.isArray(persisted.completedMissionIds) ? persisted.completedMissionIds : []);
-        setMissionStates(Array.isArray(persisted.missions) ? persisted.missions : []);
-        setIsFinished(Boolean(persisted.isFinished));
-        setCompletedUpToIndex(Math.max(0, (Array.isArray(persisted.completedMissionIds) ? persisted.completedMissionIds.length : 0) - 1));
-      } catch (error) {
-        console.error('[ResolutionStage] gagal memuat progres dari Firestore', error);
-      } finally {
-        if (isMounted) {
-          setHasRestored(true);
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.uid, comic.id, hasRestored]);
-
-  useEffect(() => {
-    if (!hasRestored || !user?.uid || !comic.id) return;
-    void saveComicProgress(user.uid, comic.id, {
-      stageData: {
-        resolution: {
-          currentIndex,
-          completedMissionIds,
-          isFinished,
-          missions: missionStates,
-        },
-      },
-    }).catch((error) => {
-      console.error('[ResolutionStage] gagal menyimpan progres ke Firestore', error);
-    });
-  }, [hasRestored, user?.uid, comic.id, currentIndex, completedMissionIds, isFinished, missionStates]);
 
   // Reset state ketika berpindah soal
   useEffect(() => {
