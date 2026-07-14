@@ -17,11 +17,11 @@ import identLimas from '@/features/comics/comic-1/assets/identification/Limasseg
 
 import { KubusImg as argKubus, BalokImg as argBalok, PrismaImg as argPrisma, LimasImg as argLimas, KerucutImg as argKerucut } from '@/features/comics/comic-1/assets/argument';
 
-import navKubus from '@/features/comics/comic-1/assets/navigation/Tubuhcandi.png';
-import navBalok from '@/features/comics/comic-1/assets/navigation/Tanggacandi.png';
-import navPrismaPreview from '@/features/comics/comic-1/assets/navigation/Ornamentcandi.png';
-import navKerucut from '@/features/comics/comic-1/assets/navigation/Pucukcandi.png';
-import navLimas from '@/features/comics/comic-1/assets/navigation/Atapcandi.png';
+import navKubus from '@/features/comics/comic-1/assets/navigation/tubuhcandi.svg';
+import navBalok from '@/features/comics/comic-1/assets/navigation/tanggacandi.svg';
+import navLimas from '@/features/comics/comic-1/assets/navigation/puncakcandi.svg';
+import navPrismaPreview from '@/features/comics/comic-1/assets/navigation/atapcandi.svg';
+import navKerucut from '@/features/comics/comic-1/assets/navigation/ornamentcandi.svg';
 
 export const packageContent: Comic1PackageContent = {
   metadata: {
