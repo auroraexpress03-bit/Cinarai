@@ -1,3 +1,9 @@
+import path from 'node:path';
+import dotenv from 'dotenv';
+
+const envPath = path.resolve(process.cwd(), '.env.local');
+dotenv.config({ path: envPath });
+
 /**
  * env.ts — Environment variable validation
  *
