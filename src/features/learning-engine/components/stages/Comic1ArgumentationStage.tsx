@@ -20,6 +20,7 @@ interface AiFeedback {
 interface Comic1ArgumentationStageProps {
   question: Comic1ArgumentationQuestion;
   onSubmitFeedback: (feedback: AiFeedback) => void;
+  onAnswerChange: (value: string) => void;
   onNext: () => void;
   feedback: AiFeedback | null;
   comicTitle: string;
@@ -27,6 +28,7 @@ interface Comic1ArgumentationStageProps {
   classLevel: string;
   currentIndex: number;
   totalItems: number;
+  initialAnswer?: string;
 }
 
 function FeedbackCard({ feedback }: { feedback: AiFeedback }) {
@@ -84,6 +86,7 @@ function FeedbackCard({ feedback }: { feedback: AiFeedback }) {
 export default function Comic1ArgumentationStage({
   question,
   onSubmitFeedback,
+  onAnswerChange,
   onNext,
   feedback,
   comicTitle,
@@ -91,8 +94,9 @@ export default function Comic1ArgumentationStage({
   classLevel,
   currentIndex,
   totalItems,
+  initialAnswer = '',
 }: Comic1ArgumentationStageProps) {
-  const [answer, setAnswer] = useState('');
+  const [answer, setAnswer] = useState(initialAnswer);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tutorMessage, setTutorMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -111,10 +115,10 @@ export default function Comic1ArgumentationStage({
   }, [adjustTextareaHeight]);
 
   useEffect(() => {
-    setAnswer('');
+    setAnswer(initialAnswer);
     setTutorMessage(question.aiContext ?? 'Jelaskan alasanmu dengan menghubungkan bagian candi dengan bangun ruang yang sesuai.');
     setIsSubmitting(false);
-  }, [question.aiContext, question.argumentationQuestion]);
+  }, [initialAnswer, question.aiContext, question.argumentationQuestion]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -222,7 +226,9 @@ export default function Comic1ArgumentationStage({
               ref={textareaRef}
               value={answer}
               onChange={(event) => {
-                setAnswer(event.target.value);
+                const nextValue = event.target.value;
+                setAnswer(nextValue);
+                onAnswerChange(nextValue);
                 requestAnimationFrame(adjustTextareaHeight);
               }}
               placeholder="Tuliskan alasanmu di sini..."

@@ -29,7 +29,12 @@ export async function completeStage(
     throw err;
   }
   const next = completeSintaks(current, stage);
-  await saveComicProgress(userId, current.comicId, next, extraData);
+  const completionPatch = stage === 'Cover'
+    ? { cover: { completed: true } }
+    : stage === 'Resolution'
+      ? { resolution: { completed: true } }
+      : undefined;
+  await saveComicProgress(userId, current.comicId, next, completionPatch ? { ...extraData, stageData: completionPatch } : extraData);
   return next;
 }
 

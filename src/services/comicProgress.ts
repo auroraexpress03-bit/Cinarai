@@ -9,20 +9,138 @@ import type { ComicProgressState, SintaksProgress } from '@/types/progress';
 import type { FirestoreTimestamp } from '@/types/firestore';
 import { SINTAKS } from '@/types/progress';
 
+export interface ComicProgressStageData {
+  cover?: { completed?: boolean };
+  identification?: {
+    selectedShapes?: string[];
+    answers?: Array<{
+      step?: number;
+      selectedAnswer?: string | null;
+      note?: string;
+      reason?: string;
+      selectedAnswerIds?: string[];
+      selectedShapes?: string[];
+      aiTutorUsed?: boolean;
+      attemptCount?: number;
+    }>;
+  };
+  navigation?: {
+    objectVisited?: string[];
+    openedObjects?: string[];
+    aiConversation?: unknown[];
+  };
+  argumentation?: {
+    currentQuestion?: string | null;
+    currentIndex?: number;
+    selectedAnswer?: string | null;
+    textAnswer?: string | null;
+    completedArguments?: number[];
+    score?: number | null;
+    feedback?: Record<string, unknown> | null;
+  };
+  application?: {
+    selectedChoice?: string[];
+    explanation?: string;
+    score?: number | null;
+    selectedAnswer?: string[];
+    studentReason?: string;
+    answerSubmitted?: boolean;
+    attemptCount?: number;
+    coachMessage?: string | null;
+    coachSummary?: Record<string, unknown> | null;
+  };
+  introspection?: {
+    reflection?: string;
+    aiFeedback?: Record<string, unknown> | null;
+    checked?: boolean[];
+    rating?: number | null;
+    saved?: boolean;
+  };
+  resolution?: { completed?: boolean; currentIndex?: number; selected?: string | null; isFinished?: boolean };
+}
+
 // New minimal Firestore shape (Progress Engine V2)
-interface ComicProgressV2 {
+export interface ComicProgressV2 {
   comicId: number;
   currentStage: string;
   completedStages: string[];
   readerPage?: number;
   readerCompleted?: boolean;
   lastOpened?: unknown;
+  stageData?: ComicProgressStageData;
   updatedAt?: FirestoreTimestamp | unknown;
 }
 
 function log(...args: unknown[]) {
   // eslint-disable-next-line no-console
   console.log('[comic-progress-v2]', ...args);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizeStageData(value: unknown): ComicProgressStageData | undefined {
+  if (!value || !isPlainObject(value)) return undefined;
+  return value as ComicProgressStageData;
+}
+
+export function mergeStageData(existing: ComicProgressStageData | undefined, patch: ComicProgressStageData | undefined): ComicProgressStageData | undefined {
+  if (!patch) {
+    return existing ? { ...existing } : undefined;
+  }
+
+  const result: ComicProgressStageData = { ...(existing ?? {}) };
+  Object.entries(patch).forEach(([key, value]) => {
+    if (value === undefined) return;
+    const currentValue = result[key as keyof ComicProgressStageData];
+    if (isPlainObject(currentValue) && isPlainObject(value)) {
+      result[key as keyof ComicProgressStageData] = mergeStageData(
+        currentValue as ComicProgressStageData,
+        value as ComicProgressStageData
+      ) as never;
+    } else {
+      result[key as keyof ComicProgressStageData] = value as never;
+    }
+  });
+
+  return result;
+}
+
+function extractStageDataPatch(stateOrPayload: unknown, extraData?: Record<string, unknown>): ComicProgressStageData | undefined {
+  const stageDataCandidates: Array<Record<string, unknown> | undefined> = [];
+
+  if (isPlainObject(stateOrPayload) && 'stageData' in stateOrPayload) {
+    stageDataCandidates.push(stateOrPayload.stageData as Record<string, unknown> | undefined);
+  }
+
+  if (extraData && 'stageData' in extraData) {
+    stageDataCandidates.push(extraData.stageData as Record<string, unknown> | undefined);
+  }
+
+  const topLevelStageKeys = ['cover', 'identification', 'navigation', 'argumentation', 'application', 'introspection', 'resolution'];
+  if (isPlainObject(stateOrPayload)) {
+    const directStagePatch = Object.fromEntries(
+      Object.entries(stateOrPayload).filter(([key]) => topLevelStageKeys.includes(key))
+    );
+    if (Object.keys(directStagePatch).length > 0) {
+      stageDataCandidates.push(directStagePatch);
+    }
+  }
+
+  if (extraData) {
+    const extraStagePatch = Object.fromEntries(
+      Object.entries(extraData).filter(([key]) => topLevelStageKeys.includes(key))
+    );
+    if (Object.keys(extraStagePatch).length > 0) {
+      stageDataCandidates.push(extraStagePatch);
+    }
+  }
+
+  return stageDataCandidates.reduce<ComicProgressStageData | undefined>((acc, candidate) => {
+    if (!candidate) return acc;
+    return mergeStageData(acc, candidate as ComicProgressStageData);
+  }, undefined);
 }
 
 function comicDocId(comicId: number) {
@@ -124,6 +242,20 @@ export async function getComicProgress(userId: string, comicId: number): Promise
   return buildCompatState(comicId, data);
 }
 
+export async function loadComicProgress(userId: string, comicId: number): Promise<ComicProgressV2 | null> {
+  if (!userId) throw new Error('unauthenticated');
+  // eslint-disable-next-line no-console
+  console.log('[comic-progress] Loading progress...', { userId, comicId });
+  const ref = progressDocRef(userId, comicId);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? (snap.data() as ComicProgressV2) : null;
+  if (data) {
+    // eslint-disable-next-line no-console
+    console.log('[comic-progress] Loaded progress...', { comicId, stageData: data.stageData });
+  }
+  return data;
+}
+
 export function extractFirebaseErrorCode(error: unknown): string {
   if (error && typeof error === 'object' && 'code' in error) {
     return String((error as { code: string }).code);
@@ -158,8 +290,17 @@ export async function saveComicProgress(
     payload = (stateOrPayload as Partial<ComicProgressV2>) ?? {};
     payload.updatedAt = serverTimestamp();
   }
+
+  const existingSnap = await getDoc(ref);
+  const existingData = existingSnap.exists() ? (existingSnap.data() as ComicProgressV2 | null) : null;
+  const patchStageData = extractStageDataPatch(stateOrPayload, extraData);
+  const nextStageData = patchStageData
+    ? mergeStageData(normalizeStageData(existingData?.stageData), patchStageData)
+    : existingData?.stageData;
+
   const docPayload: Partial<ComicProgressV2> = {
     ...payload,
+    stageData: nextStageData,
     comicId,
     updatedAt: serverTimestamp(),
   };
@@ -177,7 +318,7 @@ export async function resetComicProgress(userId: string, comicId: number): Promi
   // Delete the progress document and related artifacts
   try {
     const ref = progressDocRef(userId, comicId);
-    await setDoc(ref, { comicId, currentStage: SINTAKS[0], completedStages: [], readerPage: 1, readerCompleted: false, updatedAt: serverTimestamp() });
+    await setDoc(ref, { comicId, currentStage: SINTAKS[0], completedStages: [], readerPage: 1, readerCompleted: false, stageData: {}, updatedAt: serverTimestamp() });
     await Promise.all([
       clearIdentificationAnswers(userId, comicId),
       clearApplicationActivities(userId, comicId),

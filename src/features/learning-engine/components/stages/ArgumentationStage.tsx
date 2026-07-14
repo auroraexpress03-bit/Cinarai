@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { loadComicProgress, saveComicProgress } from '@/services/comicProgress';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import { getOrderedArgumentationLearningObjects } from '../../stages/Argumentation/data/argumentationQuestions';
 import Comic1ArgumentationStage from './Comic1ArgumentationStage';
@@ -33,9 +35,13 @@ function isComic1ArgumentationQuestion(question: unknown): question is Comic1Arg
 
 export default function ArgumentationStage() {
   const { comic, comicModule, setCanAdvance, nextStage } = useLearningEngine();
+  const { user } = useAuth();
   const [feedback, setFeedback] = useState<AiFeedback | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedIndices, setCompletedIndices] = useState<number[]>([]);
+  const [textAnswer, setTextAnswer] = useState('');
+  const [hasHydratedProgress, setHasHydratedProgress] = useState(false);
+  const progressHydratedRef = useRef(false);
 
   const orderedLearningObjects = useMemo(
     () => getOrderedArgumentationLearningObjects(comicModule.argumentation),
@@ -47,6 +53,68 @@ export default function ArgumentationStage() {
   useEffect(() => {
     setCanAdvance(Boolean(feedback) && completedIndices.includes(orderedLearningObjects.length - 1));
   }, [completedIndices, feedback, orderedLearningObjects.length, setCanAdvance]);
+
+  const persistArgumentationProgress = useCallback(async () => {
+    if (!user?.uid || !hasHydratedProgress) return;
+    await saveComicProgress(user.uid, comic.id, {
+      stageData: {
+        argumentation: {
+          currentIndex,
+          completedArguments: completedIndices,
+          selectedAnswer: textAnswer.trim() || null,
+          textAnswer,
+          feedback,
+          score: feedback?.score ?? null,
+        },
+      },
+    });
+  }, [comic.id, completedIndices, feedback, hasHydratedProgress, currentIndex, textAnswer, user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid || progressHydratedRef.current) return;
+    progressHydratedRef.current = true;
+    let active = true;
+    void (async () => {
+      try {
+        const document = await loadComicProgress(user.uid, comic.id);
+        if (!active) return;
+        const stageData = document?.stageData?.argumentation;
+        if (stageData) {
+          if (typeof stageData.currentIndex === 'number') {
+            setCurrentIndex(stageData.currentIndex);
+          }
+          if (Array.isArray(stageData.completedArguments)) {
+            setCompletedIndices(stageData.completedArguments.filter((value): value is number => typeof value === 'number'));
+          }
+          if (typeof stageData.textAnswer === 'string') {
+            setTextAnswer(stageData.textAnswer);
+          }
+          if (stageData.feedback && typeof stageData.feedback === 'object') {
+            const feedbackValue = stageData.feedback as unknown as Partial<AiFeedback>;
+            if (
+              typeof feedbackValue.level === 'string' &&
+              typeof feedbackValue.score === 'number' &&
+              typeof feedbackValue.feedback === 'string'
+            ) {
+              setFeedback(feedbackValue as AiFeedback);
+            }
+          }
+        }
+        setHasHydratedProgress(true);
+        // eslint-disable-next-line no-console
+        console.log('[comic-progress] Progress restored.');
+      } catch (error) {
+        console.error('[ArgumentationStage] gagal memuat progress', error);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [comic.id, user?.uid]);
+
+  useEffect(() => {
+    void persistArgumentationProgress();
+  }, [persistArgumentationProgress]);
 
   const handleFeedback = useCallback(
     (newFeedback: AiFeedback) => {
@@ -89,6 +157,7 @@ export default function ArgumentationStage() {
       <Comic1ArgumentationStage
         question={argObj}
         onSubmitFeedback={handleFeedback}
+        onAnswerChange={setTextAnswer}
         onNext={handleNext}
         feedback={feedback}
         comicTitle={comic.title}
@@ -96,6 +165,7 @@ export default function ArgumentationStage() {
         classLevel={comic.kelas ?? 'Kelas VI'}
         currentIndex={currentIndex}
         totalItems={orderedLearningObjects.length}
+        initialAnswer={textAnswer}
       />
     );
   }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { loadComicProgress, saveComicProgress } from '@/services/comicProgress';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 
 type CoachSummary = {
@@ -69,6 +70,7 @@ export default function ApplicationStage() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
   const [attemptCount, setAttemptCount] = useState(0);
+  const [hasHydratedProgress, setHasHydratedProgress] = useState(false);
   const options = useMemo(() => shuffle(applicationConfig.options.map((option) => option.value)), [applicationConfig.options]);
 
   const minReasonLength = studentReason.trim().length;
@@ -77,6 +79,65 @@ export default function ApplicationStage() {
   useEffect(() => {
     setCanAdvance(answerSubmitted);
   }, [answerSubmitted, setCanAdvance]);
+
+  useEffect(() => {
+    if (!user?.uid || !hasHydratedProgress) return;
+    void saveComicProgress(user.uid, comic.id, {
+      stageData: {
+        application: {
+          selectedChoice: selectedAnswer,
+          explanation: studentReason,
+          score: answerSubmitted ? (coachSummary ? 1 : null) : null,
+          selectedAnswer,
+          studentReason,
+          answerSubmitted,
+          attemptCount,
+          coachMessage,
+          coachSummary,
+        },
+      },
+    });
+  }, [answerSubmitted, attemptCount, coachMessage, coachSummary, comic.id, hasHydratedProgress, selectedAnswer, studentReason, user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+    void (async () => {
+      try {
+        const document = await loadComicProgress(user.uid, comic.id);
+        if (!active) return;
+        const stageData = document?.stageData?.application;
+        if (stageData) {
+          if (Array.isArray(stageData.selectedChoice)) {
+            setSelectedAnswer(stageData.selectedChoice);
+          }
+          if (typeof stageData.explanation === 'string') {
+            setStudentReason(stageData.explanation);
+          }
+          if (typeof stageData.answerSubmitted === 'boolean') {
+            setAnswerSubmitted(stageData.answerSubmitted);
+          }
+          if (typeof stageData.attemptCount === 'number') {
+            setAttemptCount(stageData.attemptCount);
+          }
+          if (typeof stageData.coachMessage === 'string') {
+            setCoachMessage(stageData.coachMessage);
+          }
+          if (stageData.coachSummary && typeof stageData.coachSummary === 'object') {
+            setCoachSummary(stageData.coachSummary as CoachSummary);
+          }
+        }
+        setHasHydratedProgress(true);
+        // eslint-disable-next-line no-console
+        console.log('[comic-progress] Progress restored.');
+      } catch (error) {
+        console.error('[ApplicationStage] gagal memuat progress', error);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [comic.id, user?.uid]);
 
   
 

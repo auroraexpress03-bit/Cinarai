@@ -16,7 +16,9 @@ import {
   saveIdentificationAnswer,
   loadIdentificationAnswers,
 } from '../services/identificationAnswerService';
+import { loadComicProgress, saveComicProgress } from '@/services/comicProgress';
 import type { IdentificationItem, IdentificationStep } from '../types';
+import type { IdentificationAnswerDocument } from '@/types/firestore';
 
 interface AutoSaveMetadata {
   status: 'idle' | 'saving' | 'saved' | 'error';
@@ -114,6 +116,7 @@ export function IdentificationProvider({
   useEffect(() => { stateRef.current = state; }, [state]);
 
   const [autoSaveState, setAutoSaveState] = useState<Record<string, AutoSaveMetadata>>({});
+  const [hasHydratedProgress, setHasHydratedProgress] = useState(false);
   const saveTimeout = useRef<number | null>(null);
   const pendingSaveRef = useRef<Set<string>>(new Set());
   const userRef = useRef(user);
@@ -125,6 +128,31 @@ export function IdentificationProvider({
       [itemId]: { ...prev[itemId], ...metadata },
     }));
   }, []);
+
+  const persistIdentificationProgress = useCallback(async () => {
+    if (!userRef.current?.uid || !hasHydratedProgress) return;
+    const selectedShapes = stateRef.current.items.flatMap((item) => item.selectedOptionIds.length > 0 ? item.options.filter((option) => item.selectedOptionIds.includes(option.id)).map((option) => option.text) : []);
+    const answers = stateRef.current.items.map((item) => ({
+      step: item.targetIndex,
+      selectedAnswer: item.selectedOptionIds.length > 0
+        ? item.options.filter((option) => item.selectedOptionIds.includes(option.id)).map((option) => option.text).join(', ') || null
+        : null,
+      note: item.note,
+      reason: item.reason,
+      selectedAnswerIds: item.selectedOptionIds,
+      selectedShapes: item.options.filter((option) => item.selectedOptionIds.includes(option.id)).map((option) => option.text),
+      aiTutorUsed: Boolean(item.reason?.trim()),
+      attemptCount: 1,
+    }));
+    await saveComicProgress(userRef.current.uid, comicId, {
+      stageData: {
+        identification: {
+          selectedShapes: Array.from(new Set(selectedShapes)),
+          answers,
+        },
+      },
+    });
+  }, [comicId, hasHydratedProgress]);
 
   const persistItem = useCallback(async (item: IdentificationItem) => {
     const currentUser = userRef.current;
@@ -155,6 +183,7 @@ export function IdentificationProvider({
       });
 
       updateAutoSaveState(item.id, { status: 'saved', message: '✓ Tersimpan' });
+      await persistIdentificationProgress();
       window.setTimeout(() => {
         updateAutoSaveState(item.id, { status: 'idle', message: undefined });
       }, 2000);
@@ -175,7 +204,7 @@ export function IdentificationProvider({
         });
       }, 1000);
     }
-  }, [comicId, updateAutoSaveState]);
+  }, [comicId, persistIdentificationProgress, updateAutoSaveState]);
 
   const scheduleAutoSave = useCallback((itemId: string) => {
     pendingSaveRef.current.add(itemId);
@@ -192,11 +221,38 @@ export function IdentificationProvider({
 
   useEffect(() => {
     if (!user) return;
-    void loadIdentificationAnswers(user.uid, comicId).then((answers) => {
-      if (answers.length > 0) applyAnswers(answers);
-    });
+    let active = true;
+    void (async () => {
+      try {
+        const [progressDoc, answers] = await Promise.all([
+          loadComicProgress(user.uid, comicId),
+          loadIdentificationAnswers(user.uid, comicId),
+        ]);
+        if (!active) return;
+        const stageData = progressDoc?.stageData?.identification;
+        if (stageData?.answers && stageData.answers.length > 0) {
+          // eslint-disable-next-line no-console
+          console.log('[comic-progress] Hydrating state...', { stage: 'identification', stageData });
+          applyAnswers(stageData.answers as unknown as IdentificationAnswerDocument[]);
+        } else if (answers.length > 0) {
+          applyAnswers(answers);
+        }
+        setHasHydratedProgress(true);
+        // eslint-disable-next-line no-console
+        console.log('[comic-progress] Progress restored.');
+      } catch (error) {
+        console.error('[IdentificationContext] gagal memuat progress', error);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, comicId]);
+
+  useEffect(() => {
+    void persistIdentificationProgress();
+  }, [currentStep, reviewIndex, currentQuestionIndex, checkedItems, state.items, persistIdentificationProgress]);
 
   // Beritahu parent saat isComplete berubah
   useEffect(() => {

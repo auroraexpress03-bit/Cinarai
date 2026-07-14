@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { serverTimestamp } from 'firebase/firestore';
+import { loadComicProgress, saveComicProgress } from '@/services/comicProgress';
 import {
   getFirestoreDocument,
   mergeFirestoreDocument,
@@ -84,6 +85,7 @@ export default function IntrospectionStage() {
   const [isTyping, setIsTyping] = useState(false);
   const [identificationAnswers, setIdentificationAnswers] = useState<IdentificationAnswerSummary[]>([]);
   const [applicationActivities, setApplicationActivities] = useState<ApplicationActivitySummary[]>([]);
+  const [hasHydratedProgress, setHasHydratedProgress] = useState(false);
 
   const selectedChecklist = useMemo(
     () => checklistItems.filter((_, index) => checked[index]),
@@ -96,6 +98,21 @@ export default function IntrospectionStage() {
   const canSubmit = hasAtLeastOneCheck && hasRating && hasMinimumReflection;
 
   const nextComic = getComicById(comic.id + 1);
+
+  useEffect(() => {
+    if (!user?.uid || !hasHydratedProgress) return;
+    void saveComicProgress(user.uid, comic.id, {
+      stageData: {
+        introspection: {
+          reflection: reflectionText,
+          aiFeedback: aiReflection ?? null,
+          checked,
+          rating,
+          saved,
+        },
+      },
+    });
+  }, [aiReflection, checked, comic.id, hasHydratedProgress, rating, reflectionText, saved, user?.uid]);
 
   const formatStageResult = (stageName: string) => {
     const stage = progress.sintaksList.find((item) => item.sintaks === stageName);
@@ -310,9 +327,10 @@ ${data.suggestion}`;
     let active = true;
 
     const loadSavedIntrospection = async () => {
+      const docId = `${user.uid}_${comic.id}_introspection`;
       try {
-        const docId = `${user.uid}_${comic.id}_introspection`;
-        const [savedReflection, identificationDocs, applicationDocs] = await Promise.all([
+        const [progressDocument, savedReflection, identificationDocs, applicationDocs] = await Promise.all([
+          loadComicProgress(user.uid, comic.id),
           getFirestoreDocument('reflection', docId),
           queryFirestoreCollection('identification_answers', {
             filters: [
@@ -333,6 +351,27 @@ ${data.suggestion}`;
         ]);
 
         if (!active) return;
+
+        const stageData = progressDocument?.stageData?.introspection;
+        if (stageData) {
+          if (Array.isArray(stageData.checked)) {
+            setChecked(stageData.checked);
+          }
+          if (typeof stageData.rating === 'number') {
+            setRating(stageData.rating);
+          }
+          if (typeof stageData.reflection === 'string') {
+            setReflectionText(stageData.reflection);
+          }
+          if (stageData.aiFeedback && typeof stageData.aiFeedback === 'object') {
+            const parsedAi = stageData.aiFeedback as AiReflection;
+            setAiReflection(parsedAi);
+            setDisplayedReflection(parsedAi);
+          }
+          if (typeof stageData.saved === 'boolean') {
+            setSaved(stageData.saved);
+          }
+        }
 
         if (savedReflection) {
           if (Array.isArray(savedReflection.selectedChecklist)) {
@@ -383,6 +422,9 @@ ${data.suggestion}`;
                 : doc.timestamp?.toDate?.()?.toISOString(),
           }))
         );
+        setHasHydratedProgress(true);
+        // eslint-disable-next-line no-console
+        console.log('[comic-progress] Progress restored.');
       } catch (error) {
         console.error('[IntrospectionStage] Gagal memuat konteks Introspection', error);
       }
