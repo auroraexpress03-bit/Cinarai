@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
-import type { ResolutionMission } from './resolutionStage.helpers';
+import { buildResolutionTutorExplanation, type ResolutionMission } from './resolutionStage.helpers';
 import RobotMascot from '@/components/ai/RobotMascot';
 import { useAuth } from '@/hooks/useAuth';
 import { loadComicProgress, saveComicProgress } from '@/services/comicProgress';
@@ -24,69 +24,8 @@ interface PersistedResolutionState {
   missions: PersistedMissionState[];
 }
 
-function getTutorFallback(mission: ResolutionMission, isCorrect: boolean, attempt: number = 0): string {
-  if (isCorrect) {
-    return [
-      '✨ Selamat! Jawabanmu benar!',
-      '',
-      mission.correctFeedback ?? 'Bagus sekali! Kamu sudah menerapkan rumus dengan benar.',
-      '',
-      `📚 Bangun yang kita gunakan: ${mission.shape}`,
-      '',
-      `📏 Rumusnya adalah: ${mission.formula}`,
-      '',
-      `📌 Jadi hasilnya adalah: ${mission.answer}`,
-      '',
-      `🏛️ Hubungan dengan materi: ${mission.context}`,
-      '',
-      'Kamu sudah memahami konsep yang penting. Sangat bagus! 👏',
-    ].join('\n');
-  }
-
-  // Untuk jawaban salah - attempt pertama: berikan petunjuk tanpa jawaban langsung
-  if (attempt === 0 || attempt === 1) {
-    return [
-      '💡 Hmm, jawaban itu belum tepat. Jangan khawatir!',
-      '',
-      mission.incorrectFeedback ?? 'Coba ulangi langkah penyelesaiannya dengan lebih teliti.',
-      '',
-      `🔍 Bangun yang sedang kita hitung adalah: ${mission.shape}`,
-      '',
-      `📏 Rumus yang kita pakai: ${mission.formula.split('=')[0].trim()}`,
-      '',
-      mission.hint ?? 'Coba perhatikan langkah-langkahnya lebih teliti. Masukkan angka dengan hati-hati.',
-      '',
-      'Ingat: Kesalahan adalah guru terbaik. Ayo coba lagi! 💪',
-    ].join('\n');
-  }
-
-  // Untuk attempt kedua: lebih detail guidance
-  if (attempt === 2) {
-    return [
-      '🤔 Mari kita coba pendekatan lain:',
-      '',
-      `Langkah 1: Identifikasi bangunnya - ${mission.shape}`,
-      '',
-      `Langkah 2: Gunakan rumus: ${mission.formula.split('=')[0].trim()}`,
-      '',
-      `Langkah 3: Masukkan nilai-nilainya dengan teliti`,
-      '',
-      `Langkah 4: Hitung hasilnya: ${mission.formula}`,
-      '',
-      'Aku yakin kamu bisa! Coba lagi dengan keyakinan penuh! 🌟',
-    ].join('\n');
-  }
-
-  // Untuk attempt ketiga ke atas
-  return [
-    '📖 Mari kita lihat penjelasan lengkapnya:',
-    '',
-    `Bangun: ${mission.shape}`,
-    `Rumus: ${mission.formula}`,
-    `Hasil: ${mission.answer}`,
-    '',
-    'Belajarlah dari pengalaman ini. Kamu akan lebih mahir seiring waktu! 🚀',
-  ].join('\n');
+function getTutorFallback(mission: ResolutionMission, isCorrect: boolean, _attempt: number = 0): string {
+  return buildResolutionTutorExplanation(mission, isCorrect);
 }
 
 export default function ResolutionStage() {
@@ -458,18 +397,6 @@ function MissionCard({
             />
           </div>
           <p className="mt-3 text-center text-sm font-black text-neutral-700">{mission.shape}</p>
-          <div className="mt-4 rounded-[16px] border border-primary-100 bg-white p-3 text-sm text-neutral-700">
-            <p className="font-black text-primary-700">Data Soal</p>
-            <ul className="mt-2 space-y-1">
-              {mission.problemData?.map((item) => (
-                <li key={item} className="leading-relaxed">• {item}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="mt-3 rounded-[16px] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            <p className="font-black">Hint</p>
-            <p className="mt-1 leading-relaxed">{mission.hint ?? 'Gunakan rumus yang sesuai dengan bangun ruang ini.'}</p>
-          </div>
         </div>
 
         <div className="flex flex-col gap-3">

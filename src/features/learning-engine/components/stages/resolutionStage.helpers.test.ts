@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { RESOLUTION_MISSIONS, getMissionHint, isCorrectSelection } from './resolutionStage.helpers';
+import { RESOLUTION_MISSIONS, buildResolutionTutorExplanation, getMissionHint, isCorrectSelection } from './resolutionStage.helpers';
 
 test('resolution missions include five sequential numeracy missions', () => {
   assert.equal(RESOLUTION_MISSIONS.length, 5);
@@ -16,10 +16,22 @@ test('correct selection is validated per mission', () => {
   assert.equal(isCorrectSelection(RESOLUTION_MISSIONS[4], 'B'), true);
 });
 
-test('hints are capped at three clues for each mission', () => {
-  const hint3 = getMissionHint(RESOLUTION_MISSIONS[0], 2);
-  const hint4 = getMissionHint(RESOLUTION_MISSIONS[0], 3);
+test('wrong-answer guidance stays scaffolded and avoids revealing the final result', () => {
+  const explanation = buildResolutionTutorExplanation(RESOLUTION_MISSIONS[1], false);
 
-  assert.match(hint3, /Volume/);
-  assert.equal(hint4, 'Coba pelajari kembali rumus bangun ruang ini, lalu kirim jawaban lagi.');
+  assert.match(explanation, /Bangun ruang: Balok/i);
+  assert.match(explanation, /Rumus Volume:/i);
+  assert.match(explanation, /p = Panjang/i);
+  assert.match(explanation, /l = Lebar/i);
+  assert.match(explanation, /t = Tinggi/i);
+  assert.doesNotMatch(explanation, /360 cm³/i);
+  assert.doesNotMatch(explanation, /12 × 6/i);
+  assert.doesNotMatch(explanation, /72 × 5/i);
+});
+
+test('mission hints use the scaffolded tutor guidance', () => {
+  const hint = getMissionHint(RESOLUTION_MISSIONS[0], 3);
+
+  assert.match(hint, /Bangun ruang:/i);
+  assert.match(hint, /Masukkan nilai yang ada pada soal/i);
 });

@@ -1,4 +1,4 @@
-import { resolutionContent } from '@/features/comics/comic-1/content/resolutionContent';
+import { buildResolutionTutorExplanation as buildTutorTextExplanation } from './resolutionTutorText';
 
 export interface ResolutionMission {
   id: number;
@@ -21,14 +21,133 @@ export interface ResolutionMission {
   illustration: string;
 }
 
-const COMIC_1_RESOLUTION_MISSIONS: ResolutionMission[] = resolutionContent.missions.map((mission) => ({
-  ...mission,
-  problemData: mission.problemData,
-  hint: mission.hint,
-  correctFeedback: mission.correctFeedback,
-  incorrectFeedback: mission.incorrectFeedback,
-  illustration: mission.illustration,
-}));
+const COMIC_1_RESOLUTION_MISSIONS: ResolutionMission[] = [
+  {
+    id: 1,
+    title: 'Misi 1 · Volume Kubus',
+    part: 'Kubus',
+    shape: 'Kubus',
+    prompt: 'Sebuah kubus memiliki panjang rusuk 8 cm. Hitung volumenya.',
+    problemData: ['Rusuk (s) = 8 cm'],
+    options: [
+      { key: 'A', label: '256 cm³' },
+      { key: 'B', label: '384 cm³' },
+      { key: 'C', label: '512 cm³' },
+      { key: 'D', label: '640 cm³' },
+    ],
+    correctKey: 'C',
+    answer: '512 cm³',
+    formula: 'V = s × s × s',
+    explanation: '8 × 8 × 8 = 512',
+    hint: 'Kalikan rusuk sebanyak tiga kali.',
+    correctFeedback: 'Tepat! Volume kubus diperoleh dari perkalian rusuk tiga kali.',
+    incorrectFeedback: 'Belum tepat. Kubus memiliki rusuk yang sama pada semua sisi, jadi volumenya adalah s × s × s.',
+    aiHint: 'Gunakan rumus volume kubus: V = s³.',
+    context: 'Bangun ruang kubus pada Candi Jawi membantu siswa menghubungkan bentuk tiga dimensi dengan konsep volume yang rapi.',
+    accent: 'from-primary-600 to-primary-700',
+    illustration: '/images/navigation/default.svg',
+  },
+  {
+    id: 2,
+    title: 'Misi 2 · Volume Balok',
+    part: 'Balok',
+    shape: 'Balok',
+    prompt: 'Sebuah balok memiliki p = 12 cm, l = 6 cm, dan t = 5 cm. Hitung volumenya.',
+    problemData: ['Panjang (p) = 12 cm', 'Lebar (l) = 6 cm', 'Tinggi (t) = 5 cm'],
+    options: [
+      { key: 'A', label: '300 cm³' },
+      { key: 'B', label: '320 cm³' },
+      { key: 'C', label: '360 cm³' },
+      { key: 'D', label: '400 cm³' },
+    ],
+    correctKey: 'C',
+    answer: '360 cm³',
+    formula: 'V = p × l × t',
+    explanation: '12 × 6 × 5 = 360',
+    hint: 'Kalikan panjang, lebar, dan tinggi dengan hati-hati.',
+    correctFeedback: 'Tepat! Volume balok diperoleh dari perkalian panjang, lebar, dan tinggi.',
+    incorrectFeedback: 'Belum tepat. Periksa kembali perkalian panjang, lebar, dan tinggi pada balok.',
+    aiHint: 'Kalikan panjang, lebar, dan tinggi dengan cermat.',
+    context: 'Bangun ruang balok pada Candi Jawi membantu siswa melihat bentuk yang panjang, lebar, dan tinggi berbeda.',
+    accent: 'from-secondary-500 to-secondary-600',
+    illustration: '/images/navigation/default.svg',
+  },
+  {
+    id: 3,
+    title: 'Misi 3 · Volume Prisma Segi Empat',
+    part: 'Prisma Segi Empat',
+    shape: 'Prisma Segi Empat',
+    prompt: 'Sebuah prisma segi empat memiliki luas alas 36 cm² dan tinggi 10 cm. Volume prisma tersebut adalah?',
+    problemData: ['Luas alas = 36 cm²', 'Tinggi prisma = 10 cm'],
+    options: [
+      { key: 'A', label: '300 cm³' },
+      { key: 'B', label: '360 cm³' },
+      { key: 'C', label: '420 cm³' },
+      { key: 'D', label: '480 cm³' },
+    ],
+    correctKey: 'B',
+    answer: '360 cm³',
+    formula: 'V = Luas Alas × Tinggi',
+    explanation: '36 × 10 = 360',
+    hint: 'Kalikan luas alas dengan tinggi prisma.',
+    correctFeedback: 'Benar! Volume prisma segi empat adalah luas alas dikalikan tinggi.',
+    incorrectFeedback: 'Belum tepat. Ingat, volume prisma adalah luas alas dikali tinggi.',
+    aiHint: 'Gunakan rumus volume prisma: V = Luas Alas × Tinggi.',
+    context: 'Prisma segi empat pada Candi Jawi membantu siswa memahami hubungan antara alas dan tinggi pada bangun ruang.',
+    accent: 'from-amber-500 to-orange-500',
+    illustration: '/images/navigation/default.svg',
+  },
+  {
+    id: 4,
+    title: 'Misi 4 · Volume Limas Segi Empat',
+    part: 'Limas Segi Empat',
+    shape: 'Limas Segi Empat',
+    prompt: 'Sebuah limas segi empat memiliki luas alas 64 cm² dan tinggi 9 cm. Volume limas tersebut adalah?',
+    problemData: ['Luas alas = 64 cm²', 'Tinggi limas = 9 cm'],
+    options: [
+      { key: 'A', label: '144 cm³' },
+      { key: 'B', label: '192 cm³' },
+      { key: 'C', label: '240 cm³' },
+      { key: 'D', label: '288 cm³' },
+    ],
+    correctKey: 'B',
+    answer: '192 cm³',
+    formula: 'V = 1/3 × Luas Alas × Tinggi',
+    explanation: '1/3 × 64 × 9 = 192',
+    hint: 'Jangan lupa bagi hasilnya dengan 3.',
+    correctFeedback: 'Tepat! Limas segi empat memiliki volume sepertiga dari prisma yang alas dan tingginya sama.',
+    incorrectFeedback: 'Belum tepat. Ingat, volume limas adalah sepertiga dari hasil perkalian luas alas dan tinggi.',
+    aiHint: 'Gunakan rumus volume limas: V = 1/3 × Luas Alas × Tinggi.',
+    context: 'Limas segi empat pada Candi Jawi membantu siswa memahami bentuk yang meruncing ke satu puncak.',
+    accent: 'from-emerald-500 to-emerald-600',
+    illustration: '/images/navigation/default.svg',
+  },
+  {
+    id: 5,
+    title: 'Misi 5 · Volume Kerucut',
+    part: 'Kerucut',
+    shape: 'Kerucut',
+    prompt: 'Sebuah kerucut memiliki r = 7 cm dan t = 12 cm. Gunakan π = 22/7. Volume kerucut tersebut adalah?',
+    problemData: ['Jari-jari (r) = 7 cm', 'Tinggi (t) = 12 cm', 'π = 22/7'],
+    options: [
+      { key: 'A', label: '528 cm³' },
+      { key: 'B', label: '616 cm³' },
+      { key: 'C', label: '672 cm³' },
+      { key: 'D', label: '728 cm³' },
+    ],
+    correctKey: 'B',
+    answer: '616 cm³',
+    formula: 'V = 1/3 × π × r² × t',
+    explanation: '1/3 × 22/7 × 49 × 12 = 616',
+    hint: 'Hitung r² terlebih dahulu, lalu bagi hasilnya dengan 3.',
+    correctFeedback: 'Sangat tepat! Kerucut memiliki volume sepertiga dari tabung dengan jari-jari dan tinggi yang sama.',
+    incorrectFeedback: 'Belum tepat. Hitung r² dulu, lalu kalikan dengan tinggi dan π, lalu bagi tiga.',
+    aiHint: 'Mulai dari menghitung r² = 49, lalu kalikan dengan tinggi dan π, lalu bagi 3.',
+    context: 'Kerucut pada Candi Jawi membantu siswa melihat hubungan antara alas bundar dan puncak yang meruncing.',
+    accent: 'from-fuchsia-500 to-purple-600',
+    illustration: '/images/navigation/default.svg',
+  },
+];
 
 export const RESOLUTION_MISSIONS: ResolutionMission[] = COMIC_1_RESOLUTION_MISSIONS;
 
@@ -141,232 +260,17 @@ export function isCorrectSelection(mission: ResolutionMission, selected: string 
   return Boolean(selected && selected.toUpperCase() === mission.correctKey);
 }
 
-function getResolutionFormulaDetails(mission: ResolutionMission) {
-  const shape = mission.shape.toLowerCase();
-
-  if (shape === 'persegi') {
-    return {
-      volumeFormula: 'L = s × s',
-      surfaceFormula: 'K = 4 × s',
-      legend: 'L = Luas\ns = panjang sisi',
-      substitution: 's = 8 cm',
-      steps: '8 × 8 = 64',
-      conclusion: '64 cm²',
-    };
-  }
-
-  if (shape === 'persegi panjang') {
-    return {
-      volumeFormula: 'L = p × l',
-      surfaceFormula: 'K = 2 × (p + l)',
-      legend: 'L = Luas\np = panjang\nl = lebar',
-      substitution: 'p = 12 cm\nl = 6 cm',
-      steps: '12 × 6 = 72',
-      conclusion: '72 cm²',
-    };
-  }
-
-  if (shape === 'segitiga') {
-    return {
-      volumeFormula: 'L = 1/2 × a × t',
-      surfaceFormula: 'K = a + b + c',
-      legend: 'L = Luas\na = alas\nt = tinggi',
-      substitution: 'a = 10 cm\nt = 6 cm',
-      steps: '1/2 × 10 × 6 = 30',
-      conclusion: '30 cm²',
-    };
-  }
-
-  if (shape === 'trapesium') {
-    return {
-      volumeFormula: 'L = 1/2 × (a + b) × t',
-      surfaceFormula: 'K = a + b + c + d',
-      legend: 'L = Luas\na dan b = sisi sejajar\nt = tinggi',
-      substitution: 'a = 8 cm\nb = 12 cm\nt = 5 cm',
-      steps: '1/2 × (8 + 12) × 5 = 50',
-      conclusion: '50 cm²',
-    };
-  }
-
-  if (shape === 'kubus') {
-    return {
-      volumeFormula: 'V = s × s × s = s³',
-      surfaceFormula: 'LP = 6 × s²',
-      legend: 'V = Volume\ns = panjang rusuk kubus',
-      substitution: 's = 8 cm',
-      steps: '8 × 8 = 64\n64 × 8 = 512',
-      conclusion: '512 cm³',
-    };
-  }
-
-  if (shape === 'balok') {
-    return {
-      volumeFormula: 'V = p × l × t',
-      surfaceFormula: 'LP = 2 × (p × l + p × t + l × t)',
-      legend: 'V = Volume\np = panjang\nl = lebar\nt = tinggi',
-      substitution: 'p = 12 cm\nl = 6 cm\nt = 5 cm',
-      steps: '12 × 6 = 72\n72 × 5 = 360',
-      conclusion: '360 cm³',
-    };
-  }
-
-  if (shape === 'prisma segi empat') {
-    return {
-      volumeFormula: 'V = Luas Alas × Tinggi',
-      surfaceFormula: 'LP = 2 × Luas Alas + Keliling Alas × Tinggi',
-      legend: 'V = Volume\nLuas Alas = luas bidang alas\nTinggi = tinggi prisma',
-      substitution: 'Luas Alas = 36 cm²\nTinggi = 10 cm',
-      steps: '36 × 10 = 360',
-      conclusion: '360 cm³',
-    };
-  }
-
-  if (shape === 'limas segi empat') {
-    return {
-      volumeFormula: 'V = ⅓ × Luas Alas × Tinggi',
-      surfaceFormula: 'LP = Luas Alas + Luas Selimut',
-      legend: 'V = Volume\nLuas Alas = luas bidang alas\nTinggi = tinggi limas',
-      substitution: 'Luas Alas = 64 cm²\nTinggi = 9 cm',
-      steps: '64 × 9 = 576\n576 ÷ 3 = 192',
-      conclusion: '192 cm³',
-    };
-  }
-
-  if (shape === 'kerucut') {
-    return {
-      volumeFormula: 'V = ⅓ × π × r² × t',
-      surfaceFormula: 'LP = π × r × (r + s)',
-      legend: 'V = Volume\nπ = 22/7\nr = jari-jari alas\nt = tinggi kerucut\ns = garis pelukis',
-      substitution: 'r = 7 cm\nt = 12 cm\nπ = 22/7',
-      steps: 'r² = 7 × 7 = 49\nπ × r² = 22/7 × 49 = 154\n1/3 × 154 × 12 = 616',
-      conclusion: '616 cm³',
-    };
-  }
-
-  if (shape === 'tabung') {
-    return {
-      volumeFormula: 'V = π × r² × t',
-      surfaceFormula: 'LP = 2 × π × r × (r + t)',
-      legend: 'V = Volume\nπ = 3,14\nr = jari-jari alas\nt = tinggi tabung',
-      substitution: 'r = 5 cm\nt = 12 cm\nπ = 3,14',
-      steps: 'r² = 5 × 5 = 25\nπ × r² = 3,14 × 25 = 78,5\n78,5 × 12 = 942',
-      conclusion: `942 cm³`,
-    };
-  }
-
-  if (shape === 'bola') {
-    return {
-      volumeFormula: 'V = 4/3 × π × r³',
-      surfaceFormula: 'LP = 4 × π × r²',
-      legend: 'V = Volume\nπ = 3,14\nr = jari-jari bola',
-      substitution: 'r = 6 cm\nπ = 3,14',
-      steps: 'r³ = 6 × 6 × 6 = 216\nπ × r³ = 3,14 × 216 = 678,24\n4/3 × 678,24 = 904',
-      conclusion: `904 cm³`,
-    };
-  }
-
-  if (shape === 'prisma') {
-    return {
-      volumeFormula: 'V = Luas Alas × Tinggi',
-      surfaceFormula: 'LP = 2 × Luas Alas + Keliling Alas × Tinggi',
-      legend: 'V = Volume\nLuas Alas = luas bidang alas\nTinggi = tinggi prisma',
-      substitution: 'Masukkan nilai luas alas dan tinggi sesuai soal',
-      steps: 'Hitung luas alas terlebih dahulu, lalu kalikan dengan tinggi prisma.',
-      conclusion: 'Volume prisma dihitung dengan mengalikan luas alas dan tinggi.',
-    };
-  }
-
-  if (shape === 'limas') {
-    return {
-      volumeFormula: 'V = ⅓ × Luas Alas × Tinggi',
-      surfaceFormula: 'LP = Luas Alas + Luas Selimut',
-      legend: 'V = Volume\nLuas Alas = luas bidang alas\nTinggi = tinggi limas',
-      substitution: 'Masukkan nilai luas alas dan tinggi sesuai soal',
-      steps: 'Hitung luas alas terlebih dahulu, lalu kalikan dengan tinggi dan bagi 3.',
-      conclusion: 'Volume limas diperoleh dari sepertiga kali luas alas dikalikan tinggi.',
-    };
-  }
-
-  return {
-    volumeFormula: 'V = ...',
-    surfaceFormula: 'LP = ...',
-    legend: 'V = Volume\nLP = Luas Permukaan',
-    substitution: 'Masukkan nilai yang tersedia dari soal',
-    steps: 'Gunakan rumus yang tepat berdasarkan jenis bangun ruang, lalu hitung nilai setiap komponen.',
-    conclusion: mission.answer,
-  };
-}
-
 export function buildResolutionTutorExplanation(mission: ResolutionMission, isCorrect: boolean): string {
-  const details = getResolutionFormulaDetails(mission);
-  const candiConnection = mission.context.includes('Candi Jawi')
-    ? 'Hubungkan pemahamanmu dengan bentuk bangun ruang yang sering terlihat pada struktur arsitektur Candi Jawi.'
-    : 'Hubungkan pemahamanmu dengan sifat bangun ruang yang sedang dipelajari.';
-
-  if (isCorrect) {
-    return [
-      '✨ Jawabanmu benar. Mari kita lihat mengapa begitu.',
-      '',
-      `Bangun ruang: ${mission.shape}`,
-      '',
-      `Rumus Volume: ${details.volumeFormula}`,
-      details.surfaceFormula ? `Rumus Luas Permukaan: ${details.surfaceFormula}` : 'Rumus Luas Permukaan: Tidak tersedia untuk soal ini.',
-      '',
-      'Keterangan:',
-      details.legend,
-      '',
-      'Masukkan nilai dari soal:',
-      details.substitution,
-      '',
-      'Perhitungan:',
-      details.steps,
-      '',
-      `Hasil akhir: ${details.conclusion}`,
-      '',
-      candiConnection,
-      '',
-      'Kamu sudah menggunakan langkah yang tepat dan memahami hubungan antara rumus dengan bangun ruang.',
-    ].join('\n');
-  }
-
-  return [
-    '💡 Jawabanmu belum tepat. Mari kita perbaiki langkahnya.',
-    '',
-    `Bangun ruang: ${mission.shape}`,
-    '',
-    'Rumus Volume:',
-    details.volumeFormula,
-    '',
-    'Rumus Luas Permukaan:',
-    details.surfaceFormula,
-    '',
-    'Keterangan:',
-    details.legend,
-    '',
-    'Masukkan nilai dari soal:',
-    details.substitution,
-    '',
-    'Perhitungan:',
-    details.steps,
-    '',
-    `Hasil akhir: ${details.conclusion}`,
-    '',
-    candiConnection,
-    '',
-    'Coba ulang dari awal dengan langkah yang lebih teliti agar pilihan yang benar menjadi jelas.',
-  ].join('\n');
+  return buildTutorTextExplanation(
+    {
+      shape: mission.shape,
+      formula: mission.formula,
+      context: mission.context,
+    },
+    isCorrect,
+  );
 }
 
-export function getMissionHint(mission: ResolutionMission, attempt: number): string {
-  if (mission.hint) {
-    if (attempt <= 0) return mission.hint;
-    if (attempt === 1) return mission.hint;
-    if (attempt === 2) return mission.hint;
-    return `${mission.hint}\n\nCoba pelajari kembali rumus bangun ruang ini, lalu kirim jawaban lagi.`;
-  }
-
-  if (attempt <= 0) return buildResolutionTutorExplanation(mission, false);
-  if (attempt === 1) return buildResolutionTutorExplanation(mission, false);
-  if (attempt === 2) return buildResolutionTutorExplanation(mission, false);
-  return `${buildResolutionTutorExplanation(mission, false)}\n\nCoba pelajari kembali rumus bangun ruang ini, lalu kirim jawaban lagi.`;
+export function getMissionHint(mission: ResolutionMission, _attempt: number): string {
+  return buildResolutionTutorExplanation(mission, false);
 }
