@@ -2,12 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from 'next/image';
 import { packageContent } from '@/features/comics/comic-1/content/packageContent';
+
+type Obj = {
+  id: string;
+  title: string;
+  page?: number;
+  navImage?: string;
+  qrImage?: string;
+  modelUrl?: string;
+  embedUrl?: string;
+  aiPrompt?: string;
+};
 
 export default function ObjectDetailClient({ id }: { id: string }) {
   const router = useRouter();
   const decoded = decodeURIComponent(id);
-  const obj = packageContent.learningObjects.find((o) => o.id === decoded);
+  const obj = packageContent.learningObjects.find((o) => o.id === decoded) as Obj | undefined;
   const [isQrOpen, setIsQrOpen] = useState(false);
 
   if (!obj) {
@@ -22,7 +34,7 @@ export default function ObjectDetailClient({ id }: { id: string }) {
   }
 
   const handleOpenModel = () => {
-    const url = (obj as any).modelUrl || (obj as any).embedUrl || '';
+    const url = obj.modelUrl || obj.embedUrl || '';
     if (url) window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -34,7 +46,7 @@ export default function ObjectDetailClient({ id }: { id: string }) {
         <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           {obj.navImage ? (
             <div className="mb-4 text-center">
-              <img src={obj.navImage} alt={obj.title} className="mx-auto max-h-[360px] object-contain" />
+              <Image src={obj.navImage} alt={obj.title} width={800} height={480} className="mx-auto object-contain" />
             </div>
           ) : null}
 
@@ -64,7 +76,7 @@ export default function ObjectDetailClient({ id }: { id: string }) {
             </div>
 
             <div className="mt-5 flex flex-col items-center gap-4">
-              <img src={obj.qrImage} alt={`QR ${obj.title}`} className="h-60 w-60 rounded-2xl bg-white p-3 object-contain" />
+              <Image src={obj.qrImage} alt={`QR ${obj.title}`} width={360} height={360} className="rounded-2xl bg-white p-3 object-contain" />
             </div>
           </div>
         </div>
