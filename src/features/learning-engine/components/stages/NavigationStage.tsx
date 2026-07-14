@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { packageContent } from '@/features/comics/comic-1/content/packageContent';
-import { COMIC_QR_DATA } from '@/data/comicQrData';
+import { getComic1QrAssetForObject } from '@/features/comics/comic-1/content/qrAssetRegistry';
 
 export default function NavigationStage() {
   const router = useRouter();
@@ -11,9 +12,7 @@ export default function NavigationStage() {
   // Use packageContent as single source of truth for object list
   const objects = useMemo(() => packageContent.learningObjects.slice(0, 5), []);
 
-  // Sketchfab embed for full Candi Jawi (from COMIC_QR_DATA)
-  const candiEntry = COMIC_QR_DATA[1]?.qrList?.[0];
-  const candiEmbed = candiEntry?.qrUrl ?? '';
+  const candiEmbed = 'https://sketchfab.com/3d-models/candi-jawi-with-precision-geometry-83da3450467747fda7872c5a9392ffac';
 
   return (
     <div className="flex min-w-0 flex-col gap-6 px-4 py-6">
@@ -38,25 +37,34 @@ export default function NavigationStage() {
       <section className="space-y-4">
         <h2 className="text-lg font-bold">Daftar Objek</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {objects.map((obj) => (
-            <div key={obj.id} className="rounded-[12px] border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-black text-neutral-900">{obj.title}</h3>
-                  <p className="mt-1 text-sm text-neutral-500">Komik {packageContent.metadata.comicId} • Halaman {obj.page}</p>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/viewer/object/${encodeURIComponent(obj.id)}`)}
-                    className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-primary-600 px-3 py-2 text-sm font-bold text-white"
-                  >
-                    Explore
-                  </button>
+          {objects.map((obj) => {
+            const qrImage = getComic1QrAssetForObject(obj.title);
+
+            return (
+              <div key={obj.id} className="rounded-[12px] border border-neutral-200 bg-white p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <h3 className="text-base font-black text-neutral-900">{obj.title}</h3>
+                    <p className="mt-1 text-sm text-neutral-500">Komik {packageContent.metadata.comicId} • Halaman {obj.page}</p>
+                    {qrImage ? (
+                      <div className="mt-3 flex items-center justify-start">
+                        <Image src={qrImage} alt={`QR ${obj.title}`} width={96} height={96} className="rounded-lg border border-neutral-200 bg-white p-1 object-contain" />
+                      </div>
+                    ) : null}
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/viewer/object/${encodeURIComponent(obj.id)}`)}
+                      className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-primary-600 px-3 py-2 text-sm font-bold text-white"
+                    >
+                      Explore
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>

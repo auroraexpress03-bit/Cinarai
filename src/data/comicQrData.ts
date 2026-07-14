@@ -1,11 +1,9 @@
 import type { ClassifiedQr } from '@/services/comic-assets/types';
-import qr13Kubus from '@/features/comics/comic-1/assets/qr/13-kubus.jpeg';
-import qr16Balok from '@/features/comics/comic-1/assets/qr/16-balok.jpeg';
-import qr17Limas from '@/features/comics/comic-1/assets/qr/17-limas.jpeg';
-import qr22Prisma from '@/features/comics/comic-1/assets/qr/22-prisma.jpeg';
-import qr23BalokSelasar from '@/features/comics/comic-1/assets/qr/23-balok-selasar.jpeg';
-import qr27LimasTepi from '@/features/comics/comic-1/assets/qr/27-limas-tepi.jpeg';
-import qr28Kerucut from '@/features/comics/comic-1/assets/qr/28-kerucut.jpeg';
+import qrKubus from '@/features/comics/comic-1/assets/qr/kubus.png';
+import qrBalok from '@/features/comics/comic-1/assets/qr/balok.png';
+import qrPrisma from '@/features/comics/comic-1/assets/qr/prisma-segi-empat.png';
+import qrLimas from '@/features/comics/comic-1/assets/qr/limas-segi-empat.png';
+import qrKerucut from '@/features/comics/comic-1/assets/qr/kerucut.png';
 import coverImg from '@/features/comics/comic-1/assets/cover/cover.png';
 import appKubus from '@/features/comics/comic-1/assets/identification/Kubus.png';
 import appBalok from '@/features/comics/comic-1/assets/identification/Balok.png';
@@ -41,7 +39,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         description: 'Bangun ruang dengan 6 sisi persegi yang sama besar. Temukan bagian Candi Jawi yang menyerupai kubus.',
         previewImage: appKubus.src,
         qrUrl: 'https://asblr.com/2DCN6k',
-        qrImage: qr13Kubus.src,
+        qrImage: qrKubus.src,
       },
       {
         page: 16,
@@ -52,7 +50,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         description: 'Bangun ruang dengan 6 sisi persegi panjang. Tubuh utama Candi Jawi dapat dimodelkan sebagai balok.',
         previewImage: appBalok.src,
         qrUrl: 'https://asblr.com/KjCtQB',
-        qrImage: qr16Balok.src,
+        qrImage: qrBalok.src,
       },
       {
         page: 17,
@@ -63,7 +61,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         description: 'Bangun ruang dengan alas persegi dan 4 sisi segitiga yang bertemu di satu titik puncak. Mirip dengan atap bertingkat candi.',
         previewImage: appLimas.src,
         qrUrl: 'https://asblr.com/3oXoRI',
-        qrImage: qr17Limas.src,
+        qrImage: qrLimas.src,
       },
       {
         page: 22,
@@ -74,7 +72,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         description: 'Bangun ruang dengan dua alas sejajar berbentuk segitiga dan tiga sisi persegi panjang. Ditemukan pada bagian dinding candi.',
         previewImage: appPrisma.src,
         qrUrl: 'https://asblr.com/pxMwEe',
-        qrImage: qr22Prisma.src,
+        qrImage: qrPrisma.src,
       },
       {
         page: 23,
@@ -85,7 +83,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         description: 'Balok yang membentuk selasar atau lorong pada Candi Jawi. Perhatikan perbedaan ukuran panjang, lebar, dan tingginya.',
         previewImage: appBalok.src,
         qrUrl: 'https://asblr.com/UyBHgG',
-        qrImage: qr23BalokSelasar.src,
+        qrImage: qrBalok.src,
       },
       {
         page: 27,
@@ -96,7 +94,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         description: 'Limas yang berada di bagian tepi atau sudut Candi Jawi. Amati bentuk alasnya dan jumlah sisi segitiganya.',
         previewImage: appLimas.src,
         qrUrl: 'https://asblr.com/xCZJvU',
-        qrImage: qr27LimasTepi.src,
+        qrImage: qrLimas.src,
       },
       {
         page: 28,
@@ -107,7 +105,7 @@ export const COMIC_QR_DATA: Record<number, { pageCount: number; qrList: Classifi
         description: 'Bangun ruang dengan alas lingkaran dan meruncing ke satu titik puncak. Puncak Candi Jawi menyerupai kerucut.',
         previewImage: appKerucut.src,
         qrUrl: 'https://asblr.com/G3F41T',
-        qrImage: qr28Kerucut.src,
+        qrImage: qrKerucut.src,
       },
       { page: 36, category: 'VIDEO', value: 'https://youtu.be/I0lhxppFlsc?si=Vd68k8UyfsenJ1rj', image: '' },
     ],

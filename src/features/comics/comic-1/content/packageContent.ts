@@ -1,9 +1,9 @@
 import type { Comic1PackageContent } from './types';
-import qrKubus from '@/features/comics/comic-1/assets/qr/13-kubus.jpeg';
-import qrBalok from '@/features/comics/comic-1/assets/qr/16-balok.jpeg';
-import qrPrisma from '@/features/comics/comic-1/assets/qr/22-prisma.jpeg';
-import qrLimas from '@/features/comics/comic-1/assets/qr/17-limas.jpeg';
-import qrKerucut from '@/features/comics/comic-1/assets/qr/28-kerucut.jpeg';
+import qrKubus from '@/features/comics/comic-1/assets/qr/kubus.png';
+import qrBalok from '@/features/comics/comic-1/assets/qr/balok.png';
+import qrPrisma from '@/features/comics/comic-1/assets/qr/prisma-segi-empat.png';
+import qrLimas from '@/features/comics/comic-1/assets/qr/limas-segi-empat.png';
+import qrKerucut from '@/features/comics/comic-1/assets/qr/kerucut.png';
 
 import coverImg from '@/features/comics/comic-1/assets/cover/cover.png';
 
@@ -37,17 +37,17 @@ export const packageContent: Comic1PackageContent = {
     cover: coverImg.src,
     thumbnail: coverImg.src,
     learningTargets: [
-      'Mengamati bentuk pada komik',
-      'Menghubungkan konsep bangun ruang dengan objek nyata',
-      'Menggunakan alasan matematis untuk menjelaskan pola',
+      'Mengidentifikasi bangun ruang yang muncul pada Candi Jawi',
+      'Menghubungkan bentuk arsitektur candi dengan bangun ruang',
+      'Menjelaskan alasan dan ciri bangun ruang menggunakan bahasa sederhana',
     ],
-    synopsis: 'Pembelajaran CINARAI yang dapat dipakai untuk berbagai komik.',
+    synopsis: 'Komik ini memperkenalkan bangun ruang yang dapat diamati pada bagian-bagian arsitektur Candi Jawi.',
   },
   learningObjects: [
     {
       id: 'komik1-kubus',
       title: 'Kubus',
-      description: 'Bentuk kotak pada bagian pilar utama candi.',
+      description: 'Bangun ruang yang menyerupai bagian utama bangunan yang tampak kuat dan beraturan.',
       page: 1,
       qrImage: qrKubus.src,
       navImage: navKubus.src,
@@ -64,7 +64,7 @@ export const packageContent: Comic1PackageContent = {
     {
       id: 'komik1-balok',
       title: 'Balok',
-      description: 'Bentuk persegi panjang yang menyusun badan candi.',
+      description: 'Bangun ruang yang terlihat pada bagian struktur yang memanjang dan kokoh.',
       page: 2,
       qrImage: qrBalok.src,
       navImage: navBalok.src,
@@ -81,7 +81,7 @@ export const packageContent: Comic1PackageContent = {
     {
       id: 'komik1-prisma',
       title: 'Prisma Segi Empat',
-      description: 'Bentuk prisma pada sisi bangunan yang tegak.',
+      description: 'Bangun ruang yang terlihat pada bagian ornamen dan sisi tegak yang tersusun berlapis.',
       page: 3,
       qrImage: qrPrisma.src,
       navImage: navPrismaPreview.src,
@@ -98,7 +98,7 @@ export const packageContent: Comic1PackageContent = {
     {
       id: 'komik1-limas',
       title: 'Limas Segi Empat',
-      description: 'Puncak bangunan yang meruncing ke satu titik.',
+      description: 'Bangun ruang yang sesuai untuk bagian puncak yang menonjol dan meruncing.',
       page: 4,
       qrImage: qrLimas.src,
       navImage: navDefault.src,
@@ -115,7 +115,7 @@ export const packageContent: Comic1PackageContent = {
     {
       id: 'komik1-kerucut',
       title: 'Kerucut',
-      description: 'Bagian atap yang meruncing ke atas.',
+      description: 'Bangun ruang yang menyerupai bagian puncak yang membentuk titik tajam.',
       page: 5,
       qrImage: qrKerucut.src,
       navImage: navKerucut.src,
@@ -131,18 +131,18 @@ export const packageContent: Comic1PackageContent = {
     },
   ],
   qrCode: [
-    { id: 'komik1-qr-1', imageSrc: qrKubus.src, alt: 'QR Kubus', label: 'Kubus', description: 'Scan untuk membuka model 3D kubus.' },
-    { id: 'komik1-qr-2', imageSrc: qrBalok.src, alt: 'QR Balok', label: 'Balok', description: 'Scan untuk membuka model 3D balok.' },
-    { id: 'komik1-qr-3', imageSrc: qrPrisma.src, alt: 'QR Prisma', label: 'Prisma', description: 'Scan untuk membuka model 3D prisma.' },
-    { id: 'komik1-qr-4', imageSrc: qrLimas.src, alt: 'QR Limas', label: 'Limas', description: 'Scan untuk membuka model 3D limas.' },
-    { id: 'komik1-qr-5', imageSrc: qrKerucut.src, alt: 'QR Kerucut', label: 'Kerucut', description: 'Scan untuk membuka model 3D kerucut.' },
+    { id: 'komik1-qr-1', imageSrc: qrKubus.src, alt: 'QR Kubus', label: 'Kubus', description: 'Pindai QR ini untuk melihat model 3D kubus terkait bagian Candi Jawi.' },
+    { id: 'komik1-qr-2', imageSrc: qrBalok.src, alt: 'QR Balok', label: 'Balok', description: 'Pindai QR ini untuk melihat model 3D balok terkait bagian Candi Jawi.' },
+    { id: 'komik1-qr-3', imageSrc: qrPrisma.src, alt: 'QR Prisma', label: 'Prisma Segi Empat', description: 'Pindai QR ini untuk melihat model 3D prisma segi empat terkait bagian Candi Jawi.' },
+    { id: 'komik1-qr-4', imageSrc: qrLimas.src, alt: 'QR Limas', label: 'Limas Segi Empat', description: 'Pindai QR ini untuk melihat model 3D limas segi empat terkait bagian Candi Jawi.' },
+    { id: 'komik1-qr-5', imageSrc: qrKerucut.src, alt: 'QR Kerucut', label: 'Kerucut', description: 'Pindai QR ini untuk melihat model 3D kerucut terkait bagian Candi Jawi.' },
   ],
   model3D: [
-    { id: 'komik1-model-1', title: 'Kubus', arUrl: 'https://modelviewer.dev/examples/scenegraph/index.html', page: 1, description: 'Model 3D kubus untuk pengamatan sisi dan rusuk.' },
-    { id: 'komik1-model-2', title: 'Balok', arUrl: 'https://modelviewer.dev/examples/scenegraph/index.html', page: 2, description: 'Model 3D balok untuk pengamatan panjang, lebar, dan tinggi.' },
-    { id: 'komik1-model-3', title: 'Prisma Segi Empat', arUrl: 'https://modelviewer.dev/examples/scenegraph/index.html', page: 3, description: 'Model 3D prisma segi empat.' },
-    { id: 'komik1-model-4', title: 'Limas Segi Empat', arUrl: 'https://modelviewer.dev/examples/scenegraph/index.html', page: 4, description: 'Model 3D limas segi empat.' },
-    { id: 'komik1-model-5', title: 'Kerucut', arUrl: 'https://modelviewer.dev/examples/scenegraph/index.html', page: 5, description: 'Model 3D kerucut.' },
+    { id: 'komik1-model-1', title: 'Kubus', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-eGQgkYkAKlbGegmVGej', page: 1, description: 'Model 3D kubus yang sesuai dengan bagian bangunan Candi Jawi.', provider: 'Assemblr' },
+    { id: 'komik1-model-2', title: 'Balok', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-hwhAtiZhyCivpQ2Jl5Z', page: 2, description: 'Model 3D balok yang sesuai dengan bagian struktur Candi Jawi.', provider: 'Assemblr' },
+    { id: 'komik1-model-3', title: 'Prisma Segi Empat', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-PdcSjQ4sYkREdgHK3rX', page: 3, description: 'Model 3D prisma segi empat yang sesuai dengan bagian ornamen candi.', provider: 'Assemblr' },
+    { id: 'komik1-model-4', title: 'Limas Segi Empat', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-499KAWhzbvlKt5wECkt', page: 4, description: 'Model 3D limas segi empat yang sesuai dengan bagian puncak candi.', provider: 'Assemblr' },
+    { id: 'komik1-model-5', title: 'Kerucut', arUrl: 'https://app-edu.assemblrworld.com/en/creation/-HE74wRR8CK9nJFAybzt', page: 5, description: 'Model 3D kerucut yang sesuai dengan bagian puncak yang meruncing.', provider: 'Assemblr' },
   ],
   aiPrompt: {
     navigation: 'Gunakan bahasa sederhana untuk menjelaskan setiap bangun ruang yang diamati pada komik.',

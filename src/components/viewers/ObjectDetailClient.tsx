@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { packageContent } from '@/features/comics/comic-1/content/packageContent';
+import { getComic1QrAssetForObject } from '@/features/comics/comic-1/content/qrAssetRegistry';
 
 type Obj = {
   id: string;
@@ -21,6 +22,7 @@ export default function ObjectDetailClient({ id }: { id: string }) {
   const decoded = decodeURIComponent(id);
   const obj = packageContent.learningObjects.find((o) => o.id === decoded) as Obj | undefined;
   const [isQrOpen, setIsQrOpen] = useState(false);
+  const qrImage = getComic1QrAssetForObject(obj?.title ?? '') ?? obj?.qrImage;
 
   if (!obj) {
     return (
@@ -64,7 +66,7 @@ export default function ObjectDetailClient({ id }: { id: string }) {
         </div>
       </div>
 
-      {isQrOpen && obj.qrImage && (
+      {isQrOpen && qrImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between">
@@ -76,7 +78,7 @@ export default function ObjectDetailClient({ id }: { id: string }) {
             </div>
 
             <div className="mt-5 flex flex-col items-center gap-4">
-              <Image src={obj.qrImage} alt={`QR ${obj.title}`} width={360} height={360} className="rounded-2xl bg-white p-3 object-contain" />
+              <Image src={qrImage} alt={`QR ${obj.title}`} width={360} height={360} className="rounded-2xl bg-white p-3 object-contain" />
             </div>
           </div>
         </div>

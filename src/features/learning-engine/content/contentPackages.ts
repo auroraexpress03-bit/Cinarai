@@ -159,7 +159,7 @@ function makeFallbackPackage(comicId: number): LearningContentPackage {
         title: 'Objek 1',
         description: 'Objek pembelajaran generik.',
         page: 1,
-        qrImage: '/assets/qr/komik-1/13-kubus.jpeg',
+        qrImage: '/features/comics/comic-1/assets/qr/kubus.png',
         objectImage: '/images/identification/komik1-soal1.jpg',
         modelUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
         embedUrl: 'https://modelviewer.dev/examples/scenegraph/index.html',
@@ -171,7 +171,7 @@ function makeFallbackPackage(comicId: number): LearningContentPackage {
         feedback: 'Bagus, kamu sudah mengamati objek dengan baik.',
       },
     ],
-    qrCode: [{ id: `generic-${comicId}-qr`, imageSrc: '/assets/qr/komik-1/13-kubus.jpeg', alt: 'QR generik', label: 'Objek', description: 'QR untuk membuka model 3D generik.' }],
+    qrCode: [{ id: `generic-${comicId}-qr`, imageSrc: '/features/comics/comic-1/assets/qr/kubus.png', alt: 'QR generik', label: 'Objek', description: 'QR untuk membuka model 3D generik.' }],
     model3D: [{ id: `generic-${comicId}-model`, title: 'Model 3D', arUrl: 'https://modelviewer.dev/examples/scenegraph/index.html', page: 1, description: 'Model 3D generik.' }],
     aiPrompt: {
       navigation: 'Jelaskan objek yang diamati dengan bahasa sederhana.',
