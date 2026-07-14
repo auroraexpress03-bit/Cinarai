@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import RobotMascot from '@/components/ai/RobotMascot';
 import type { Comic1ArgumentationQuestion } from '@/features/comics/comic-1/content/types';
 
 type FeedbackLevel = 'SANGAT_BAIK' | 'HAMPIR_BENAR' | 'PERLU_PERBAIKAN';
@@ -24,6 +25,8 @@ interface Comic1ArgumentationStageProps {
   comicTitle: string;
   comicLocation: string;
   classLevel: string;
+  currentIndex: number;
+  totalItems: number;
 }
 
 function FeedbackCard({ feedback }: { feedback: AiFeedback }) {
@@ -86,9 +89,12 @@ export default function Comic1ArgumentationStage({
   comicTitle,
   comicLocation,
   classLevel,
+  currentIndex,
+  totalItems,
 }: Comic1ArgumentationStageProps) {
   const [answer, setAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tutorMessage, setTutorMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const charCount = answer.trim().length;
@@ -103,6 +109,12 @@ export default function Comic1ArgumentationStage({
   useEffect(() => {
     adjustTextareaHeight();
   }, [adjustTextareaHeight]);
+
+  useEffect(() => {
+    setAnswer('');
+    setTutorMessage(question.aiContext ?? 'Jelaskan alasanmu dengan menghubungkan bagian candi dengan bangun ruang yang sesuai.');
+    setIsSubmitting(false);
+  }, [question.aiContext, question.argumentationQuestion]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -167,6 +179,9 @@ export default function Comic1ArgumentationStage({
           <div className="space-y-2">
             <p className="text-[10px] font-black uppercase tracking-[0.35em] text-neutral-500">Judul Stage</p>
             <h2 className="text-3xl font-black uppercase tracking-[0.08em] text-neutral-900">ARGUMENTATION</h2>
+            <p className="text-sm font-semibold text-accent-700">
+              Argumentasi {currentIndex + 1} dari {totalItems}
+            </p>
           </div>
 
           <div className="rounded-[24px] bg-neutral-50 p-5">
@@ -187,6 +202,18 @@ export default function Comic1ArgumentationStage({
           </div>
 
           <div className="space-y-3">
+            <div className="rounded-[20px] border border-primary-100 bg-primary-50/70 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white">
+                  <RobotMascot variant="inline" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary-700">AI Tutor</p>
+                  <p className="mt-1 text-sm leading-relaxed text-neutral-800">{tutorMessage}</p>
+                </div>
+              </div>
+            </div>
+
             <label htmlFor="comic1-arg-answer" className="block text-[10px] font-black uppercase tracking-[0.35em] text-neutral-500">
               Jawabanmu
             </label>

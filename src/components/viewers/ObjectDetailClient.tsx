@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { packageContent } from '@/features/comics/comic-1/content/packageContent';
 import { getComic1QrAssetForObject } from '@/features/comics/comic-1/content/qrAssetRegistry';
+import { ObjectAITutor } from '@/features/learning-engine/components/stages/ObjectAITutor';
 
 type Obj = {
   id: string;
@@ -56,6 +57,14 @@ export default function ObjectDetailClient({ id }: { id: string }) {
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary-700">AI Tutor</p>
             <p className="mt-2 text-lg font-black text-neutral-900">{obj.title}</p>
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">{obj.aiPrompt}</p>
+          </div>
+
+          <div className="mt-6">
+            <ObjectAITutor
+              objectId={obj.id}
+              objectName={obj.title}
+              initialPrompt={obj.aiPrompt}
+            />
           </div>
 
           <div className="mt-6 flex flex-col gap-3">

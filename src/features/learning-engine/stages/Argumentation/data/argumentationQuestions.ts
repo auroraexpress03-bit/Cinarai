@@ -214,6 +214,17 @@ export function getArgumentationLearningObjects(argumentationPackage?: { questio
   return argumentationPackage?.questions ? mapPackageQuestionsToLearningObjects(argumentationPackage.questions) : ARGUMENTATION_OBJECTS;
 }
 
+export function getOrderedArgumentationLearningObjects(argumentationPackage?: { questions?: ArgumentationQuestion[] } | null): ArgumentationLearningObject[] {
+  const packageObjects = argumentationPackage?.questions
+    ? mapPackageQuestionsToLearningObjects(argumentationPackage.questions)
+    : ARGUMENTATION_OBJECTS;
+
+  return packageObjects.map((entry, index) => ({
+    ...entry,
+    id: entry.id ?? `argumentation-${index + 1}`,
+  }));
+}
+
 export function getArgumentationQuestions(
   argumentationPackage: { questions?: Array<Partial<ArgumentationQuestion>> } | null | undefined,
   lokasi: string,

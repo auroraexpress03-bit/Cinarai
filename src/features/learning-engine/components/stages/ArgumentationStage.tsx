@@ -1,10 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
-import { loadIdentificationAnswers } from '../../stages/Identification/services/identificationAnswerService';
-import { getArgumentationLearningObject } from '../../stages/Argumentation/data/argumentationQuestions';
+import { getOrderedArgumentationLearningObjects } from '../../stages/Argumentation/data/argumentationQuestions';
 import Comic1ArgumentationStage from './Comic1ArgumentationStage';
 import type { Comic1ArgumentationQuestion } from '@/features/comics/comic-1/content/types';
 
@@ -35,45 +33,40 @@ function isComic1ArgumentationQuestion(question: unknown): question is Comic1Arg
 
 export default function ArgumentationStage() {
   const { comic, comicModule, setCanAdvance, nextStage } = useLearningEngine();
-  const { user } = useAuth();
-  const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<AiFeedback | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [completedIndices, setCompletedIndices] = useState<number[]>([]);
 
-  useEffect(() => {
-    if (!user?.uid || !comic.id) return;
-
-    let active = true;
-
-    void loadIdentificationAnswers(user.uid, comic.id).then((items) => {
-      if (!active) return;
-      const shapes = items.flatMap((item) => item.selectedShapes ?? []);
-      setSelectedShapes(shapes);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [comic.id, user?.uid]);
-
-  const learningObject = useMemo(
-    () => getArgumentationLearningObject(selectedShapes, comicModule.argumentation),
-    [selectedShapes, comicModule.argumentation],
+  const orderedLearningObjects = useMemo(
+    () => getOrderedArgumentationLearningObjects(comicModule.argumentation),
+    [comicModule.argumentation],
   );
 
+  const learningObject = orderedLearningObjects[currentIndex] ?? null;
+
   useEffect(() => {
-    setCanAdvance(Boolean(feedback));
-  }, [feedback, setCanAdvance]);
+    setCanAdvance(Boolean(feedback) && completedIndices.includes(orderedLearningObjects.length - 1));
+  }, [completedIndices, feedback, orderedLearningObjects.length, setCanAdvance]);
 
   const handleFeedback = useCallback(
     (newFeedback: AiFeedback) => {
       setFeedback(newFeedback);
+      setCompletedIndices((prev) => (prev.includes(currentIndex) ? prev : [...prev, currentIndex]));
     },
-    []
+    [currentIndex]
   );
 
   const handleNext = useCallback(() => {
+    if (!learningObject) return;
+
+    if (currentIndex < orderedLearningObjects.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setFeedback(null);
+      return;
+    }
+
     nextStage();
-  }, [nextStage]);
+  }, [currentIndex, learningObject, nextStage, orderedLearningObjects.length]);
 
   if (!learningObject) {
     return (
@@ -86,11 +79,7 @@ export default function ArgumentationStage() {
   // Comic 1: Use new CINARAI Blueprint UI
   if (comic.id === 1) {
     const argObjs = comicModule.argumentation?.questions ?? [];
-    const argObj = learningObject && argObjs.length > 0
-      ? argObjs.find(
-          (q) => q.shapeName === learningObject.solid || q.shapeKey === learningObject.solid?.toLowerCase()
-        ) ?? argObjs[0]
-      : argObjs[0] ?? null;
+    const argObj = argObjs[currentIndex] ?? null;
 
     if (!argObj || !isComic1ArgumentationQuestion(argObj)) {
       return <div className="rounded-[20px] bg-white p-5 text-sm text-neutral-600 shadow-sm">Data pertanyaan tidak tersedia.</div>;
@@ -105,6 +94,8 @@ export default function ArgumentationStage() {
         comicTitle={comic.title}
         comicLocation={comic.lokasi ?? 'Lokasi'}
         classLevel={comic.kelas ?? 'Kelas VI'}
+        currentIndex={currentIndex}
+        totalItems={orderedLearningObjects.length}
       />
     );
   }
