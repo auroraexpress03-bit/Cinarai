@@ -51,7 +51,17 @@ export default function ObjectDetailClient({ id }: { id: string }) {
         <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           {obj.navImage ? (
             <div className="mb-4 text-center">
-              <Image src={obj.navImage} alt={obj.title} width={800} height={480} className="mx-auto object-contain" />
+              <Image
+                src={obj.navImage}
+                alt={obj.title}
+                width={800}
+                height={480}
+                quality={100}
+                priority
+                unoptimized
+                className="mx-auto rounded-xl object-cover"
+                style={{ maxWidth: '100%' }}
+              />
             </div>
           ) : null}
 

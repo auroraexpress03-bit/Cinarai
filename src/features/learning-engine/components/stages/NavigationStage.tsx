@@ -124,7 +124,17 @@ export default function NavigationStage() {
               <button type="button" onClick={() => setIsQrModalOpen(false)} className="rounded-full border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-700">Tutup</button>
             </div>
             <div className="mt-5 flex justify-center">
-              <Image src={candiQrImage} alt="QR Candi Jawi" width={320} height={320} className="rounded-2xl border border-neutral-200 bg-white p-3 object-contain" />
+              <Image
+                src={candiQrImage}
+                alt="QR Candi Jawi"
+                width={320}
+                height={320}
+                quality={100}
+                priority
+                unoptimized
+                className="rounded-2xl border border-neutral-200 bg-white p-3 object-cover"
+                style={{ width: '100%', height: 'auto' }}
+              />
             </div>
           </div>
         </div>
@@ -137,8 +147,18 @@ export default function NavigationStage() {
             <div key={obj.id} className="flex h-full flex-col justify-between rounded-[16px] border border-neutral-200 bg-white p-4 shadow-sm">
               <div className="space-y-2">
                 {obj.navImage ? (
-                  <div className="relative mb-3 h-28 overflow-hidden rounded-[12px] border border-neutral-200 bg-neutral-50">
-                    <Image src={obj.navImage} alt={obj.title} fill className="object-contain p-2" />
+                  <div className="relative mb-3 h-28 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+                    <Image
+                      src={obj.navImage}
+                      alt={obj.title}
+                      width={600}
+                      height={600}
+                      quality={100}
+                      priority
+                      unoptimized
+                      className="h-full w-full object-cover rounded-xl"
+                      style={{ width: '100%', height: '100%' }}
+                    />
                   </div>
                 ) : null}
                 <h3 className="text-base font-black text-neutral-900">{obj.title}</h3>
