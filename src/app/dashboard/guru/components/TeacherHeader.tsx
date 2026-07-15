@@ -10,7 +10,7 @@ export function TeacherHeader() {
     <header className="rounded-[28px] border border-white/60 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 p-5 text-white shadow-xl shadow-primary-900/20 sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium tracking-wide text-primary-100">Selamat datang</p>
+          <p className="text-sm font-medium tracking-wide text-primary-100">Selamat Datang,</p>
           <h1 className="mt-1 text-2xl font-black leading-tight sm:text-3xl">{firstName}</h1>
           <p className="mt-2 text-sm text-primary-100 sm:text-base">Dashboard Guru CINARAI</p>
         </div>

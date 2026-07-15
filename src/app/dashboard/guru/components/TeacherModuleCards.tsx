@@ -6,6 +6,7 @@ type ModuleItem = {
   completed: number;
   progress: number;
   badge: string;
+  coverLabel: string;
 };
 
 export function TeacherModuleCards({ modules }: { modules: ModuleItem[] }) {
@@ -20,9 +21,21 @@ export function TeacherModuleCards({ modules }: { modules: ModuleItem[] }) {
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        {modules.map((module) => (
-          <div key={module.title} className="overflow-hidden rounded-[24px] border border-neutral-100 bg-neutral-50">
-            <div className="h-28 bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-500" />
+        {modules.length === 0 ? (
+          <div className="col-span-full rounded-[24px] border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-500">
+            Belum ada modul untuk ditampilkan.
+          </div>
+        ) : (
+          modules.map((module) => (
+            <div key={module.title} className="overflow-hidden rounded-[24px] border border-neutral-100 bg-neutral-50 shadow-sm">
+            <div className="relative h-28 bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-500 text-white">
+              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.5),_transparent_35%)]" />
+              <div className="absolute inset-x-0 bottom-3 px-4">
+                <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-[0.12em] text-white shadow-sm">
+                  {module.coverLabel}
+                </span>
+              </div>
+            </div>
             <div className="p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-base font-black text-neutral-900">{module.title}</h3>
@@ -35,12 +48,13 @@ export function TeacherModuleCards({ modules }: { modules: ModuleItem[] }) {
                 <span>{module.completed} siswa selesai</span>
                 <span className="font-semibold text-primary-700">{module.progress}%</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-200">
                 <div className="h-full rounded-full bg-primary-500" style={{ width: `${module.progress}%` }} />
               </div>
             </div>
-          </div>
-        ))}
+            </div>
+          ))
+        )}
       </div>
     </section>
   );
