@@ -9,6 +9,7 @@ import { GuruProgressOverview } from './GuruProgressOverview';
 import { GuruRecentActivity } from './GuruRecentActivity';
 import { GuruSidebar } from './GuruSidebar';
 import { GuruStatCards } from './GuruStatCards';
+import { GuruQuickActions } from './GuruQuickActions';
 
 export default function GuruDashboardContent() {
   const { summary, progressItems, modules, recentActivities, loading, error, debugEntries } = useGuruDashboard();
@@ -60,14 +61,28 @@ export default function GuruDashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 px-4 py-5 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-neutral-50 px-4 py-6 sm:px-6 lg:px-8">
       <GuruDashboardLayout header={<GuruHeader />} sidebar={<GuruSidebar />}>
-        <div className="space-y-6">
-          <GuruStatCards stats={statCards} />
-
-          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <GuruProgressOverview items={guruProgressItems} />
+        <div className="space-y-6 pb-10">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-6">
+              <div className="rounded-[28px] border border-neutral-100 bg-white p-6 shadow-sm shadow-neutral-200/70">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary-500">Ringkasan Kelas</p>
+                    <h2 className="mt-1 text-2xl font-black text-neutral-900">Dashboard Guru yang responsif</h2>
+                    <p className="mt-2 text-sm text-neutral-600">Pantau jumlah siswa, progress modul, dan aktivitas terbaru secara mobile-friendly.</p>
+                  </div>
+                  <div className="rounded-full bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700">Realtime</div>
+                </div>
+              </div>
+
+              <GuruStatCards stats={statCards} />
+              <GuruQuickActions />
+            </div>
+
+            <div className="space-y-6">
+              <GuruProgressOverview items={guruProgressItems} />
               <GuruModuleCards modules={guruModules} />
               <GuruRecentActivity activities={guruActivities} />
             </div>
@@ -105,16 +120,6 @@ export default function GuruDashboardContent() {
               </div>
             </div>
           ) : null}
-
-          <div className="rounded-[28px] border border-neutral-100 bg-white p-5 shadow-sm shadow-neutral-200/70 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary-500">Fokus Hari Ini</p>
-                <h2 className="mt-1 text-xl font-black text-neutral-900">Pantau perkembangan kelas dengan lebih cepat</h2>
-              </div>
-              <div className="rounded-full bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700">Siap dipantau</div>
-            </div>
-          </div>
         </div>
       </GuruDashboardLayout>
     </div>

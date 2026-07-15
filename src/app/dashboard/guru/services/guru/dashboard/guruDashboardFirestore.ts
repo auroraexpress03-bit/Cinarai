@@ -29,10 +29,7 @@ export async function loadAllUsers(): Promise<UserDocument[]> {
       orderBy: [],
       limit: null,
     },
-    async () => {
-      const users = await getFirestoreCollection('users');
-      return users.filter((user) => user.role === 'student');
-    }
+    async () => getFirestoreCollection('users')
   );
 }
 
@@ -40,12 +37,7 @@ export function subscribeToUsers(
   callback: (users: UserDocument[]) => void,
   onError?: (error: Error) => void
 ) {
-  return subscribeToFirestoreCollection(
-    'users',
-    callback,
-    { filters: [{ field: 'role', operator: '==', value: 'student' }] },
-    onError
-  );
+  return subscribeToFirestoreCollection('users', callback, undefined, onError);
 }
 
 export async function loadAllComics(): Promise<ComicDocument[]> {

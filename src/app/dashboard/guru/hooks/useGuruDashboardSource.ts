@@ -8,11 +8,11 @@ import type {
   UserDocument,
 } from '@/types/firestore';
 import {
-  loadAllComics,
-  loadAllProgressDocuments,
-  loadAllReflections,
-  loadAllUsers,
-  loadRecentActivities,
+  subscribeToUsers,
+  subscribeToComics,
+  subscribeToAllProgressDocuments,
+  subscribeToRecentActivities,
+  subscribeToReflections,
 } from '@/app/dashboard/guru/services/guru/dashboard/guruDashboardFirestore';
 
 export type GuruDashboardSourceState = {
@@ -83,7 +83,6 @@ export function useGuruDashboardSource(): GuruDashboardSourceState & { debugEntr
         loaded.current[key] = true;
       }
 
-      // Top-level loading follows usersLoading: when users finished loading, loading=false
       if (loaded.current.users) {
         setState((current) => ({ ...current, loading: false }));
       }
@@ -95,6 +94,10 @@ export function useGuruDashboardSource(): GuruDashboardSourceState & { debugEntr
         errorCode: (error as { code?: string }).code ?? 'unknown',
         errorMessage: error.message,
       });
+      setState((current) => ({
+        ...current,
+        error: `${sourceName} load failed: ${error.message}`,
+      }));
       markLoaded(key);
     };
 
@@ -102,77 +105,90 @@ export function useGuruDashboardSource(): GuruDashboardSourceState & { debugEntr
       setDebugEntries(entries);
     });
 
-    void (async () => {
-      const [usersResult, comicsResult, progressResult, activitiesResult, reflectionsResult] = await Promise.allSettled([
-        loadAllUsers(),
-        loadAllComics(),
-        loadAllProgressDocuments(),
-        loadRecentActivities(20),
-        loadAllReflections(),
-      ]);
-
-      if (!active) return;
-
-      if (usersResult.status === 'fulfilled') {
+    const usersUnsubscribe = subscribeToUsers(
+      (users) => {
+        if (!active) return;
         setState((current) => ({
           ...current,
-          students: usersResult.value.filter((user) => user.role === 'student'),
+          students: users.filter((user) => String(user.role ?? '').toLowerCase() === 'student'),
           usersLoading: false,
           usersError: null,
           usersSuccess: true,
         }));
         markLoaded('users');
-      } else {
-        const err = usersResult.reason as Error;
+      },
+      (error) => {
+        if (!active) return;
         setState((current) => ({
           ...current,
           usersLoading: false,
-          usersError: err.message,
+          usersError: error.message,
           usersSuccess: false,
         }));
-        handleSourceError('users', usersResult.reason as Error, 'users');
+        handleSourceError('users', error, 'users');
       }
+    );
 
-      if (comicsResult.status === 'fulfilled') {
-        setState((current) => ({ ...current, comics: comicsResult.value, comicsLoading: false, comicsError: null, comicsSuccess: true }));
+    const comicsUnsubscribe = subscribeToComics(
+      (comics) => {
+        if (!active) return;
+        setState((current) => ({ ...current, comics, comicsLoading: false, comicsError: null, comicsSuccess: true }));
         markLoaded('comics');
-      } else {
-        const err = comicsResult.reason as Error;
-        setState((current) => ({ ...current, comicsLoading: false, comicsError: err.message, comicsSuccess: false }));
-        handleSourceError('comics', comicsResult.reason as Error, 'comics');
+      },
+      (error) => {
+        if (!active) return;
+        setState((current) => ({ ...current, comicsLoading: false, comicsError: error.message, comicsSuccess: false }));
+        handleSourceError('comics', error, 'comics');
       }
+    );
 
-      if (progressResult.status === 'fulfilled') {
-        setState((current) => ({ ...current, progressDocuments: progressResult.value, progressLoading: false, progressError: null, progressSuccess: true }));
+    const progressUnsubscribe = subscribeToAllProgressDocuments(
+      (progressDocuments) => {
+        if (!active) return;
+        setState((current) => ({ ...current, progressDocuments, progressLoading: false, progressError: null, progressSuccess: true }));
         markLoaded('progress');
-      } else {
-        const err = progressResult.reason as Error;
-        setState((current) => ({ ...current, progressLoading: false, progressError: err.message, progressSuccess: false }));
-        handleSourceError('progress', progressResult.reason as Error, 'progress');
+      },
+      (error) => {
+        if (!active) return;
+        setState((current) => ({ ...current, progressLoading: false, progressError: error.message, progressSuccess: false }));
+        handleSourceError('progress', error, 'progress');
       }
+    );
 
-      if (activitiesResult.status === 'fulfilled') {
-        setState((current) => ({ ...current, activities: activitiesResult.value, activitiesLoading: false, activitiesError: null, activitiesSuccess: true }));
+    const activitiesUnsubscribe = subscribeToRecentActivities(
+      (activities) => {
+        if (!active) return;
+        setState((current) => ({ ...current, activities, activitiesLoading: false, activitiesError: null, activitiesSuccess: true }));
         markLoaded('activities');
-      } else {
-        const err = activitiesResult.reason as Error;
-        setState((current) => ({ ...current, activitiesLoading: false, activitiesError: err.message, activitiesSuccess: false }));
-        handleSourceError('activities', activitiesResult.reason as Error, 'activities');
+      },
+      (error) => {
+        if (!active) return;
+        setState((current) => ({ ...current, activitiesLoading: false, activitiesError: error.message, activitiesSuccess: false }));
+        handleSourceError('activities', error, 'activities');
       }
+    );
 
-      if (reflectionsResult.status === 'fulfilled') {
-        setState((current) => ({ ...current, reflections: reflectionsResult.value, reflectionsLoading: false, reflectionsError: null, reflectionsSuccess: true }));
+    const reflectionsUnsubscribe = subscribeToReflections(
+      (reflections) => {
+        if (!active) return;
+        setState((current) => ({ ...current, reflections, reflectionsLoading: false, reflectionsError: null, reflectionsSuccess: true }));
         markLoaded('reflections');
-      } else {
-        const err = reflectionsResult.reason as Error;
-        setState((current) => ({ ...current, reflectionsLoading: false, reflectionsError: err.message, reflectionsSuccess: false }));
-        handleSourceError('reflections', reflectionsResult.reason as Error, 'reflections');
+      },
+      (error) => {
+        if (!active) return;
+        setState((current) => ({ ...current, reflectionsLoading: false, reflectionsError: error.message, reflectionsSuccess: false }));
+        handleSourceError('reflections', error, 'reflections');
       }
-    })();
+    );
 
     return () => {
       active = false;
       unsubscribeInspector();
+      usersUnsubscribe();
+      comicsUnsubscribe();
+      progressUnsubscribe();
+      activitiesUnsubscribe();
+      reflectionsUnsubscribe();
     };
   }, []);
 
