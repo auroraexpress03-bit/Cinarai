@@ -65,11 +65,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (!resolvedRole) {
         const message = 'Akun belum memiliki role yang valid. Hubungi admin.';
-        console.warn('[Auth] role not available', {
-          uid: firebaseUser.uid,
-          profileRole: userDocument?.role ?? null,
-          claimsRole: claimsResult.claims.role ?? null,
-        });
         setState({ user: null, loading: false, error: message });
         return;
       }
@@ -84,18 +79,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
       }
 
-      console.info('[Auth] login resolved', {
-        uid: firebaseUser.uid,
-        role: resolvedRole,
-      });
+      // login resolved
 
       setState({ user, loading: false, error: null });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sync user profile';
-      console.warn('[Auth] profile sync failed', {
-        uid: firebaseUser.uid,
-        errorMessage: message,
-      });
 
       if (typeof window !== 'undefined') {
         window.__cinaraiAuthDebug = {
@@ -108,9 +96,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setState({ user: null, loading: false, error: message });
     }
 
-    initializeUserProgress(firebaseUser.uid).catch((err) =>
-      console.warn('Progress init error:', err)
-    );
+    initializeUserProgress(firebaseUser.uid).catch(() => {
+      /* ignore progress init errors */
+    });
   }, []);
 
   // Subscribe to auth changes on mount

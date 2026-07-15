@@ -35,12 +35,7 @@ export const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
       };
     }
 
-    console.info('[RoleProtectedRoute]', {
-      uid: user?.uid ?? 'anonymous',
-      role: user?.role ?? 'unknown',
-      route,
-      allowedRole,
-    });
+    // debug context is stored on window for development inspection
 
     if (!user) {
       router.replace('/auth/login');

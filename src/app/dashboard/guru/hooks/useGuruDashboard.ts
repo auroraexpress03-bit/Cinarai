@@ -24,7 +24,7 @@ export function useGuruDashboard() {
   const progressItems = useMemo(() => {
     if (!students.length) return [];
     return buildGuruProgressOverview(students, progressByStudent);
-  }, [students, comics, progressByStudent]);
+  }, [students, progressByStudent]);
 
   const modules = useMemo(() => {
     if (!comics.length) return [];
