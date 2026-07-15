@@ -20,11 +20,19 @@ function copyPdfWorker() {
 const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
     config.resolve.alias.canvas = false;
+    // Prevent Next from attempting to load native `sharp` binary in environments
+    // where it's not available (CI/dev containers). Next will fall back when
+    // image optimization cannot use sharp.
+    config.resolve.alias.sharp = false;
     if (!isServer) copyPdfWorker();
     return config;
   },
   reactStrictMode: true,
   images: {
+    // Disable Next.js image optimization in constrained build environments
+    // where native `sharp` binaries are unavailable. CI should enable/ensure
+    // sharp is present if production optimization is required.
+    unoptimized: true,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
