@@ -9,6 +9,7 @@ import {
   mergeFirestoreDocument,
   queryFirestoreCollection,
 } from '@/services/firestore';
+import { saveReflectionDocument } from '@/services/reflection';
 import { getComicById } from '@/lib/comicRepository';
 import { getCurrentUser } from '@/lib/firebase/auth';
 import { useAuth } from '@/hooks/useAuth';
@@ -275,19 +276,23 @@ ${data.suggestion}`;
     setIsSavingReflection(true);
 
     try {
-      const docId = `${uid}_${comic.id}_introspection`;
-      await mergeFirestoreDocument('reflection', docId, {
-        userId: uid,
-        comicId: String(comic.id),
+      // eslint-disable-next-line no-console
+      console.info('[IntrospectionStage] Saving reflection payload', {
+        uid,
+        comicId: comic.id,
         checklist: selectedChecklist,
         confidence: rating,
-        rating,
+        reflectionTextLength: reflectionText.trim().length,
+      });
+
+      await saveReflectionDocument({
+        userId: uid,
+        comicId: comic.id,
+        checklist: selectedChecklist,
+        confidence: rating,
         reflectionText: reflectionText.trim(),
         stage: 'introspection',
-        timestamp: serverTimestamp(),
-        createdAt: serverTimestamp(),
-        status: 'completed',
-        submittedAt: serverTimestamp(),
+        rating,
       });
 
       const completed = await completeCurrentStage({

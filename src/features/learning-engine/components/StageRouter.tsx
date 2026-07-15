@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { Stage } from '../types';
 import { useLearningEngine } from '../hooks/useLearningEngine';
+import { stopGlobalTts } from '@/lib/tts/globalTts';
 import ContextualizationStage from './stages/ContextualizationStage';
 import CoverStage from './stages/CoverStage';
 import IdentificationStage from './stages/IdentificationStage';
@@ -33,6 +35,7 @@ function StageContent() {
 export default function StageRouter() {
   const { currentStage, isLoading, isFinished } = useLearningEngine();
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   // Reset scroll to top on every stage change AND on initial load completion.
   // Runs when currentStage changes (stage navigation) or when isLoading flips
@@ -52,6 +55,10 @@ export default function StageRouter() {
     // Fallback: reset window scroll (covers initial navigation from PDF page)
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [currentStage, isLoading]);
+
+  useEffect(() => {
+    stopGlobalTts();
+  }, [currentStage, pathname]);
 
   // FinishStage renders full-screen without layout wrapper
   if (isFinished) {

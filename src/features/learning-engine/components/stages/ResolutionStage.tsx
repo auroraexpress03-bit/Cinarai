@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import type { ResolutionMission } from './resolutionStage.helpers';
 import RobotMascot from '@/components/ai/RobotMascot';
+import { stopGlobalTts, useGlobalTts } from '@/lib/tts/globalTts';
 
 function getTutorFallback(mission: ResolutionMission, isCorrect: boolean, attempt: number = 0): string {
   if (isCorrect) {
@@ -90,6 +91,12 @@ export default function ResolutionStage() {
   useEffect(() => {
     setCanAdvance(false);
   }, [misiStarted, setCanAdvance]);
+
+  useEffect(() => {
+    return () => {
+      stopGlobalTts();
+    };
+  }, []);
 
   const goPrevPage = useCallback(() => {
     if (currentIndex > 0) {
@@ -251,6 +258,7 @@ function MissionCard({
   isTransitioning: boolean;
 }) {
   const { setCanAdvance } = useLearningEngine();
+  const { isSpeaking: globalIsSpeaking, toggle, stop } = useGlobalTts();
   const [attempts, setAttempts] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSolved, setIsSolved] = useState(false);
@@ -268,7 +276,8 @@ function MissionCard({
     setIsSolved(false);
     setAttempts(0);
     setAnswerFeedback(null);
-  }, [mission.id]);
+    stop();
+  }, [mission.id, stop]);
 
   const handleSubmitAnswer = async () => {
     if (!selected || isSolved || isSubmitting) return;
@@ -337,16 +346,16 @@ function MissionCard({
     return () => window.clearInterval(typingTimer);
   }, [tutorMessage]);
 
+  useEffect(() => {
+    setIsSpeaking(globalIsSpeaking);
+  }, [globalIsSpeaking]);
+
   const handleSpeak = () => {
-    if (!('speechSynthesis' in window) || !typedText) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(typedText);
-    utterance.lang = 'id-ID';
-    utterance.rate = 0.95;
-    setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    if (!typedText) return;
+    const nextIsSpeaking = toggle(typedText);
+    if (typeof nextIsSpeaking === 'boolean') {
+      setIsSpeaking(nextIsSpeaking);
+    }
   };
 
   const scrollAiPanelToTop = () => {
@@ -488,7 +497,7 @@ function MissionCard({
               disabled={!typedText || isTyping}
               className="inline-flex items-center justify-center rounded-full border border-primary-200 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-700 hover:bg-primary-100 transition disabled:opacity-60"
             >
-              {isSpeaking ? '🔊 Mendengar...' : '🔊 Dengarkan'}
+              {isSpeaking ? '⏹ Berhenti' : '▶️ Dengarkan'}
             </button>
           </div>
         </div>
