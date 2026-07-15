@@ -198,7 +198,7 @@ export default function TeacherReportClient() {
           <p className="text-sm font-black uppercase tracking-[0.25em] text-primary-600">Laporan Guru</p>
           <h1 className="mt-2 text-2xl font-black text-neutral-900">Tidak dapat memuat laporan</h1>
           <p className="mt-3 text-sm leading-relaxed text-neutral-600">{error}</p>
-          <Link href="/teacher" className="mt-6 inline-flex rounded-2xl bg-primary-600 px-4 py-3 text-sm font-black text-white">
+          <Link href="/dashboard/guru" className="mt-6 inline-flex rounded-2xl bg-primary-600 px-4 py-3 text-sm font-black text-white">
             Kembali ke dashboard
           </Link>
         </div>
@@ -219,7 +219,7 @@ export default function TeacherReportClient() {
                   Pantau progres, nilai, dan aktivitas siswa dari data Firestore yang sudah terkumpul.
                 </p>
               </div>
-              <Link href="/teacher" className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
+              <Link href="/dashboard/guru" className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
                 ← Dashboard Guru
               </Link>
             </div>

@@ -1,0 +1,47 @@
+'use client';
+
+type ModuleItem = {
+  title: string;
+  description: string;
+  completed: number;
+  progress: number;
+  badge: string;
+};
+
+export function TeacherModuleCards({ modules }: { modules: ModuleItem[] }) {
+  return (
+    <section className="rounded-[28px] border border-neutral-100 bg-white p-5 shadow-sm shadow-neutral-200/70 sm:p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-secondary-500">Modul</p>
+          <h2 className="mt-1 text-xl font-black text-neutral-900">Modul CINARAI</h2>
+        </div>
+        <div className="rounded-full bg-secondary-50 px-3 py-1 text-sm font-semibold text-secondary-700">Preview</div>
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        {modules.map((module) => (
+          <div key={module.title} className="overflow-hidden rounded-[24px] border border-neutral-100 bg-neutral-50">
+            <div className="h-28 bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-500" />
+            <div className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-base font-black text-neutral-900">{module.title}</h3>
+                <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-primary-700 shadow-sm">
+                  {module.badge}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-neutral-600">{module.description}</p>
+              <div className="mt-3 flex items-center justify-between text-sm text-neutral-500">
+                <span>{module.completed} siswa selesai</span>
+                <span className="font-semibold text-primary-700">{module.progress}%</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+                <div className="h-full rounded-full bg-primary-500" style={{ width: `${module.progress}%` }} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

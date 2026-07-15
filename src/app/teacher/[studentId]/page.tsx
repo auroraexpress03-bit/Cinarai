@@ -251,7 +251,7 @@ export default function StudentDetailPage() {
               <h1 className="text-2xl font-black text-neutral-900">{displayName}</h1>
             </div>
             <Link
-              href="/teacher"
+              href="/dashboard/guru"
               className="rounded-full border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700 shadow-sm"
             >
               ← Kembali
