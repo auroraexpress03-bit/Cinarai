@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import RobotMascot from '@/components/ai/RobotMascot';
 import { toDataURL } from 'qrcode';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -109,13 +109,13 @@ function buildTutorIntro(objectName: string) {
   return `Halo! Aku adalah AI Tutor CINARAI. Aku siap membantu memahami objek ${objectName}.`;
 }
 
-function ProviderBadge({ label }: { label: string }) {
+const ProviderBadge = React.memo(function ProviderBadge({ label }: { label: string }) {
   return (
     <span className="inline-flex w-fit rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
       {label}
     </span>
   );
-}
+});
 
 export default function Universal3DViewer({
   initialUrl,

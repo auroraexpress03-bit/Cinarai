@@ -16,7 +16,12 @@ export function QrModal({ isOpen, qrSrc, onClose }: QrModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="qr-modal-title"
       onClick={onClose}
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
     >
       <div
         className="w-full max-w-[420px] rounded-[24px] bg-white p-5 shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
@@ -24,7 +29,7 @@ export function QrModal({ isOpen, qrSrc, onClose }: QrModalProps) {
       >
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2 text-left">
-            <h2 className="text-2xl font-black text-neutral-900">Scan QR untuk Membuka Model AR</h2>
+            <h2 id="qr-modal-title" className="text-2xl font-black text-neutral-900">Scan QR untuk Membuka Model AR</h2>
             <p className="text-sm leading-relaxed text-neutral-600">
               Gunakan kamera pada HP orang tua atau perangkat lain untuk memindai QR dan membuka model AR.
             </p>
@@ -34,6 +39,12 @@ export function QrModal({ isOpen, qrSrc, onClose }: QrModalProps) {
             onClick={onClose}
             aria-label="Tutup QR"
             className="rounded-full border border-neutral-200 bg-white p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-700"
+            ref={(el) => {
+              if (el && typeof (el as HTMLButtonElement).focus === 'function') {
+                // Move focus to close button when modal opens
+                setTimeout(() => (el as HTMLButtonElement).focus(), 0);
+              }
+            }}
           >
             ✕
           </button>

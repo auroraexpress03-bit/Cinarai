@@ -29,7 +29,10 @@ export async function loadAllUsers(): Promise<UserDocument[]> {
       orderBy: [],
       limit: null,
     },
-    () => getFirestoreCollection('users')
+    // Only load users with role === 'student' to reduce reads for dashboard
+    () => queryFirestoreCollection('users', {
+      filters: [{ field: 'role', operator: '==', value: 'student' }],
+    })
   );
 }
 
@@ -37,7 +40,12 @@ export function subscribeToUsers(
   callback: (users: UserDocument[]) => void,
   onError?: (error: Error) => void
 ) {
-  return subscribeToFirestoreCollection('users', callback, undefined, onError);
+  return subscribeToFirestoreCollection(
+    'users',
+    callback,
+    { filters: [{ field: 'role', operator: '==', value: 'student' }] },
+    onError
+  );
 }
 
 export async function loadAllComics(): Promise<ComicDocument[]> {
@@ -98,7 +106,12 @@ export async function loadAllReflections(): Promise<ReflectionDocument[]> {
       orderBy: [],
       limit: null,
     },
-    () => getFirestoreCollection('reflection')
+    // Limit reflections to recent 500 to avoid loading entire collection for dashboard.
+    () => queryFirestoreCollection('reflection', {
+      orderByField: 'createdAt',
+      orderDirection: 'desc',
+      limitCount: 500,
+    })
   );
 }
 

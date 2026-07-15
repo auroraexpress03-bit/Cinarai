@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { fetchAllComics } from '@/services/comicFirestoreService';
@@ -37,6 +37,10 @@ export default function LearningJourney() {
   const [isResetting, setIsResetting] = useState(false);
   const unlockStatuses = useMemo(() => getAllUnlockStatuses(states), [states]);
   const pendingComic = useMemo(() => comics.find((comic) => comic.id === pendingResetComicId) ?? null, [comics, pendingResetComicId]);
+
+  const handleRequestReset = useCallback((id: number) => {
+    setPendingResetComicId(id);
+  }, [setPendingResetComicId]);
 
   useEffect(() => {
     fetchAllComics()
@@ -83,7 +87,7 @@ export default function LearningJourney() {
               isComingSoon={isComingSoon}
               theme={theme}
               unlockStatus={unlockStatus}
-              onRequestReset={() => setPendingResetComicId(comic.id)}
+              onRequestReset={handleRequestReset}
               isResetting={isResetting && pendingResetComicId === comic.id}
               canReset={percentage > 0 || isCompleted}
             />
@@ -153,12 +157,11 @@ interface ComicCardProps {
   isComingSoon: boolean;
   theme: typeof DEFAULT_THEME;
   unlockStatus: UnlockStatus;
-  onRequestReset: () => void;
+  onRequestReset: (id: number) => void;
   isResetting: boolean;
   canReset: boolean;
 }
-
-function ComicCard({
+const ComicCard = React.memo(function ComicCard({
   comic,
   index,
   percentage,
@@ -290,7 +293,7 @@ function ComicCard({
             {canReset && !isLocked && !isComingSoon && (
               <button
                 type="button"
-                onClick={onRequestReset}
+                onClick={() => onRequestReset(comic.id)}
                 disabled={isResetting}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-black text-neutral-700 shadow-sm transition hover:border-primary-200 hover:text-primary-700 disabled:opacity-60"
               >
@@ -302,11 +305,11 @@ function ComicCard({
       </div>
     </div>
   );
-}
+});
 
 // ─── CTA Button ───────────────────────────────────────────────────────────────
 
-function CtaButton({
+const CtaButton = React.memo(function CtaButton({
   comicId, isCompleted, isLocked, isComingSoon, percentage, accentClass,
 }: {
   comicId: number;
@@ -358,11 +361,11 @@ function CtaButton({
       🚀 Mulai Petualangan
     </Link>
   );
-}
+});
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
-function StatusBadge({
+const StatusBadge = React.memo(function StatusBadge({
   isCompleted, isComingSoon, isLocked, percentage,
 }: {
   isCompleted: boolean; isComingSoon: boolean; isLocked: boolean; percentage: number;
@@ -372,7 +375,7 @@ function StatusBadge({
   if (isLocked)      return <span className="flex-shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-black text-neutral-500">Terkunci</span>;
   if (percentage > 0) return <span className="flex-shrink-0 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-black text-primary-700">Berlangsung</span>;
   return               <span className="flex-shrink-0 rounded-full bg-secondary-100 px-2 py-0.5 text-[10px] font-black text-secondary-700">Baru</span>;
-}
+});
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 

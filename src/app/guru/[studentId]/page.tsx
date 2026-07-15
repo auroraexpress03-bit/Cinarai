@@ -1,6 +1,7 @@
 'use client';
 
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { queryFirestoreCollection } from '@/services/firestore';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -65,19 +66,32 @@ export default function StudentDetailPage() {
 
       try {
         const studentRef = doc(firestore, 'users', studentId);
-        const [studentResult, progressResult, reflectionResult, activityResult] = await Promise.allSettled([
+
+        // Query only the documents we need to avoid reading whole collections.
+        const [
+          studentResult,
+          progressResult,
+          reflectionsByUserResult,
+          reflectionsByStudentResult,
+          activityResult,
+        ] = await Promise.allSettled([
           getDoc(studentRef),
           getDocs(collection(firestore, 'users', studentId, 'progress')),
-          getDocs(collection(firestore, 'reflection')),
-          getDocs(collection(firestore, 'activity')),
+          // reflections where userId === studentId
+          queryFirestoreCollection('reflection', { filters: [{ field: 'userId', operator: '==', value: studentId }] }),
+          // reflections where studentId === studentId
+          queryFirestoreCollection('reflection', { filters: [{ field: 'studentId', operator: '==', value: studentId }] }),
+          // activities for this user, ordered desc
+          queryFirestoreCollection('activity', { filters: [{ field: 'userId', operator: '==', value: studentId }], orderByField: 'occurredAt', orderDirection: 'desc' }),
         ]);
 
         if (!active) return;
 
         const studentSnapshot = studentResult.status === 'fulfilled' ? studentResult.value : null;
         const progressSnapshot = progressResult.status === 'fulfilled' ? progressResult.value : null;
-        const reflectionSnapshot = reflectionResult.status === 'fulfilled' ? reflectionResult.value : null;
-        const activitySnapshot = activityResult.status === 'fulfilled' ? activityResult.value : null;
+        const reflectionsByUser = reflectionsByUserResult.status === 'fulfilled' ? (reflectionsByUserResult.value as ReflectionDocument[]) : [];
+        const reflectionsByStudent = reflectionsByStudentResult.status === 'fulfilled' ? (reflectionsByStudentResult.value as ReflectionDocument[]) : [];
+        const activityDocs = activityResult.status === 'fulfilled' ? (activityResult.value as ActivityDocument[]) : [];
 
         const progressDocuments = (progressSnapshot?.docs ?? []).map((documentSnapshot) => {
           const data = documentSnapshot.data() as Partial<ComicProgressDocument>;
@@ -88,12 +102,16 @@ export default function StudentDetailPage() {
           } as ComicProgressDocument;
         });
 
-        const reflections = (reflectionSnapshot?.docs ?? [])
-          .map((documentSnapshot) => ({ id: documentSnapshot.id, ...documentSnapshot.data() } as ReflectionDocument))
-          .filter((reflection) => reflection.userId === studentId || reflection.studentId === studentId);
+        // Merge reflections from both queries and dedupe by id
+        const reflectionsMap = new Map<string, ReflectionDocument>();
+        [...reflectionsByUser, ...reflectionsByStudent].forEach((r) => {
+          if (!r) return;
+          const idKey = r.id ?? JSON.stringify(r);
+          if (r.userId === studentId || r.studentId === studentId) reflectionsMap.set(idKey, r);
+        });
+        const reflections = Array.from(reflectionsMap.values());
 
-        const activities = (activitySnapshot?.docs ?? [])
-          .map((documentSnapshot) => ({ id: documentSnapshot.id, ...documentSnapshot.data() } as ActivityDocument))
+        const activities = activityDocs
           .filter((activity) => activity.userId === studentId)
           .sort((left, right) => {
             const leftTime = toDateValue(left.occurredAt)?.getTime() ?? 0;
@@ -115,11 +133,18 @@ export default function StudentDetailPage() {
             errorMessage: progressResult.reason instanceof Error ? progressResult.reason.message : String(progressResult.reason),
           });
         }
-        if (reflectionResult.status === 'rejected') {
+        if (reflectionsByUserResult.status === 'rejected' || reflectionsByStudentResult.status === 'rejected') {
+          let reflectionErrorMessage = '';
+          if (reflectionsByUserResult.status === 'rejected') {
+            reflectionErrorMessage = reflectionsByUserResult.reason instanceof Error ? reflectionsByUserResult.reason.message : String(reflectionsByUserResult.reason);
+          } else if (reflectionsByStudentResult.status === 'rejected') {
+            reflectionErrorMessage = reflectionsByStudentResult.reason instanceof Error ? reflectionsByStudentResult.reason.message : String(reflectionsByStudentResult.reason);
+          }
+
           console.warn('[StudentDetail] reflection query failed', {
             uid: studentId,
             errorCode: 'unknown',
-            errorMessage: reflectionResult.reason instanceof Error ? reflectionResult.reason.message : String(reflectionResult.reason),
+            errorMessage: reflectionErrorMessage,
           });
         }
         if (activityResult.status === 'rejected') {
