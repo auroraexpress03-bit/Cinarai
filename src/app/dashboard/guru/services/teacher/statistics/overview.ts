@@ -14,6 +14,39 @@ import { loadAllProgressDocuments } from '../dashboard/teacherDashboardFirestore
 
 export type StatisticsDateRange = 'today' | '7days' | '30days' | 'semester' | 'all';
 
+type DashboardQueryMeta = {
+  collection: string;
+  path: string;
+  where?: string;
+  orderBy?: string;
+  limit?: string;
+};
+
+async function executeDashboardQuery<T>(
+  meta: DashboardQueryMeta,
+  queryFn: () => Promise<T[]>
+): Promise<{ documents: T[]; error: Error | null }> {
+  console.group('Teacher Dashboard Query');
+  console.log('Collection:', meta.collection);
+  console.log('Path:', meta.path);
+  console.log('Where:', meta.where ?? 'none');
+  console.log('OrderBy:', meta.orderBy ?? 'none');
+  console.log('Limit:', meta.limit ?? 'none');
+
+  try {
+    const documents = await queryFn();
+    console.groupEnd();
+    return { documents, error: null };
+  } catch (error) {
+    console.error(error);
+    console.groupEnd();
+    return {
+      documents: [],
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
+  }
+}
+
 export type StatisticsFilter = {
   classId: string;
   moduleId: number | 'all';
@@ -113,36 +146,93 @@ export async function loadStatisticsOverviewData(
     return cachedStatisticsSourceDataPromise;
   }
 
-  cachedStatisticsSourceDataPromise = Promise.all([
-    getFirestoreCollection('users'),
-    getFirestoreCollection('comics'),
-    loadAllProgressDocuments(),
-    queryFirestoreCollection('activity', {
-      orderByField: 'occurredAt',
-      orderDirection: 'desc',
-    }),
-    getFirestoreCollection('reflection'),
-    getFirestoreCollection('identification_answers'),
-    getFirestoreCollection('application_activity'),
-  ]).then(
-    ([users, comics, progressDocuments, activities, reflections, identificationAnswers, applicationActivities]) => {
-      const students = users.filter((user) => user.role === 'student');
-      const result: StatisticsSourceData = {
-        students,
-        comics,
-        progressDocuments,
-        activities,
-        reflections,
-        identificationAnswers,
-        applicationActivities,
-      };
-      cachedStatisticsSourceData = result;
-      cachedStatisticsSourceDataPromise = null;
-      return result;
-    }
-  );
+  const queryPromises = [
+    executeDashboardQuery(
+      { collection: 'users', path: '/users', where: 'none', orderBy: 'none', limit: 'none' },
+      () => getFirestoreCollection('users')
+    ),
+    executeDashboardQuery(
+      { collection: 'comics', path: '/comics', where: 'none', orderBy: 'none', limit: 'none' },
+      () => getFirestoreCollection('comics')
+    ),
+    executeDashboardQuery(
+      { collection: 'progress', path: '/users/{uid}/progress (collectionGroup)', where: 'none', orderBy: 'none', limit: 'none' },
+      () => loadAllProgressDocuments()
+    ),
+    executeDashboardQuery(
+      { collection: 'activity', path: '/activity', where: 'none', orderBy: 'occurredAt desc', limit: 'none' },
+      () => queryFirestoreCollection('activity', {
+        orderByField: 'occurredAt',
+        orderDirection: 'desc',
+      })
+    ),
+    executeDashboardQuery(
+      { collection: 'reflection', path: '/reflection', where: 'none', orderBy: 'none', limit: 'none' },
+      () => getFirestoreCollection('reflection')
+    ),
+    executeDashboardQuery(
+      { collection: 'identification_answers', path: '/identification_answers', where: 'none', orderBy: 'none', limit: 'none' },
+      () => getFirestoreCollection('identification_answers')
+    ),
+    executeDashboardQuery(
+      { collection: 'application_activity', path: '/application_activity', where: 'none', orderBy: 'none', limit: 'none' },
+      () => getFirestoreCollection('application_activity')
+    ),
+  ];
 
-  return cachedStatisticsSourceDataPromise;
+  const results = await Promise.allSettled(queryPromises);
+
+  const [usersResult, comicsResult, progressResult, activitiesResult, reflectionsResult, identificationAnswersResult, applicationActivitiesResult] =
+    results.map((settled) => {
+      if (settled.status === 'fulfilled') {
+        return settled.value;
+      }
+
+      console.group('Teacher Dashboard Query');
+      console.error('Unhandled query rejection:', settled.reason);
+      console.groupEnd();
+      return { documents: [], error: settled.reason instanceof Error ? settled.reason : new Error(String(settled.reason)) };
+    }) as Array<{ documents: unknown[]; error: Error | null }>;
+
+  const users = (usersResult.documents as UserDocument[]).filter((user) => user.role === 'student');
+  const comics = comicsResult.documents as ComicDocument[];
+  const progressDocuments = progressResult.documents as ComicProgressDocument[];
+  const activities = activitiesResult.documents as ActivityDocument[];
+  const reflections = reflectionsResult.documents as ReflectionDocument[];
+  const identificationAnswers = identificationAnswersResult.documents as IdentificationAnswerDocument[];
+  const applicationActivities = applicationActivitiesResult.documents as ApplicationActivityDocument[];
+
+  const errors = [
+    usersResult.error,
+    comicsResult.error,
+    progressResult.error,
+    activitiesResult.error,
+    reflectionsResult.error,
+    identificationAnswersResult.error,
+    applicationActivitiesResult.error,
+  ].filter(Boolean) as Error[];
+
+  const result: StatisticsSourceData = {
+    students: users,
+    comics,
+    progressDocuments,
+    activities,
+    reflections,
+    identificationAnswers,
+    applicationActivities,
+  };
+
+  if (errors.length === 0) {
+    cachedStatisticsSourceData = result;
+  } else {
+    cachedStatisticsSourceData = null;
+    errors.forEach((error) => {
+      console.warn('Teacher Dashboard Query Warning:', error);
+    });
+  }
+
+  cachedStatisticsSourceDataPromise = null;
+  return result;
 }
 
 export function buildClassOptions(students: UserDocument[]): StatisticsClassOption[] {
