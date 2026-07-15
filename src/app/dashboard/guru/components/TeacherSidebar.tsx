@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 const items = [
   { label: 'Dashboard', href: '/dashboard/guru', enabled: true },
   { label: 'Siswa', href: '/dashboard/guru/siswa', enabled: true },
-  { label: 'Statistik', href: '/dashboard/guru/statistik', enabled: false },
+  { label: 'Statistik', href: '/dashboard/guru/statistik', enabled: true },
   { label: 'Analisis AI', href: '/dashboard/guru/analisis-ai', enabled: false },
   { label: 'Laporan', href: '/dashboard/guru/laporan', enabled: false },
   { label: 'Pengaturan', href: '/dashboard/guru/pengaturan', enabled: false },

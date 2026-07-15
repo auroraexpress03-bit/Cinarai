@@ -3,23 +3,78 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── users ────────────────────────────────────────────────────────────────
-    match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-      // ── progress subcollection ─────────────────────────────────────────────
-      // Path: users/{uid}/progress/comic-{n}
+    function authUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isTeacher() {
+      return isSignedIn() && authUser().exists() && authUser().data.role == 'teacher';
+    }
+
+    function isStudent() {
+      return isSignedIn() && authUser().exists() && authUser().data.role == 'student';
+    }
+
+    function ownsUserDoc(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && (ownsUserDoc(uid) || isTeacher());
+      allow write: if isSignedIn() && ownsUserDoc(uid);
+
       match /progress/{comicId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read: if isSignedIn() && (ownsUserDoc(uid) || isTeacher());
+        allow write: if isSignedIn() && ownsUserDoc(uid);
       }
     }
 
     // ── reflection ───────────────────────────────────────────────────────────
     match /reflection/{docId} {
-      allow read, write: if request.auth != null
-        && (resource.data.userId == request.auth.uid || resource.data.studentId == request.auth.uid);
-      allow create: if request.auth != null
-        && (request.resource.data.userId == request.auth.uid || request.resource.data.studentId == request.auth.uid);
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid
+        || resource.data.studentId == request.auth.uid
+        || isTeacher()
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid
+        || request.resource.data.studentId == request.auth.uid
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid
+        || resource.data.studentId == request.auth.uid
+      );
+    }
+
+    match /activity/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid
+        || isTeacher()
+      );
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /application_activity/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid
+        || isTeacher()
+      );
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /identification_answers/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid
+        || isTeacher()
+      );
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
     // ── comics ────────────────────────────────────────────────────────────
@@ -27,15 +82,6 @@ service cloud.firestore {
     match /comics/{docId} {
       allow read: if true;
       allow write: if false;
-    }
-
-    // ── identification_answers ────────────────────────────────────────────
-    // Doc ID: {userId}_{comicId}_{step}
-    match /identification_answers/{docId} {
-      allow read, update, delete: if request.auth != null
-        && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
     }
 
     // ── Semua collection lain: tolak ─────────────────────────────────────────
