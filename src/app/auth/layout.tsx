@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function AuthLayout({
   children,
 }: {
@@ -20,8 +22,15 @@ export default function AuthLayout({
       <div className="relative w-full max-w-md animate-fade-in-up">
         {/* Brand */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-white/20 text-3xl mb-3 shadow-lg ring-2 ring-white/30">
-            🎓
+          <div className="mb-3 inline-flex items-center justify-center rounded-2xl bg-white/20 p-2 shadow-lg ring-2 ring-white/30">
+            <Image
+              src="/images/ai/logo/logo.png"
+              alt="CINARAI Logo"
+              width={110}
+              height={110}
+              priority
+              className="h-[90px] w-[90px] sm:h-[110px] sm:w-[110px]"
+            />
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">CINARAI</h1>
           <p className="text-sm text-primary-200 mt-0.5">Critical Numeracy with AR &amp; AI</p>
