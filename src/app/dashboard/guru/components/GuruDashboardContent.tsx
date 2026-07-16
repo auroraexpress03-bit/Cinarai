@@ -100,13 +100,29 @@ export default function GuruDashboardContent() {
   }
 
   if (error) {
+    const isRoleError = error.includes('bukan akun guru');
+    const isSesiError = error.includes('Sesi');
+
     return (
       <div className="min-h-screen bg-neutral-50 px-4 py-5 sm:px-6 lg:px-8">
         <GuruDashboardLayout header={<GuruHeader />} sidebar={<GuruSidebar />}>
           <div className="space-y-6">
-            <div className="rounded-[28px] border border-rose-200 bg-rose-50 p-5 shadow-sm shadow-rose-200/70">
-              <p className="text-lg font-black text-rose-900">Gagal memuat data</p>
-              <p className="mt-2 text-sm text-rose-700">{error}</p>
+            <div className={`rounded-[28px] border p-5 shadow-sm ${isRoleError ? 'border-amber-200 bg-amber-50 shadow-amber-200/70' : 'border-rose-200 bg-rose-50 shadow-rose-200/70'}`}>
+              <p className={`text-lg font-black ${isRoleError ? 'text-amber-900' : 'text-rose-900'}`}>
+                {isRoleError ? 'Akses Ditolak' : isSesiError ? 'Sesi Berakhir' : 'Gagal Memuat Dashboard'}
+              </p>
+              <p className={`mt-2 text-sm ${isRoleError ? 'text-amber-700' : 'text-rose-700'}`}>
+                {isRoleError
+                  ? 'Akun Anda bukan akun guru. Hubungi administrator untuk mengaktifkan akses guru.'
+                  : isSesiError
+                    ? 'Sesi Anda telah berakhir. Silakan masuk kembali untuk melanjutkan.'
+                    : error}
+              </p>
+              {!isRoleError && !isSesiError && (
+                <p className="mt-3 text-xs text-neutral-500">
+                  <strong>Detail:</strong> {error}
+                </p>
+              )}
             </div>
           </div>
         </GuruDashboardLayout>

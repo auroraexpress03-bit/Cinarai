@@ -107,42 +107,125 @@ export async function GET(request: NextRequest) {
   const token = headerValue?.startsWith('Bearer ') ? headerValue.slice(7) : null;
 
   if (!token) {
+    console.warn('[GuruDashboard API] Unauthorized: token not provided');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const decodedToken = await verifyIdToken(token);
   if (!decodedToken || !decodedToken.uid) {
+    console.warn('[GuruDashboard API] Unauthorized: invalid token');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const uid = decodedToken.uid;
+  console.log('[GuruDashboard API] GET /api/dashboard/guru - uid:', uid);
+
   if (!adminAuth) {
+    console.error('[GuruDashboard API] Admin auth unavailable');
     return NextResponse.json({ error: 'Admin auth unavailable' }, { status: 500 });
   }
 
   if (!adminFirestore) {
+    console.error('[GuruDashboard API] Admin firestore unavailable');
     return NextResponse.json({ error: 'Admin firestore unavailable' }, { status: 500 });
   }
 
-  const profileSnapshot = await adminFirestore.collection('users').doc(decodedToken.uid).get();
-  const role = profileSnapshot.exists ? (profileSnapshot.data()?.role as string | undefined) : undefined;
-
-  if (role !== 'teacher' && role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  // Fetch user profile to check role
+  let role: string | undefined;
+  try {
+    const profileSnapshot = await adminFirestore.collection('users').doc(uid).get();
+    console.log('[GuruDashboard API] User profile query - exists:', profileSnapshot.exists);
+    role = profileSnapshot.exists ? (profileSnapshot.data()?.role as string | undefined) : undefined;
+    console.log('[GuruDashboard API] User role:', role, '- email:', profileSnapshot.data()?.email);
+  } catch (error) {
+    console.error('[GuruDashboard API] Error fetching user profile:', error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
   }
 
-  const [studentsSnapshot, comicsSnapshot, progressSnapshot, activitySnapshot, reflectionsSnapshot] = await Promise.all([
-    adminFirestore.collection('users').where('role', '==', 'student').get(),
-    adminFirestore.collection('comics').get(),
-    adminFirestore.collectionGroup('progress').get(),
-    adminFirestore.collection('activity').orderBy('occurredAt', 'desc').limit(20).get(),
-    adminFirestore.collection('reflection').orderBy('createdAt', 'desc').limit(200).get(),
+  if (role !== 'teacher' && role !== 'admin') {
+    console.warn('[GuruDashboard API] Forbidden: user role is not teacher or admin. Role:', role);
+    return NextResponse.json({ error: 'Akun ini bukan akun guru.' }, { status: 403 });
+  }
+
+  // Use Promise.allSettled for resilience
+  const results = await Promise.allSettled([
+    (async () => {
+      try {
+        console.log('[GuruDashboard API] Querying users where role == student...');
+        const snap = await adminFirestore.collection('users').where('role', '==', 'student').get();
+        console.log('[GuruDashboard API] Students query - found:', snap.docs.length, 'documents');
+        return snap;
+      } catch (error) {
+        console.error('[GuruDashboard API] Error querying students:', error instanceof Error ? error.message : error);
+        throw error;
+      }
+    })(),
+    (async () => {
+      try {
+        console.log('[GuruDashboard API] Querying comics collection...');
+        const snap = await adminFirestore.collection('comics').get();
+        console.log('[GuruDashboard API] Comics query - found:', snap.docs.length, 'documents');
+        return snap;
+      } catch (error) {
+        console.error('[GuruDashboard API] Error querying comics:', error instanceof Error ? error.message : error);
+        throw error;
+      }
+    })(),
+    (async () => {
+      try {
+        console.log('[GuruDashboard API] Querying collectionGroup progress...');
+        const snap = await adminFirestore.collectionGroup('progress').get();
+        console.log('[GuruDashboard API] Progress query - found:', snap.docs.length, 'documents');
+        return snap;
+      } catch (error) {
+        console.error('[GuruDashboard API] Error querying progress:', error instanceof Error ? error.message : error);
+        throw error;
+      }
+    })(),
+    (async () => {
+      try {
+        console.log('[GuruDashboard API] Querying activity collection (limit 20)...');
+        const snap = await adminFirestore.collection('activity').orderBy('occurredAt', 'desc').limit(20).get();
+        console.log('[GuruDashboard API] Activity query - found:', snap.docs.length, 'documents');
+        return snap;
+      } catch (error) {
+        console.error('[GuruDashboard API] Error querying activity:', error instanceof Error ? error.message : error);
+        throw error;
+      }
+    })(),
+    (async () => {
+      try {
+        console.log('[GuruDashboard API] Querying reflection collection (limit 200)...');
+        const snap = await adminFirestore.collection('reflection').orderBy('createdAt', 'desc').limit(200).get();
+        console.log('[GuruDashboard API] Reflection query - found:', snap.docs.length, 'documents');
+        return snap;
+      } catch (error) {
+        console.error('[GuruDashboard API] Error querying reflection:', error instanceof Error ? error.message : error);
+        throw error;
+      }
+    })(),
   ]);
 
-  const students = studentsSnapshot.docs.map(serializeUser);
-  const comics = comicsSnapshot.docs.map(serializeComic);
-  const progressDocuments = progressSnapshot.docs.map(serializeProgress);
-  const activities = activitySnapshot.docs.map(serializeActivity);
-  const reflections = reflectionsSnapshot.docs.map(serializeReflection);
+  // Process results
+  const studentsSnapshot = results[0]?.status === 'fulfilled' ? results[0].value : null;
+  const comicsSnapshot = results[1]?.status === 'fulfilled' ? results[1].value : null;
+  const progressSnapshot = results[2]?.status === 'fulfilled' ? results[2].value : null;
+  const activitySnapshot = results[3]?.status === 'fulfilled' ? results[3].value : null;
+  const reflectionsSnapshot = results[4]?.status === 'fulfilled' ? results[4].value : null;
+
+  const students = studentsSnapshot ? studentsSnapshot.docs.map(serializeUser) : [];
+  const comics = comicsSnapshot ? comicsSnapshot.docs.map(serializeComic) : [];
+  const progressDocuments = progressSnapshot ? progressSnapshot.docs.map(serializeProgress) : [];
+  const activities = activitySnapshot ? activitySnapshot.docs.map(serializeActivity) : [];
+  const reflections = reflectionsSnapshot ? reflectionsSnapshot.docs.map(serializeReflection) : [];
+
+  console.log('[GuruDashboard API] API response prepared:', {
+    studentsCount: students.length,
+    comicsCount: comics.length,
+    progressCount: progressDocuments.length,
+    activitiesCount: activities.length,
+    reflectionsCount: reflections.length,
+  });
 
   return NextResponse.json({
     students,
