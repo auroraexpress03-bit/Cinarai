@@ -305,7 +305,9 @@ function MissionCard({
         setIsSolved(true);
         setAnswerFeedback('correct');
         setTutorMessage(aiText);
-        setCanAdvance(false); // JANGAN auto advance - tunggu user menekan tombol
+        if (missionIndex === totalMissions - 1) {
+          setCanAdvance(true);
+        }
       } else {
         const nextAttempt = attempts + 1;
         setAttempts(nextAttempt);
