@@ -21,15 +21,15 @@ export default function AuthLayout({
         {/* Brand */}
         <div className="text-center">
           <Image
-            src="/images/logo/logo.png"
-            alt="CINARAI Logo"
-            width={110}
-            height={110}
+            src="/images/logo/logo-icon.png"
+            alt="CINARAI"
+            width={120}
+            height={120}
             priority
             className="mx-auto object-contain"
           />
           <h1 className="text-4xl font-bold text-white tracking-normal mt-4">CINARAI</h1>
-          <p className="text-base font-medium text-white mt-1.5 mb-7" style={{ opacity: 0.85 }}>
+          <p className="text-base font-medium text-white mt-2 mb-7" style={{ opacity: 0.85 }}>
             Critical Numeracy with AR &amp; AI
           </p>
         </div>
