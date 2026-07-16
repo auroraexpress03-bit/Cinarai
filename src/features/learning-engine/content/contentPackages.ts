@@ -124,12 +124,14 @@ export interface LearningContentPackage {
   };
 }
 
+import { packageContent as comic2PackageContent } from '@/features/comics/comic-2/content';
+
 function makeComic1Package(): LearningContentPackage {
   return makeFallbackPackage(1);
 }
 
 function makeComic2Package(): LearningContentPackage {
-  return makeFallbackPackage(2);
+  return comic2PackageContent;
 }
 
 function makeComic3Package(): LearningContentPackage {

@@ -43,3 +43,23 @@ test('identification state can be built from the content package content', () =>
   assert.equal(state.items[0]?.question, packageContent.identification.questions[0]?.question);
   assert.equal(state.items[0]?.image, packageContent.identification.questions[0]?.image);
 });
+
+test('comic 2 identification questions do not include Komik 1 specific distractors and use simetri bangun datar options', () => {
+  const packageContent = getLearningContentPackage(2);
+  const question1 = packageContent.identification.questions[0];
+  const question2 = packageContent.identification.questions[1];
+  const question3 = packageContent.identification.questions[2];
+  const question4 = packageContent.identification.questions[3];
+  const question5 = packageContent.identification.questions[4];
+  const question6 = packageContent.identification.questions[5];
+
+  assert.equal(question1.question.includes('alas Umpang'), true);
+  assert.ok(question1.options.every((option) => ['Persegi', 'Persegi Panjang', 'Lingkaran', 'Belah Ketupat'].includes(option.text)));
+  assert.equal(question1.options.some((option) => option.text === 'Garis Simetri'), false);
+
+  assert.ok(question2.options.every((option) => ['Persegi Panjang', 'Belah Ketupat', 'Segitiga Sama Sisi', 'Persegi'].includes(option.text)));
+  assert.ok(question3.options.every((option) => option.text !== 'Garis Simetri'));
+  assert.ok(question4.options.every((option) => ['Segitiga Sama Kaki', 'Segitiga Sama Sisi', 'Belah Ketupat', 'Persegi'].includes(option.text)));
+  assert.ok(question5.options.every((option) => ['Lingkaran', 'Persegi', 'Belah Ketupat', 'Persegi Panjang'].includes(option.text)));
+  assert.ok(question6.options.every((option) => ['Belah Ketupat', 'Persegi', 'Persegi Panjang', 'Lingkaran'].includes(option.text)));
+});

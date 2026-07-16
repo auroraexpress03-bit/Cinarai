@@ -111,7 +111,7 @@ export const packageContent: ComicContentPackageLike = {
         imageAlt: 'Alas Umpang pada Candi Penataran yang tampak seimbang.',
         options: [
           { text: 'Persegi', correct: true },
-          { text: 'Garis Simetri', correct: false },
+          { text: 'Persegi Panjang', correct: false },
           { text: 'Lingkaran', correct: false },
           { text: 'Belah Ketupat', correct: false },
         ],

@@ -290,7 +290,19 @@ function getTutorEntry(shape: string): IdentificationTutorEntry {
     return {
       id: entry.id,
       name: entry.title,
-      icon: entry.id === 'kubus' ? '🧊' : entry.id === 'balok' ? '📦' : entry.id === 'limas' ? '🔺' : entry.id === 'prisma' ? '🔷' : entry.id === 'kerucut' ? '🍦' : '🧩',
+      icon:
+        entry.id === 'kubus' ? '🧊'
+          : entry.id === 'balok' ? '📦'
+          : entry.id === 'limas' ? '🔺'
+          : entry.id === 'prisma' ? '🔷'
+          : entry.id === 'kerucut' ? '🍦'
+          : entry.id === 'persegi' ? '⬛'
+          : entry.id === 'persegi-panjang' ? '▭'
+          : entry.id === 'segitiga-sama-sisi' ? '🔺'
+          : entry.id === 'segitiga-sama-kaki' ? '🔻'
+          : entry.id === 'lingkaran' ? '⚪'
+          : entry.id === 'belah-ketupat' ? '♦️'
+          : '🧩',
       definition: entry.definition,
       characteristics: entry.characteristics,
       faces: entry.faces,
@@ -363,7 +375,7 @@ export function buildIdentificationFeedback(selectedShapes: string[], correctSha
   const isComplete = normalizedSelected.length === normalizedCorrect.length && normalizedCorrect.every((shape) => normalizedSelected.includes(shape));
 
   if (isComplete) {
-    return 'Hebat! Kamu berhasil mengidentifikasi bangun ruang yang terdapat pada Candi Jawi.';
+    return 'Hebat! Kamu berhasil mengidentifikasi bangun ruang yang terdapat pada komik ini.';
   }
 
   const incorrect = normalizedSelected.filter((shape) => !normalizedCorrect.includes(shape));
@@ -371,12 +383,12 @@ export function buildIdentificationFeedback(selectedShapes: string[], correctSha
   const issues: string[] = [];
 
   if (incorrect.length > 0) {
-    issues.push(`Bangun ruang ${incorrect.join(', ')} tidak sesuai dengan yang ditemukan pada Candi Jawi.`);
+    issues.push(`Bangun ruang ${incorrect.join(', ')} tidak sesuai dengan yang ditemukan pada komik ini.`);
   }
 
   if (missing.length > 0) {
-    issues.push(`Kamu belum memilih ${missing.join(', ')} yang memang ada pada Candi Jawi.`);
+    issues.push(`Kamu belum memilih ${missing.join(', ')} yang memang ada pada komik ini.`);
   }
 
-  return ['Ada jawaban yang belum sesuai.', ...issues, 'Perhatikan lagi bagian komik dan pilih bangun ruang yang benar-benar terlihat pada Candi Jawi.'].join(' ');
+  return ['Ada jawaban yang belum sesuai.', ...issues, 'Perhatikan lagi bagian komik dan pilih bangun ruang yang benar-benar terlihat pada komik ini.'].join(' ');
 }
