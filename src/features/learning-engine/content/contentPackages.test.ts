@@ -53,13 +53,24 @@ test('comic 2 identification questions do not include Komik 1 specific distracto
   const question5 = packageContent.identification.questions[4];
   const question6 = packageContent.identification.questions[5];
 
-  assert.equal(question1.question.includes('alas Umpang'), true);
-  assert.ok(question1.options.every((option) => ['Persegi', 'Persegi Panjang', 'Lingkaran', 'Belah Ketupat'].includes(option.text)));
+  assert.equal(question1.question.includes('motif relief persegi'), true);
+  assert.ok(question1.options.every((option) => ['Persegi', 'Persegi Panjang', 'Segitiga Sama Sisi', 'Segitiga Sama Kaki', 'Lingkaran', 'Belah Ketupat'].includes(option.text)));
   assert.equal(question1.options.some((option) => option.text === 'Garis Simetri'), false);
 
-  assert.ok(question2.options.every((option) => ['Persegi Panjang', 'Belah Ketupat', 'Segitiga Sama Sisi', 'Persegi'].includes(option.text)));
+  assert.ok(question2.options.every((option) => ['Persegi', 'Persegi Panjang', 'Segitiga Sama Sisi', 'Segitiga Sama Kaki', 'Lingkaran', 'Belah Ketupat'].includes(option.text)));
   assert.ok(question3.options.every((option) => option.text !== 'Garis Simetri'));
-  assert.ok(question4.options.every((option) => ['Segitiga Sama Kaki', 'Segitiga Sama Sisi', 'Belah Ketupat', 'Persegi'].includes(option.text)));
-  assert.ok(question5.options.every((option) => ['Lingkaran', 'Persegi', 'Belah Ketupat', 'Persegi Panjang'].includes(option.text)));
-  assert.ok(question6.options.every((option) => ['Belah Ketupat', 'Persegi', 'Persegi Panjang', 'Lingkaran'].includes(option.text)));
+  assert.ok(question4.options.every((option) => ['Persegi', 'Persegi Panjang', 'Segitiga Sama Sisi', 'Segitiga Sama Kaki', 'Lingkaran', 'Belah Ketupat'].includes(option.text)));
+  assert.ok(question5.options.every((option) => ['Persegi', 'Persegi Panjang', 'Segitiga Sama Sisi', 'Segitiga Sama Kaki', 'Lingkaran', 'Belah Ketupat'].includes(option.text)));
+  assert.ok(question6.options.every((option) => ['Persegi', 'Persegi Panjang', 'Segitiga Sama Sisi', 'Segitiga Sama Kaki', 'Lingkaran', 'Belah Ketupat'].includes(option.text)));
+});
+
+test('comic 2 identification questions provide six allowed shape choices with one correct answer each', () => {
+  const packageContent = getLearningContentPackage(2);
+  const allowedShapes = ['Persegi', 'Persegi Panjang', 'Segitiga Sama Sisi', 'Segitiga Sama Kaki', 'Lingkaran', 'Belah Ketupat'];
+
+  for (const question of packageContent.identification.questions) {
+    assert.equal(question.options.length, 6);
+    assert.ok(question.options.every((option) => allowedShapes.includes(option.text)));
+    assert.equal(question.options.filter((option) => option.correct).length, 1);
+  }
 });

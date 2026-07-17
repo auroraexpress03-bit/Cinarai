@@ -153,7 +153,7 @@ export default function IdentificationQuestion({
                   </ul>
 
                   <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-                    <span className="font-black text-neutral-900">Lokasi bangun ruang pada Candi Jawi:</span> {entry.templeLocation}
+                    <span className="font-black text-neutral-900">Lokasi bangun datar pada Candi Penataran:</span> {entry.templeLocation}
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-neutral-700">
                     <span className="font-black text-neutral-900">Penjelasan:</span> {entry.explanation}

@@ -320,18 +320,18 @@ function getTutorEntry(shape: string): IdentificationTutorEntry {
 
   return {
     id: trimmed.toLowerCase().replace(/\s+/g, '-'),
-    name: trimmed || 'Bangun ruang',
+    name: trimmed || 'Bangun datar',
     icon: '🧩',
-    definition: `${trimmed || 'Bangun ruang'} adalah bangun ruang yang kamu pilih.`,
+    definition: `${trimmed || 'Bangun datar'} adalah bangun datar yang kamu pilih.`,
     characteristics: ['memiliki ciri khusus yang bisa kamu amati'],
-    faces: 'tidak ditentukan',
-    edges: 'tidak ditentukan',
-    vertices: 'tidak ditentukan',
-    surfaceFormula: 'ditentukan dari bentuk alas',
-    volumeFormula: 'ditentukan dari bentuk alas',
+    faces: '1',
+    edges: '4',
+    vertices: '4',
+    surfaceFormula: 'sesuai bentuk bangun datar',
+    volumeFormula: '-',
     foundInTemple: false,
     templeLocation: 'belum dapat dipastikan dari panel komik yang diamati',
-    comicReference: 'Perhatikan kembali panel komik untuk melihat hubungan bangun ini dengan bagian candi.',
+    comicReference: 'Perhatikan kembali panel komik untuk melihat hubungan bangun ini dengan bagian Candi Penataran.',
     explanation: 'Kamu bisa mengamati bagian yang paling terlihat pada komik untuk melihat apakah bentuk ini cocok dengan bangunan candi.',
     reflectionQuestion: 'Bagian mana pada komik yang paling membantu kamu memahami bentuk ini?',
   };
@@ -366,7 +366,7 @@ export function buildIdentificationTutorExplanation(selectedShapes: string[]): s
     `Hubungan dengan komik: ${item.comicReference}`,
     `Refleksi: ${item.reflectionQuestion}`,
   ].join('\n')).join('\n\n');
-  return ['AI Tutor: Saya bantu jelaskan bangun ruang yang kamu pilih.', content].filter(Boolean).join('\n\n');
+  return ['AI Tutor: Saya bantu jelaskan bangun datar yang kamu pilih.', content].filter(Boolean).join('\n\n');
 }
 
 export function buildIdentificationFeedback(selectedShapes: string[], correctShapes: string[]): string {
@@ -375,7 +375,7 @@ export function buildIdentificationFeedback(selectedShapes: string[], correctSha
   const isComplete = normalizedSelected.length === normalizedCorrect.length && normalizedCorrect.every((shape) => normalizedSelected.includes(shape));
 
   if (isComplete) {
-    return 'Hebat! Kamu berhasil mengidentifikasi bangun ruang yang terdapat pada komik ini.';
+    return 'Hebat! Kamu berhasil mengidentifikasi bangun datar yang terdapat pada komik ini.';
   }
 
   const incorrect = normalizedSelected.filter((shape) => !normalizedCorrect.includes(shape));
@@ -383,12 +383,12 @@ export function buildIdentificationFeedback(selectedShapes: string[], correctSha
   const issues: string[] = [];
 
   if (incorrect.length > 0) {
-    issues.push(`Bangun ruang ${incorrect.join(', ')} tidak sesuai dengan yang ditemukan pada komik ini.`);
+    issues.push(`Bangun datar ${incorrect.join(', ')} tidak sesuai dengan yang ditemukan pada komik ini.`);
   }
 
   if (missing.length > 0) {
     issues.push(`Kamu belum memilih ${missing.join(', ')} yang memang ada pada komik ini.`);
   }
 
-  return ['Ada jawaban yang belum sesuai.', ...issues, 'Perhatikan lagi bagian komik dan pilih bangun ruang yang benar-benar terlihat pada komik ini.'].join(' ');
+  return ['Ada jawaban yang belum sesuai.', ...issues, 'Perhatikan lagi bagian komik dan pilih bangun datar yang benar-benar terlihat pada komik ini.'].join(' ');
 }
