@@ -1,0 +1,3 @@
+# Prompt ilustrasi objek: Bale Agung
+
+Buat ilustrasi semi realistis objek arsitektur Candi Penataran bernama Bale Agung, bagian bangunan yang tampak luas dan rapi. Ilustrasi harus cocok untuk media pembelajaran anak SD, warna cerah, tampilan edukatif, dan konsisten dengan nuansa visual Komik 1. Gunakan latar sederhana dan fokus pada bentuk Bale Agung sebagai struktur bangunan yang luas dan seimbang. Tonjolkan detail atap, dinding, dan komposisi proporsional agar mudah dikenali. Gaya visual: ilustrasi digital bersih, semi realistis, warna hangat dan cerah, latar belakang minimal, objek utama menonjol, suasana pembelajaran budaya yang ramah anak.

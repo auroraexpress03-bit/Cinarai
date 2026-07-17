@@ -1,0 +1,3 @@
+# Prompt ilustrasi objek: Relief Lingkaran
+
+Buat ilustrasi semi realistis objek arsitektur Candi Penataran bernama Relief Lingkaran, yaitu relief bundar yang terlihat pada ukiran candi. Ilustrasi harus cocok untuk media pembelajaran anak SD, warna cerah, tampilan edukatif, dan konsisten dengan nuansa visual Komik 1. Gunakan latar sederhana dan fokus pada bentuk lingkaran yang jelas, detail ukiran, serta kesan budaya dan arsitektural yang kuat. Gaya visual: ilustrasi digital bersih, semi realistis, warna cerah, objek utama menonjol, latar netral, keseimbangan visual yang mudah dipahami anak, dan mempertahankan nuansa Candi Penataran yang autentik.

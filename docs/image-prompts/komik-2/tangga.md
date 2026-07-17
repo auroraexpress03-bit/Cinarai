@@ -1,0 +1,3 @@
+# Prompt ilustrasi objek: Tangga
+
+Buat ilustrasi semi realistis objek arsitektur Candi Penataran bernama Tangga, bagian tangga batu yang menunjukkan susunan teratur dan bentuk geometris. Ilustrasi harus cocok untuk media pembelajaran anak SD, warna cerah, tampilan edukatif, dan konsisten dengan nuansa visual Komik 1. Gunakan latar sederhana, fokus pada susunan anak tangga, tekstur batu, proporsi yang jelas, dan kesan struktur candi yang nyata. Gaya visual: ilustrasi digital bersih, semi realistis, warna cerah, latar minimal, objek utama menonjol, suasana pembelajaran budaya yang ramah anak, dan detail arsitektur Candi Penataran yang mudah dikenali.

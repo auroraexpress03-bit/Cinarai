@@ -1,0 +1,3 @@
+# Prompt ilustrasi objek: Mensir
+
+Buat ilustrasi semi realistis objek arsitektur Candi Penataran bernama Mensir, bagian ornamen yang tampak seperti pola persegi dan berulang. Ilustrasi harus cocok untuk media pembelajaran anak SD, warna cerah, tampilan edukatif, dan konsisten dengan nuansa visual Komik 1. Gunakan latar sederhana yang mengarahkan fokus ke pola simetris dan susunan berulang pada Mensir. Tonjolkan detail ukiran, garis rapi, dan harmoni bentuk. Gaya visual: ilustrasi digital bersih, semi realistis, warna cerah, komposisi sederhana, fokus pada objek arsitektur Candi Penataran, dan nuansa yang ramah untuk anak.

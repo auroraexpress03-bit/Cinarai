@@ -11,6 +11,21 @@ const qrAssets: Record<string, string> = {
   'Belah Ketupat': '/assets/qr/komik-2/18-objek-4.jpeg',
 };
 
+function normalizeObjectTitle(value: string): string {
+  return value.trim().toLowerCase();
+}
+
 export function getComic2QrAssetForObject(objectTitle: string): string | undefined {
-  return qrAssets[objectTitle];
+  const normalizedTitle = normalizeObjectTitle(objectTitle);
+  if (!normalizedTitle) {
+    return undefined;
+  }
+
+  const exactMatch = qrAssets[objectTitle];
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const fallbackMatch = Object.entries(qrAssets).find(([title]) => normalizeObjectTitle(title) === normalizedTitle);
+  return fallbackMatch?.[1];
 }

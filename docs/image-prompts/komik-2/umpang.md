@@ -1,0 +1,3 @@
+# Prompt ilustrasi objek: Umpang
+
+Buat ilustrasi semi realistis objek arsitektur Candi Penataran bernama Umpang, bagian rumah adat yang terlihat panjang dan seimbang. Ilustrasi harus cocok untuk media pembelajaran anak SD, warna cerah, tampilan edukatif, dan konsisten dengan nuansa visual Komik 1. Gunakan latar sederhana yang menonjolkan bentuk Umpang secara jelas, dengan detail struktur yang menyerupai bangunan tradisional Jawa. Fokus pada proporsi bentuk panjang, garis tegas, dan kesan simetri. Hindari gambar abstrak atau terlalu dekoratif. Gaya visual: ilustrasi digital bersih, warna cerah, komposisi aman untuk pembelajaran, latar belakang netral, objek utama terlihat jelas, sudut pandang depan atau sedikit miring agar mudah dipahami anak.

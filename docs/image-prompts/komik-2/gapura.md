@@ -1,0 +1,3 @@
+# Prompt ilustrasi objek: Gapura
+
+Buat ilustrasi semi realistis objek arsitektur Candi Penataran bernama Gapura, bagian pintu masuk atau gapura yang khas dengan detail bentuk atap dan struktur simetris. Ilustrasi harus cocok untuk media pembelajaran anak SD, warna cerah, tampilan edukatif, dan konsisten dengan nuansa visual Komik 1. Gunakan latar sederhana yang memberi ruang fokus pada bentuk gapura dan detail arsitektur tradisional. Tonjolkan proporsi, garis simetris, dan nuansa candi yang autentik. Gaya visual: ilustrasi digital bersih, semi realistis, warna cerah, latar netral, objek utama menonjol, suasana edukatif, ramah anak, dan terasa seperti representasi visual budaya Candi Penataran yang nyata.
