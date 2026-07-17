@@ -2,13 +2,8 @@
 
 import Image from 'next/image';
 import { useMemo } from 'react';
-import { getComic1IdentificationAssetForObject } from '@/features/comics/comic-1/content/identificationAssetRegistry';
-import persegiIcon from '@/features/comics/comic-2/assets/identification/icons/persegi.svg';
-import persegiPanjangIcon from '@/features/comics/comic-2/assets/identification/icons/persegi-panjang.svg';
-import segitigaSisiIcon from '@/features/comics/comic-2/assets/identification/icons/segitiga-sama-sisi.svg';
-import segitigaKakiIcon from '@/features/comics/comic-2/assets/identification/icons/segitiga-sama-kaki.svg';
-import lingkaranIcon from '@/features/comics/comic-2/assets/identification/icons/lingkaran.svg';
-import belahKetupatIcon from '@/features/comics/comic-2/assets/identification/icons/belah-ketupat.svg';
+import { useIdentificationContext } from '../../context/IdentificationContext';
+import { resolveIdentificationOptionAsset } from '../../services/optionAssetResolver';
 
 interface ShapeOptionCardProps {
   label: string;
@@ -18,24 +13,11 @@ interface ShapeOptionCardProps {
 }
 
 export default function ShapeOptionCard({ label, selected, disabled = false, onToggle }: ShapeOptionCardProps) {
+  const { state } = useIdentificationContext();
   const iconSrc = useMemo(() => {
-    const normalizedLabel = label.trim().toLowerCase();
-    const comic1Asset = getComic1IdentificationAssetForObject(normalizedLabel);
-    if (comic1Asset) {
-      return comic1Asset;
-    }
-
-    const iconMap: Record<string, string> = {
-      persegi: persegiIcon.src,
-      'persegi panjang': persegiPanjangIcon.src,
-      'segitiga sama sisi': segitigaSisiIcon.src,
-      'segitiga sama kaki': segitigaKakiIcon.src,
-      lingkaran: lingkaranIcon.src,
-      'belah ketupat': belahKetupatIcon.src,
-    };
-
-    return iconMap[normalizedLabel] ?? persegiIcon.src;
-  }, [label]);
+    const fallbackSrc = '/images/identification/default-option.svg';
+    return resolveIdentificationOptionAsset(state.comicId, label, fallbackSrc);
+  }, [label, state.comicId]);
 
   return (
     <button
