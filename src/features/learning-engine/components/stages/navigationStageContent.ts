@@ -3,11 +3,17 @@ import { getComic1QrAssetForObject } from '@/features/comics/comic-1/content/qrA
 import { getComic2QrAssetForObject } from '@/features/comics/comic-2/content/qrAssetRegistry';
 
 export function resolveNavigationStageContent(comicId: number) {
+  // Guard khusus comic-2: gunakan paket konten dan asset yang disesuaikan dengan isi cerita Candi Penataran.
+  // Comic-1 tetap memakai jalur resolver lama agar perilaku dan UI default tidak berubah.
   const comicModule = getComicModule(comicId);
-  const objects = comicModule.navigation.learningObjects.slice(0, 5);
-  const heroModelEntry = comicModule.navigation.model3D.find((entry) => entry.title === 'Persegi' || entry.title === 'Candi Jawi' || entry.title === comicModule.metadata.title);
+  const objects = comicId === 2
+    ? comicModule.navigation.learningObjects
+    : comicModule.navigation.learningObjects.slice(0, 5);
+  const heroModelEntry = comicId === 2
+    ? comicModule.navigation.model3D[0] ?? comicModule.navigation.model3D.find((entry) => entry.title === comicModule.metadata.title)
+    : comicModule.navigation.model3D.find((entry) => entry.title === 'Persegi' || entry.title === 'Candi Jawi' || entry.title === comicModule.metadata.title);
   const heroQrImage = comicId === 2
-    ? getComic2QrAssetForObject(heroModelEntry?.title ?? 'Persegi')
+    ? getComic2QrAssetForObject(heroModelEntry?.title ?? 'Umpang')
     : getComic1QrAssetForObject(heroModelEntry?.title ?? 'Candi Jawi');
 
   return {

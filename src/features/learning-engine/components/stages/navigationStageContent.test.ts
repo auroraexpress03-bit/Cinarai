@@ -1,21 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveNavigationStageContent } from './navigationStageContent';
+import { packageContent } from '@/features/comics/comic-2/content/packageContent';
 
-test('resolveNavigationStageContent uses comic 2 data for the comic 2 navigation stage', () => {
-  const content = resolveNavigationStageContent(2);
+test('comic 2 navigation content uses story objects and bangun datar language', () => {
+  const titles = packageContent.learningObjects.map((object) => object.title);
 
-  assert.equal(content.comicModule.metadata.comicId, 2);
-  assert.equal(content.objects[0]?.title, 'Persegi');
-  assert.equal(content.heroModelEntry?.title, 'Persegi');
-  assert.equal(content.heroQrImage, '/assets/qr/komik-2/13-objek-1.jpeg');
+  assert.ok(titles.includes('Umpang'));
+  assert.ok(titles.includes('Bale Agung'));
+  assert.ok(titles.includes('Candi Angka'));
+  assert.ok(titles.includes('Mensir'));
+  assert.ok(titles.includes('Relief Lingkaran'));
+  assert.ok(titles.includes('Ornamen Belah Ketupat'));
+  assert.ok(packageContent.learningObjects.every((object) => object.description.toLowerCase().includes('candi') || object.description.toLowerCase().includes('simetri') || object.description.toLowerCase().includes('bangun datar')));
 });
 
-test('resolveNavigationStageContent keeps comic 1 data isolated from comic 2', () => {
-  const comic1Content = resolveNavigationStageContent(1);
-  const comic2Content = resolveNavigationStageContent(2);
+test('comic 2 navigation content uses only bangun datar terminology', () => {
+  const objectNames = packageContent.learningObjects.map((object) => object.shapeName).filter(Boolean);
 
-  assert.equal(comic1Content.objects[0]?.title, 'Kubus');
-  assert.equal(comic2Content.objects[0]?.title, 'Persegi');
-  assert.notEqual(comic1Content.objects[0]?.title, comic2Content.objects[0]?.title);
+  assert.deepEqual(objectNames, ['Persegi Panjang', 'Persegi Panjang', 'Segitiga Sama Kaki', 'Persegi', 'Lingkaran', 'Belah Ketupat']);
+  assert.ok(packageContent.aiPrompt.navigation.includes('bangun datar'));
 });

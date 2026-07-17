@@ -21,9 +21,19 @@ interface ObjectAITutorProps {
   modelUrl?: string;
   entry?: ComicAssetEntry | null;
   initialPrompt?: string;
+  comicId?: number;
 }
 
-const QUICK_QUESTIONS = [
+const COMIC2_QUICK_QUESTIONS = [
+  'Apa cirinya?',
+  'Bagaimana bentuknya?',
+  'Bagaimana simetrinya?',
+  'Di mana letaknya?',
+  'Kenapa penting?',
+  'Apa kaitannya dengan Candi Penataran?',
+];
+
+const DEFAULT_QUICK_QUESTIONS = [
   'Apa cirinya?',
   'Apa rumusnya?',
   'Ada dimana?',
@@ -31,6 +41,8 @@ const QUICK_QUESTIONS = [
   'Berapa rusuk?',
   'Berapa titik sudut?',
 ];
+
+const COMIC2_OUT_OF_SCOPE_PATTERN = /rumus|luas|keliling|kubus|balok|prisma|limas|kerucut|tabung|bangun ruang|rusuk|titik sudut/i;
 
 function createInitialMessage(objectName: string, initialPrompt?: string): ChatMessage {
   return {
@@ -51,7 +63,11 @@ export function ObjectAITutor({
   modelUrl,
   entry,
   initialPrompt,
+  comicId,
 }: ObjectAITutorProps) {
+  // Guard khusus comic-2: batasi tutor AI ke cakupan Candi Penataran dan hindari topik yang tidak relevan.
+  // Comic-1 tetap memakai daftar pertanyaan dan konteks default yang lama.
+  const isComic2 = comicId === 2;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [isResponding, setIsResponding] = useState(false);
@@ -124,6 +140,15 @@ export function ObjectAITutor({
     const trimmed = (rawText ?? draft).trim();
     if (!trimmed || isResponding) return;
 
+    if (isComic2 && COMIC2_OUT_OF_SCOPE_PATTERN.test(trimmed)) {
+      const redirectMessage = 'Kita fokus membahas bangun datar yang ada pada Candi Penataran. Coba tanyakan tentang bentuk, ciri, atau hubungan objek dengan simetri.';
+      const userMessage: ChatMessage = { id: Date.now(), role: 'user', content: trimmed };
+      setMessages((prev) => [...prev, userMessage, { id: Date.now() + 1, role: 'assistant', content: redirectMessage }]);
+      setDraft('');
+      setAiError(null);
+      return;
+    }
+
     const userMessage: ChatMessage = { id: Date.now(), role: 'user', content: trimmed };
     setMessages((prev) => [...prev, userMessage]);
     setDraft('');
@@ -145,8 +170,8 @@ export function ObjectAITutor({
               classLevel: 'SD',
               synopsis: contextSynopsis,
               learningTargets: isSymmetryContext
-                ? ['Mengamati simetri', 'Menghubungkan bentuk dengan pola candi']
-                : ['Mengamati bangun ruang', 'Menghubungkan bentuk dengan struktur candi'],
+                ? ['Mengamati bangun datar', 'Menghubungkan bentuk dengan pola candi']
+                : ['Mengamati bangun datar', 'Menghubungkan bentuk dengan struktur candi'],
             },
             observationAnswers: {},
             sessionHistory: [],
@@ -159,8 +184,8 @@ export function ObjectAITutor({
             modelUrl,
             learningGoal,
             numeracyConcept: isSymmetryContext
-              ? 'simetri, garis simetri, keseimbangan, pencerminan'
-              : 'bangun ruang, sisi, rusuk, titik sudut, rumus',
+              ? 'bangun datar, simetri, garis simetri, keseimbangan, pencerminan'
+              : 'bangun datar, bentuk, sisi, pola, simetri',
             cultureConcept,
             knowledgeContext: knowledgeText,
           },
@@ -287,7 +312,7 @@ export function ObjectAITutor({
 
                   <div className="border-t border-neutral-200 bg-white px-4 py-4 sm:px-5">
                     <div className="mb-3 flex flex-wrap gap-2">
-                      {QUICK_QUESTIONS.map((question) => (
+                      {(isComic2 ? COMIC2_QUICK_QUESTIONS : DEFAULT_QUICK_QUESTIONS).map((question) => (
                         <button
                           key={question}
                           type="button"

@@ -28,6 +28,7 @@ export interface ComicContentPackageLike {
     feedback?: string;
     shapeKey?: string;
     shapeName?: string;
+    symmetryConnection?: string;
   }>;
   qrCode: Array<{ id: string; imageSrc: string; alt: string; label: string; description: string }>;
   model3D: Array<{ id: string; title: string; arUrl: string; embedUrl?: string; viewerType?: 'embed' | 'url'; page: number; description: string; provider?: string }>;
@@ -133,6 +134,7 @@ export interface ComicModuleLike {
       description: string;
       page: number;
       qrImage?: string;
+      navImage?: string;
       objectImage?: string;
       modelUrl?: string;
       embedUrl?: string;
@@ -144,6 +146,7 @@ export interface ComicModuleLike {
       feedback?: string;
       shapeKey?: string;
       shapeName?: string;
+      symmetryConnection?: string;
     }>;
     qrCode: Array<{ id: string; imageSrc: string; alt: string; label: string; description: string }>;
     model3D: Array<{ id: string; title: string; arUrl: string; embedUrl?: string; viewerType?: 'embed' | 'url'; page: number; description: string; provider?: string }>;
@@ -239,6 +242,7 @@ export interface ComicModuleLike {
     description: string;
     page: number;
     qrImage?: string;
+    navImage?: string;
     objectImage?: string;
     modelUrl?: string;
     embedUrl?: string;
@@ -250,6 +254,7 @@ export interface ComicModuleLike {
     feedback?: string;
     shapeKey?: string;
     shapeName?: string;
+    symmetryConnection?: string;
   }>;
 }
 
