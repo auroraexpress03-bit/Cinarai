@@ -1,12 +1,18 @@
 import { getComic1IdentificationAssetForObject } from '@/features/comics/comic-1/content/identificationAssetRegistry';
+import persegiIcon from '@/features/comics/comic-2/assets/identification/persegi.svg';
+import persegiPanjangIcon from '@/features/comics/comic-2/assets/identification/persegi-panjang.svg';
+import segitigaSamaSisiIcon from '@/features/comics/comic-2/assets/identification/segitiga-sama-sisi.svg';
+import segitigaSamaKakiIcon from '@/features/comics/comic-2/assets/identification/segitiga-sama-kaki.svg';
+import lingkaranIcon from '@/features/comics/comic-2/assets/identification/lingkaran.svg';
+import belahKetupatIcon from '@/features/comics/comic-2/assets/identification/belah-ketupat.svg';
 
 const COMIC2_ICON_MAP: Record<string, string> = {
-  persegi: '/images/identification/comic-2/persegi.svg',
-  'persegi panjang': '/images/identification/comic-2/persegi-panjang.svg',
-  'segitiga sama sisi': '/images/identification/comic-2/segitiga-sama-sisi.svg',
-  'segitiga sama kaki': '/images/identification/comic-2/segitiga-sama-kaki.svg',
-  lingkaran: '/images/identification/comic-2/lingkaran.svg',
-  'belah ketupat': '/images/identification/comic-2/belah-ketupat.svg',
+  persegi: persegiIcon.src,
+  'persegi panjang': persegiPanjangIcon.src,
+  'segitiga sama sisi': segitigaSamaSisiIcon.src,
+  'segitiga sama kaki': segitigaSamaKakiIcon.src,
+  lingkaran: lingkaranIcon.src,
+  'belah ketupat': belahKetupatIcon.src,
 };
 
 const COMIC3_ICON_MAP: Record<string, string> = {
