@@ -45,3 +45,23 @@ test('handles missing collection data without crashing', () => {
   assert.deepEqual(snapshot.modules, []);
   assert.deepEqual(snapshot.recentActivities, []);
 });
+
+test('counts activeStudents from progress or activity presence', () => {
+  const snapshot = buildGuruDashboardSnapshot({
+    students: [
+      { uid: 'student-1', role: 'student', email: 's1@example.com', isActive: false } as any,
+      { uid: 'student-2', role: 'student', email: 's2@example.com', isActive: false } as any,
+    ],
+    comics: [],
+    progressDocuments: [
+      { userId: 'student-1', comicId: 1, percentage: 50, status: 'in_progress' } as any,
+    ],
+    activities: [
+      { userId: 'student-2', type: 'comic_completed', title: 'Selesai', occurredAt: new Date() } as any,
+    ],
+    reflections: [],
+  });
+
+  assert.equal(snapshot.summary.totalStudents, 2);
+  assert.equal(snapshot.summary.activeStudents, 2);
+});

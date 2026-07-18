@@ -17,6 +17,8 @@ export function subscribeToUsers(
   callback: (users: UserDocument[]) => void,
   onError?: (error: Error) => void
 ) {
+  console.log('Reading collection:');
+  console.log('users');
   return subscribeToFirestoreCollection(
     'users',
     callback,
@@ -25,7 +27,15 @@ export function subscribeToUsers(
       orderByField: 'displayName',
       orderDirection: 'asc',
     },
-    onError
+    (error) => {
+      const code = (error as any)?.code ?? (error as any)?.name ?? 'unknown';
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Collection: users');
+      console.error('Path: users');
+      console.error('Error:', code);
+      console.error('Message:', message);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
   );
 }
 
@@ -52,6 +62,8 @@ export function subscribeToComics(
   callback: (comics: ComicDocument[]) => void,
   onError?: (error: Error) => void
 ) {
+  console.log('Reading collection:');
+  console.log('comics');
   return subscribeToFirestoreCollection(
     'comics',
     callback,
@@ -59,7 +71,15 @@ export function subscribeToComics(
       orderByField: 'order',
       orderDirection: 'asc',
     },
-    onError
+    (error) => {
+      const code = (error as any)?.code ?? (error as any)?.name ?? 'unknown';
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Collection: comics');
+      console.error('Path: comics');
+      console.error('Error:', code);
+      console.error('Message:', message);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
   );
 }
 
@@ -71,6 +91,8 @@ export function subscribeToRecentActivities(
   callback: (activities: ActivityDocument[]) => void,
   onError?: (error: Error) => void
 ) {
+  console.log('Reading collection:');
+  console.log('activity');
   return subscribeToFirestoreCollection(
     'activity',
     callback,
@@ -79,7 +101,15 @@ export function subscribeToRecentActivities(
       orderDirection: 'desc',
       limitCount: 20,
     },
-    onError
+    (error) => {
+      const code = (error as any)?.code ?? (error as any)?.name ?? 'unknown';
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Collection: activity');
+      console.error('Path: activity');
+      console.error('Error:', code);
+      console.error('Message:', message);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
   );
 }
 
@@ -91,6 +121,8 @@ export function subscribeToReflections(
   callback: (reflections: ReflectionDocument[]) => void,
   onError?: (error: Error) => void
 ) {
+  console.log('Reading collection:');
+  console.log('reflection');
   return subscribeToFirestoreCollection(
     'reflection',
     callback,
@@ -99,7 +131,15 @@ export function subscribeToReflections(
       orderDirection: 'desc',
       limitCount: 200,
     },
-    onError
+    (error) => {
+      const code = (error as any)?.code ?? (error as any)?.name ?? 'unknown';
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Collection: reflection');
+      console.error('Path: reflection');
+      console.error('Error:', code);
+      console.error('Message:', message);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
   );
 }
 
@@ -118,6 +158,12 @@ export function subscribeToAllProgressDocuments(
       callback(snapshot.docs.map((documentSnapshot) => documentSnapshot.data() as ComicProgressDocument));
     },
     (error) => {
+      const code = (error as any)?.code ?? (error as any)?.name ?? 'unknown';
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Collection: progress');
+      console.error('Path: collectionGroup(progress)');
+      console.error('Error:', code);
+      console.error('Message:', message);
       onError?.(error instanceof Error ? error : new Error('Failed to load progress'));
     }
   );

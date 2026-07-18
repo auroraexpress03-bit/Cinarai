@@ -1,5 +1,6 @@
-import { collection, getDocs, onSnapshot, query, type DocumentData, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { collectionGroup, getDocs, onSnapshot, query, where, type DocumentData, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
+import { safeGetDocs, safeOnSnapshot } from '@/app/dashboard/guru/services/guru/firestoreAudit';
 import type { ComicProgressDocument } from '@/types/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
 
@@ -13,7 +14,11 @@ function normalizeProgressDocument(documentSnapshot: QueryDocumentSnapshot<Docum
 }
 
 export async function loadStudentProgress(studentId: string): Promise<ComicProgressDocument[]> {
-  const snapshot = await getDocs(query(collection(firestore, 'users', studentId, 'progress')));
+  const snapshot = await safeGetDocs(
+    'users/{uid}/progress (collectionGroup progress)',
+    `users/{${studentId}}/progress (collectionGroup progress)`,
+    () => query(collectionGroup(firestore, 'progress'), where('userId', '==', studentId))
+  );
   return snapshot.docs.map(normalizeProgressDocument);
 }
 
@@ -22,9 +27,11 @@ export function subscribeToStudentProgress(
   callback: (progress: ComicProgressDocument[]) => void,
   onError?: (error: Error) => void
 ): Unsubscribe {
-  return onSnapshot(
-    query(collection(firestore, 'users', studentId, 'progress')),
+  return safeOnSnapshot(
+    query(collectionGroup(firestore, 'progress'), where('userId', '==', studentId)),
     (snapshot) => callback(snapshot.docs.map(normalizeProgressDocument)),
-    onError
+    onError,
+    'users/{uid}/progress (collectionGroup progress)',
+    `users/{${studentId}}/progress (collectionGroup progress)`
   );
 }

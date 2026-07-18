@@ -1,10 +1,15 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collectionGroup, query, where, collection } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
+import { safeGetDocs } from '@/app/dashboard/guru/services/guru/firestoreAudit';
 import type { ComicProgressDocument, ReflectionDocument } from '@/types/firestore';
 
 export async function loadStudentScoreSummary(studentId: string) {
-  const progressSnapshot = await getDocs(query(collection(firestore, 'users', studentId, 'progress')));
-  const reflectionsSnapshot = await getDocs(query(collection(firestore, 'reflection'), where('userId', '==', studentId)));
+  const progressSnapshot = await safeGetDocs(
+    'users/{uid}/progress (collectionGroup progress)',
+    `users/{${studentId}}/progress (collectionGroup progress)`,
+    () => query(collectionGroup(firestore, 'progress'), where('userId', '==', studentId))
+  );
+  const reflectionsSnapshot = await safeGetDocs('reflection', 'reflection', () => query(collection(firestore, 'reflection'), where('userId', '==', studentId)));
 
   const progressDocuments = progressSnapshot.docs.map((doc) => {
     const data = doc.data() as Partial<ComicProgressDocument>;

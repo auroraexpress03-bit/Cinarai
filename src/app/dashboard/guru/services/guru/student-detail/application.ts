@@ -1,5 +1,6 @@
 import { collection, getDocs, onSnapshot, query, where, type DocumentData, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
+import { safeGetDocs, safeOnSnapshot } from '@/app/dashboard/guru/services/guru/firestoreAudit';
 import type { ApplicationActivityDocument } from '@/types/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
 
@@ -11,8 +12,10 @@ function normalizeApplicationActivity(documentSnapshot: QueryDocumentSnapshot<Do
 }
 
 export async function loadStudentApplicationActivities(studentId: string): Promise<ApplicationActivityDocument[]> {
-  const snapshot = await getDocs(
-    query(collection(firestore, 'application_activity'), where('userId', '==', studentId))
+  const snapshot = await safeGetDocs(
+    'application_activity',
+    `application_activity?userId=${studentId}`,
+    () => query(collection(firestore, 'application_activity'), where('userId', '==', studentId))
   );
   return snapshot.docs.map(normalizeApplicationActivity);
 }
@@ -22,9 +25,11 @@ export function subscribeToStudentApplicationActivities(
   callback: (activities: ApplicationActivityDocument[]) => void,
   onError?: (error: Error) => void
 ): Unsubscribe {
-  return onSnapshot(
+  return safeOnSnapshot(
     query(collection(firestore, 'application_activity'), where('userId', '==', studentId)),
     (snapshot) => callback(snapshot.docs.map(normalizeApplicationActivity)),
-    onError
+    onError,
+    'application_activity',
+    `application_activity?userId=${studentId}`
   );
 }

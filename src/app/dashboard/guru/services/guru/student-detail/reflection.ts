@@ -1,5 +1,6 @@
 import { query, collection, getDocs, onSnapshot, where, type DocumentData, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
+import { safeGetDocs, safeOnSnapshot } from '@/app/dashboard/guru/services/guru/firestoreAudit';
 import type { ReflectionDocument } from '@/types/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
 
@@ -11,9 +12,7 @@ function normalizeReflection(documentSnapshot: QueryDocumentSnapshot<DocumentDat
 }
 
 export async function loadStudentReflections(studentId: string): Promise<ReflectionDocument[]> {
-  const snapshot = await getDocs(
-    query(collection(firestore, 'reflection'), where('userId', '==', studentId))
-  );
+  const snapshot = await safeGetDocs('reflection', 'reflection', () => query(collection(firestore, 'reflection'), where('userId', '==', studentId)));
   return snapshot.docs.map(normalizeReflection);
 }
 
@@ -22,9 +21,11 @@ export function subscribeToStudentReflections(
   callback: (reflections: ReflectionDocument[]) => void,
   onError?: (error: Error) => void
 ): Unsubscribe {
-  return onSnapshot(
+  return safeOnSnapshot(
     query(collection(firestore, 'reflection'), where('userId', '==', studentId)),
     (snapshot) => callback(snapshot.docs.map(normalizeReflection)),
-    onError
+    onError,
+    'reflection',
+    `reflection?userId=${studentId}`
   );
 }
