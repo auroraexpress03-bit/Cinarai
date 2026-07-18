@@ -198,18 +198,57 @@ function buildPayloadFromCollections(payload: {
 }
 
 async function safeGetCollection<T>(label: string, operation: () => Promise<T>): Promise<{ ok: boolean; data: T | null; error?: string }> {
+  const queryDescription = operation.toString();
+  console.log('========================');
+  console.log('Collection:');
+  console.log(label);
+  console.log('Path:');
+  console.log(`/dashboard/guru/${label}`);
+  console.log('Query:');
+  console.log(queryDescription);
+  console.log('Status:');
+  console.log('running');
+  console.log('Error:');
+  console.log('none');
+  console.log('========================');
   try {
     debug(`[dashboard/guru] starting query for collection: ${label}`);
     const data = await operation();
     debug(`[dashboard/guru] finished query for collection: ${label}`);
+    console.log('========================');
+    console.log('Collection:');
+    console.log(label);
+    console.log('Path:');
+    console.log(`/dashboard/guru/${label}`);
+    console.log('Query:');
+    console.log(queryDescription);
+    console.log('Status:');
+    console.log('success');
+    console.log('Error:');
+    console.log('none');
+    console.log('========================');
     return { ok: true, data };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`[dashboard/guru] Firestore query failed for ${label}`, { error: message });
+    const code = error && typeof error === 'object' && 'code' in error ? String((error as { code?: unknown }).code) : 'n/a';
+    console.error(`[dashboard/guru] Firestore query failed for ${label}`, { error: message, code });
+    console.log('========================');
+    console.log('Collection:');
+    console.log(label);
+    console.log('Path:');
+    console.log(`/dashboard/guru/${label}`);
+    console.log('Query:');
+    console.log(queryDescription);
+    console.log('Status:');
+    console.log('failed');
+    console.log('Error:');
+    console.log(`FirebaseError.code: ${code}`);
+    console.log(`FirebaseError.message: ${message}`);
+    console.log(`Collection causing permission denied: ${label}`);
+    console.log('========================');
     if (error instanceof Error) {
       console.error(error.stack);
     }
-    // Rethrow so the outer route can capture full stack and respond accordingly
     throw error;
   }
 }

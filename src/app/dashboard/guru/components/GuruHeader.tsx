@@ -1,32 +1,92 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
+import type { DashboardSummary } from '../types';
 
-export function GuruHeader() {
-  const { user, logout } = useAuth();
-  const firstName = user?.displayName?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'Guru';
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 11) return 'Selamat Pagi ☀️';
+  if (h < 15) return 'Selamat Siang 🌤️';
+  if (h < 18) return 'Selamat Sore 🌅';
+  return 'Selamat Malam 🌙';
+}
+
+interface Props {
+  summary: DashboardSummary;
+  loading: boolean;
+  onLogout: () => void;
+}
+
+export function GuruHeader({ summary, loading, onLogout }: Props) {
+  const { user } = useAuth();
+  const firstName = user?.displayName?.split(' ')[0] ?? 'Guru';
 
   return (
-    <header className="rounded-md bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 p-3 text-white shadow-md shadow-primary-800/20">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium tracking-wide text-primary-100">Halo,</p>
-          <h1 className="mt-0.5 text-lg font-extrabold leading-tight">{firstName}</h1>
-          <p className="mt-0.5 text-xs text-primary-100">Dashboard Guru</p>
+    <div className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 pb-24 pt-safe overflow-hidden">
+      <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10" />
+      <div className="pointer-events-none absolute -left-8 bottom-0 h-48 w-48 rounded-full bg-secondary-400/20" />
+
+      <div className="relative mx-auto max-w-5xl px-4 pt-10 sm:px-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-primary-200">{getGreeting()}</p>
+            <h1 className="mt-0.5 text-2xl font-black text-white leading-tight">
+              Halo, {firstName}! 👋
+            </h1>
+            <p className="mt-1 text-sm text-primary-100">
+              {user?.email ?? ''}
+            </p>
+            {user?.displayName && (
+              <p className="mt-0.5 text-xs text-primary-200">Dashboard Guru · CINARAI</p>
+            )}
+          </div>
+
+          <div className="flex-shrink-0 flex flex-col items-center gap-2">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-2xl ring-4 ring-white/30 shadow-lg">
+              {user?.photoURL ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.photoURL} alt="avatar" className="h-14 w-14 rounded-full object-cover" />
+              ) : (
+                <span>👩‍🏫</span>
+              )}
+            </div>
+            <button
+              onClick={onLogout}
+              className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
+            >
+              Keluar
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={() => void logout().catch(() => undefined)}
-          className="flex items-center gap-2 rounded-md bg-white/10 px-2 py-1 text-xs font-semibold text-white transition hover:bg-white/20"
-        >
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 17L21 12L16 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M21 12H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M9 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>Keluar</span>
-        </button>
+
+        {/* Stat pills */}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-xl bg-white/10 p-3 h-16 skeleton" />
+            ))
+          ) : (
+            <>
+              <StatPill label="Total Siswa" value={String(summary.totalStudents)} emoji="👥" />
+              <StatPill label="Total Komik" value={String(summary.totalComics)} emoji="📚" />
+              <StatPill label="Modul Selesai" value={String(summary.totalCompleted)} emoji="✅" />
+              <StatPill label="Rata-rata Progress" value={`${summary.averageProgress}%`} emoji="📈" />
+            </>
+          )}
+        </div>
       </div>
-    </header>
+    </div>
+  );
+}
+
+function StatPill({ label, value, emoji }: { label: string; value: string; emoji: string }) {
+  return (
+    <div className="rounded-xl bg-white/15 px-3 py-2.5 backdrop-blur-sm">
+      <div className="flex items-center gap-1.5">
+        <span className="text-base">{emoji}</span>
+        <span className="text-lg font-black text-white">{value}</span>
+      </div>
+      <p className="mt-0.5 text-[11px] text-primary-200 leading-tight">{label}</p>
+    </div>
   );
 }

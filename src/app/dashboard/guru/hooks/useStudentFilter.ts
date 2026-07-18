@@ -1,25 +1,39 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { StudentDirectoryRow } from '../services/guru/students/students';
+import type { StudentRow } from '../types';
 
-export type StudentFilterStatus = 'all' | 'active' | 'incomplete' | 'completed';
+export function useStudentFilter(rows: StudentRow[]) {
+  const [search, setSearch] = useState('');
+  const [sortKey, setSortKey] = useState<'name' | 'progress' | 'completed'>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-export function useStudentFilter(rows: StudentDirectoryRow[]) {
-  const [filter, setFilter] = useState<StudentFilterStatus>('all');
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    let result = q
+      ? rows.filter(
+          (r) =>
+            r.displayName.toLowerCase().includes(q) ||
+            r.email.toLowerCase().includes(q) ||
+            r.schoolName.toLowerCase().includes(q)
+        )
+      : rows;
 
-  const filteredRows = useMemo(() => {
-    switch (filter) {
-      case 'active':
-        return rows.filter((row) => row.isActive);
-      case 'incomplete':
-        return rows.filter((row) => !row.isCompleted && row.progress > 0);
-      case 'completed':
-        return rows.filter((row) => row.isCompleted);
-      default:
-        return rows;
-    }
-  }, [filter, rows]);
+    result = [...result].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'name') cmp = a.displayName.localeCompare(b.displayName, 'id');
+      if (sortKey === 'progress') cmp = a.averageProgress - b.averageProgress;
+      if (sortKey === 'completed') cmp = a.completedComics - b.completedComics;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
 
-  return { filter, setFilter, filteredRows };
+    return result;
+  }, [rows, search, sortKey, sortDir]);
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  return { filtered, search, setSearch, sortKey, sortDir, toggleSort };
 }

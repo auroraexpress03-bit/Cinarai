@@ -28,6 +28,46 @@ import {
 import { auth, firestore } from '@/lib/firebase/client';
 import type { FirestoreCollectionMap, UserDocument } from '@/types/firestore';
 
+const FIRESTORE_LOG_PREFIX = '[DashboardGuruFirestore]';
+
+function getCurrentStack() {
+  return new Error().stack?.split('\n').slice(2).join('\n') ?? 'no stack';
+}
+
+function formatWhereClause(filters?: Array<FirestoreQueryFilter<FirestoreCollectionName>>): string {
+  if (!filters || filters.length === 0) return 'none';
+  return filters.map((filter) => `${filter.field} ${filter.operator} ${JSON.stringify(filter.value)}`).join(' | ');
+}
+
+function logFirestoreQuery(
+  fileName: string,
+  functionName: string,
+  collectionName: string,
+  path: string,
+  whereClause: string,
+  orderByClause: string | undefined,
+  limitClause: number | undefined,
+  status: 'running' | 'success' | 'failed',
+  error?: unknown
+) {
+  const firestoreError = error ? (error as { code?: string; message?: string }) : undefined;
+  console.error(`${FIRESTORE_LOG_PREFIX} ========================`);
+  console.error(`${FIRESTORE_LOG_PREFIX} file: ${fileName}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} function: ${functionName}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} collection: ${collectionName}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} path: ${path}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} where: ${whereClause}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} orderBy: ${orderByClause ?? 'none'}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} limit: ${limitClause ?? 'none'}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} status: ${status}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} FirebaseError.code: ${firestoreError?.code ?? 'n/a'}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} FirebaseError.message: ${firestoreError?.message ?? 'n/a'}`);
+  if (status === 'failed') {
+    console.error(`${FIRESTORE_LOG_PREFIX} stack:\n${getCurrentStack()}`);
+  }
+  console.error(`${FIRESTORE_LOG_PREFIX} ========================`);
+}
+
 declare global {
   interface Window {
     __cinaraiAuthDebug?: {
@@ -124,6 +164,43 @@ const logFirestoreRequest = (
   });
 };
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __firstPermissionDeniedLogged: boolean | undefined;
+}
+
+function logFirstPermissionDenied(
+  fileName: string,
+  functionName: string,
+  collectionName: string,
+  path: string,
+  whereClause: string,
+  orderByClause: string | undefined,
+  limitClause: number | undefined,
+  error: unknown
+) {
+  if (typeof globalThis !== 'undefined' && globalThis.__firstPermissionDeniedLogged) return;
+  if (typeof globalThis !== 'undefined') globalThis.__firstPermissionDeniedLogged = true;
+
+  const firestoreError = error as { code?: string; message?: string; stack?: string } | undefined;
+  if (firestoreError?.code !== 'permission-denied') return;
+
+  const stack = firestoreError?.stack ?? new Error().stack ?? 'no stack';
+
+  console.error(`${FIRESTORE_LOG_PREFIX} ════════ FIRST PERMISSION-DENIED ════════`);
+  console.error(`${FIRESTORE_LOG_PREFIX} file: ${fileName}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} function: ${functionName}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} collection: ${collectionName}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} path: ${path}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} where: ${whereClause}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} orderBy: ${orderByClause ?? 'none'}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} limit: ${limitClause ?? 'none'}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} FirebaseError.code: ${firestoreError?.code ?? 'n/a'}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} FirebaseError.message: ${firestoreError?.message ?? 'n/a'}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} stack:\n${stack}`);
+  console.error(`${FIRESTORE_LOG_PREFIX} ════════════════════════════════════════`);
+}
+
 const getTypedCollection = <TCollectionName extends FirestoreCollectionName>(
   collectionName: TCollectionName
 ) => {
@@ -161,10 +238,16 @@ export const getFirestoreCollection = async <
 >(
   collectionName: TCollectionName
 ): Promise<Array<FirestoreCollectionMap[TCollectionName]>> => {
+  const fileName = 'src/services/firestore.ts';
+  const functionName = 'getFirestoreCollection';
+  const path = `/collections/${collectionName}`;
   try {
+    logFirestoreQuery(fileName, functionName, collectionName, path, 'none', 'none', undefined, 'running');
     const snapshot = await getDocs(getTypedCollection(collectionName));
+    logFirestoreQuery(fileName, functionName, collectionName, path, 'none', 'none', undefined, 'success');
     return snapshot.docs.map((documentSnapshot) => documentSnapshot.data());
   } catch (error) {
+    logFirestoreQuery(fileName, functionName, collectionName, path, 'none', 'none', undefined, 'failed', error);
     logFirestoreRequest('getCollection', collectionName, 'collection', error);
     throw normalizeFirestoreError(error);
   }
@@ -177,6 +260,9 @@ export const queryFirestoreCollection = async <
   options: FirestoreQueryOptions<TCollectionName> = {}
 ): Promise<Array<FirestoreCollectionMap[TCollectionName]>> => {
   const queryConstraints: QueryConstraint[] = [];
+  const fileName = 'src/services/firestore.ts';
+  const functionName = 'queryFirestoreCollection';
+  const path = `/collections/${collectionName}`;
 
   options.filters?.forEach((filter) => {
     queryConstraints.push(where(filter.field, filter.operator, filter.value));
@@ -193,12 +279,43 @@ export const queryFirestoreCollection = async <
   }
 
   try {
+    logFirestoreQuery(
+      fileName,
+      functionName,
+      collectionName,
+      path,
+      formatWhereClause(options.filters as Array<FirestoreQueryFilter<FirestoreCollectionName>> | undefined),
+      options.orderByField ? `${options.orderByField} ${options.orderDirection ?? 'asc'}` : undefined,
+      options.limitCount,
+      'running'
+    );
     const snapshot = await getDocs(
       query(getTypedCollection(collectionName), ...queryConstraints)
+    );
+    logFirestoreQuery(
+      fileName,
+      functionName,
+      collectionName,
+      path,
+      formatWhereClause(options.filters as Array<FirestoreQueryFilter<FirestoreCollectionName>> | undefined),
+      options.orderByField ? `${options.orderByField} ${options.orderDirection ?? 'asc'}` : undefined,
+      options.limitCount,
+      'success'
     );
 
     return snapshot.docs.map((documentSnapshot) => documentSnapshot.data());
   } catch (error) {
+    logFirestoreQuery(
+      fileName,
+      functionName,
+      collectionName,
+      path,
+      formatWhereClause(options.filters as Array<FirestoreQueryFilter<FirestoreCollectionName>> | undefined),
+      options.orderByField ? `${options.orderByField} ${options.orderDirection ?? 'asc'}` : undefined,
+      options.limitCount,
+      'failed',
+      error
+    );
     logFirestoreRequest('queryCollection', collectionName, JSON.stringify(options), error);
     throw normalizeFirestoreError(error);
   }
@@ -331,15 +448,61 @@ export const subscribeToFirestoreCollection = <
     queryConstraints.push(limit(options.limitCount));
   }
 
+  const fileName = 'src/services/firestore.ts';
+  const functionName = 'subscribeToFirestoreCollection';
+  const path = `/collections/${collectionName}`;
+
+  logFirestoreQuery(
+    fileName,
+    functionName,
+    collectionName,
+    path,
+    formatWhereClause(options.filters as Array<FirestoreQueryFilter<FirestoreCollectionName>> | undefined),
+    options.orderByField ? `${options.orderByField} ${options.orderDirection ?? 'asc'}` : undefined,
+    options.limitCount,
+    'running'
+  );
+
   return onSnapshot(
     query(getTypedCollection(collectionName), ...queryConstraints),
     (snapshot) => {
+      logFirestoreQuery(
+        fileName,
+        functionName,
+        collectionName,
+        path,
+        formatWhereClause(options.filters as Array<FirestoreQueryFilter<FirestoreCollectionName>> | undefined),
+        options.orderByField ? `${options.orderByField} ${options.orderDirection ?? 'asc'}` : undefined,
+        options.limitCount,
+        'success'
+      );
       callback(
         snapshot.docs.map((documentSnapshot) => documentSnapshot.data())
       );
     },
     (error) => {
       const normalizedError = normalizeFirestoreError(error);
+      logFirestoreQuery(
+        fileName,
+        functionName,
+        collectionName,
+        path,
+        formatWhereClause(options.filters as Array<FirestoreQueryFilter<FirestoreCollectionName>> | undefined),
+        options.orderByField ? `${options.orderByField} ${options.orderDirection ?? 'asc'}` : undefined,
+        options.limitCount,
+        'failed',
+        normalizedError
+      );
+      logFirstPermissionDenied(
+        fileName,
+        functionName,
+        collectionName,
+        path,
+        formatWhereClause(options.filters as Array<FirestoreQueryFilter<FirestoreCollectionName>> | undefined),
+        options.orderByField ? `${options.orderByField} ${options.orderDirection ?? 'asc'}` : undefined,
+        options.limitCount,
+        error
+      );
       logFirestoreRequest('subscribeCollection', collectionName, JSON.stringify(options), normalizedError);
       onError?.(normalizedError);
     }

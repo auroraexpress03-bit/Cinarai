@@ -1,44 +1,59 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useStudentDetailSource } from './useStudentDetailSource';
-import { buildAIUsage } from '@/app/dashboard/guru/view-model/guru/student-detail/buildAIUsage';
-import { buildProgress } from '@/app/dashboard/guru/view-model/guru/student-detail/buildProgress';
-import { buildReflection } from '@/app/dashboard/guru/view-model/guru/student-detail/buildReflection';
-import { buildStudentSummary } from '@/app/dashboard/guru/view-model/guru/student-detail/buildStudentSummary';
-import { buildTimeline } from '@/app/dashboard/guru/view-model/guru/student-detail/buildTimeline';
+import { useEffect, useState } from 'react';
+import { fetchStudentProgress, fetchStudentReflections, fetchStudentActivities, fetchStudentDoc } from '../services/firestoreService';
+import type { ComicDocument, ComicProgressDocument, UserDocument } from '@/types/firestore';
 
-export function useStudentDetail(studentId?: string) {
-  const { profile, progressDocuments, reflections, activities, applicationActivities, loading, error } = useStudentDetailSource(studentId);
+interface StudentDetailState {
+  student: UserDocument | null;
+  progressList: ComicProgressDocument[];
+  reflections: unknown[];
+  activities: unknown[];
+  loading: boolean;
+  error: string | null;
+}
 
-  const timelineItems = useMemo(() => buildTimeline(activities), [activities]);
+export function useStudentDetail(uid: string, comics: ComicDocument[]) {
+  const [state, setState] = useState<StudentDetailState>({
+    student: null,
+    progressList: [],
+    reflections: [],
+    activities: [],
+    loading: true,
+    error: null,
+  });
 
-  const studentSummary = useMemo(() => buildStudentSummary(profile, activities), [profile, activities]);
+  useEffect(() => {
+    if (!uid) return;
+    let active = true;
+    setState((p) => ({ ...p, loading: true, error: null }));
 
-  const progressSummary = useMemo(() => buildProgress(progressDocuments), [progressDocuments]);
+    Promise.all([
+      fetchStudentDoc(uid),
+      fetchStudentProgress(uid),
+      fetchStudentReflections(uid),
+      fetchStudentActivities(uid),
+    ])
+      .then(([student, progressList, reflections, activities]) => {
+        if (!active) return;
+        setState({ student, progressList, reflections, activities, loading: false, error: null });
+      })
+      .catch((err) => {
+        if (!active) return;
+        setState((p) => ({
+          ...p,
+          loading: false,
+          error: err instanceof Error ? err.message : 'Gagal memuat data siswa',
+        }));
+      });
 
-  const reflectionSummary = useMemo(() => buildReflection(reflections), [reflections]);
+    return () => { active = false; };
+  }, [uid]);
 
-  const aiUsageSummary = useMemo(() => buildAIUsage(applicationActivities), [applicationActivities]);
+  const comicProgress = comics.map((c) => ({
+    comic: c,
+    progress: state.progressList.find((p) => p.comicId === c.comicId) ?? null,
+  }));
 
-  const stageScores = useMemo(
-    () => progressSummary.stageProgress.map((stage) => ({ stage: stage.stage, score: stage.percentage })),
-    [progressSummary.stageProgress]
-  );
-
-  return {
-    profile,
-    progressDocuments,
-    reflections,
-    activities,
-    applicationActivities,
-    studentSummary,
-    progressSummary,
-    timelineItems,
-    reflectionSummary,
-    aiUsageSummary,
-    stageScores,
-    loading,
-    error,
-  };
+  return { ...state, comicProgress };
 }
