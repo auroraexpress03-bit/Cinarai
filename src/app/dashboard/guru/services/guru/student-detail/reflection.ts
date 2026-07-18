@@ -1,4 +1,4 @@
-import { query, collection, getDocs, onSnapshot, where, type DocumentData, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { query, collection, where, type DocumentData, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 import { safeGetDocs, safeOnSnapshot } from '@/app/dashboard/guru/services/guru/firestoreAudit';
 import type { ReflectionDocument } from '@/types/firestore';
