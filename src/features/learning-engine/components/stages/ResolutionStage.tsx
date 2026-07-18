@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { debug } from '@/lib/debug';
 import { useLearningEngine } from '../../hooks/useLearningEngine';
 import type { ResolutionMission } from './resolutionStage.helpers';
 import RobotMascot from '@/components/ai/RobotMascot';
@@ -133,22 +134,19 @@ export default function ResolutionStage() {
 
   const handleAdvanceToNextMission = () => {
     // Logging for audit: measure advance timing
-    // eslint-disable-next-line no-console
-    console.log('[Resolution] Advance to next mission clicked', { currentIndex, missionsLength: missions.length, timestamp: new Date().toISOString() });
+    debug('[Resolution] Advance to next mission clicked', { currentIndex, missionsLength: missions.length, timestamp: new Date().toISOString() });
     if (currentIndex === missions.length - 1) {
       // Ini soal terakhir, mark sebagai finished
       setIsFinished(true);
       setCompletedUpToIndex(currentIndex);
       setCanAdvance(true);
-      // eslint-disable-next-line no-console
-      console.log('[Resolution] Marking finished and enabling global advance', { currentIndex, timestamp: new Date().toISOString() });
+      debug('[Resolution] Marking finished and enabling global advance', { currentIndex, timestamp: new Date().toISOString() });
       return;
     }
 
     // Bukan soal terakhir, lanjut ke soal berikutnya
     setCompletedUpToIndex(currentIndex);
-    // eslint-disable-next-line no-console
-    console.log('[Resolution] Advancing internally to next mission', { from: currentIndex, to: currentIndex + 1, timestamp: new Date().toISOString() });
+    debug('[Resolution] Advancing internally to next mission', { from: currentIndex, to: currentIndex + 1, timestamp: new Date().toISOString() });
     setIsTransitioning(true);
     window.setTimeout(() => {
       setCurrentIndex((prev) => prev + 1);

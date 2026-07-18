@@ -133,24 +133,23 @@ export default function GuruDashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-neutral-50 px-3 py-3 sm:px-4 lg:px-6">
       <GuruDashboardLayout header={<GuruHeader />} sidebar={<GuruSidebar />}>
-        <div className="space-y-6 pb-10">
+        <div className="space-y-4 pb-10">
           {error ? (
             <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
               Sebagian data dashboard tidak dapat dimuat. Widget lain tetap ditampilkan dengan state kosong.
             </div>
           ) : null}
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-6">
-              <div className="rounded-[28px] border border-neutral-100 bg-white p-6 shadow-sm shadow-neutral-200/70">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary-500">Ringkasan Kelas</p>
-                    <h2 className="mt-1 text-2xl font-black text-neutral-900">Dashboard Guru yang responsif</h2>
-                    <p className="mt-2 text-sm text-neutral-600">Pantau jumlah siswa, progress modul, dan aktivitas terbaru secara mobile-friendly.</p>
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-neutral-100 bg-white p-2 shadow-sm shadow-neutral-200/20 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-500">Ringkasan</p>
+                    <h2 className="mt-0.5 text-base font-extrabold text-neutral-900">Dashboard Guru</h2>
                   </div>
-                  <div className="rounded-full bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700">Realtime</div>
+                  <div className="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary-700">Realtime</div>
                 </div>
               </div>
 
@@ -166,7 +165,7 @@ export default function GuruDashboardContent() {
               </DashboardWidget>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <DashboardWidget
                 loading={progressWidgetLoading}
                 error={progressWidgetError}

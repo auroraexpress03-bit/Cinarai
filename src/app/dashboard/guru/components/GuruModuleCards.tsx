@@ -11,51 +11,54 @@ type ModuleItem = {
 
 export function GuruModuleCards({ modules }: { modules: ModuleItem[] }) {
   return (
-    <section className="rounded-[28px] border border-neutral-100 bg-white p-5 shadow-sm shadow-neutral-200/70 sm:p-6">
+    <section className="rounded-md border border-neutral-100 bg-white p-3 shadow-sm shadow-neutral-200/40">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-secondary-500">Modul</p>
-          <h2 className="mt-1 text-xl font-black text-neutral-900">Modul CINARAI</h2>
+          <p className="text-xs font-semibold uppercase tracking-wide text-secondary-500">Modul</p>
+          <h2 className="mt-1 text-base font-black text-neutral-900">Modul CINARAI</h2>
         </div>
-        <div className="rounded-full bg-secondary-50 px-3 py-1 text-sm font-semibold text-secondary-700">Preview</div>
+        <div className="rounded-full bg-secondary-50 px-2 py-0.5 text-xs font-semibold text-secondary-700">Preview</div>
       </div>
 
       {modules.length === 0 ? (
-        <div className="mt-5 rounded-[24px] border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-500">
+        <div className="mt-3 rounded-md border border-dashed border-neutral-200 bg-neutral-50 p-4 text-center text-sm text-neutral-500">
           Belum ada modul untuk ditampilkan.
         </div>
       ) : (
-        <div className="mt-5 overflow-x-auto pb-2">
-          <div className="flex gap-3 min-w-[max-content] lg:grid lg:min-w-0 lg:grid-cols-2 lg:flex-none">
-            {modules.map((module) => (
-              <div key={module.title} className="min-w-[260px] flex-shrink-0 overflow-hidden rounded-[24px] border border-neutral-100 bg-neutral-50 shadow-sm lg:min-w-0 lg:w-auto">
-                <div className="relative h-28 bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-500 text-white">
-                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.5),_transparent_35%)]" />
-                  <div className="absolute inset-x-0 bottom-3 px-4">
-                    <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-[0.12em] text-white shadow-sm">
-                      {module.coverLabel}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-base font-black text-neutral-900">{module.title}</h3>
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-primary-700 shadow-sm">
-                      {module.badge}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-neutral-600">{module.description}</p>
-                  <div className="mt-3 flex items-center justify-between text-sm text-neutral-500">
-                    <span>{module.completed} siswa selesai</span>
-                    <span className="font-semibold text-primary-700">{module.progress}%</span>
-                  </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-200">
-                    <div className="h-full rounded-full bg-primary-500" style={{ width: `${module.progress}%` }} />
-                  </div>
+        <div className="mt-3 grid gap-3 lg:grid-cols-1">
+          {modules.slice(0, 3).map((module) => (
+            <div key={module.title} className="overflow-hidden rounded-md border border-neutral-100 bg-neutral-50 shadow-sm">
+              <div className="relative h-20 bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-500 text-white">
+                <div className="absolute inset-0 opacity-8 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.5),_transparent_35%)]" />
+                <div className="absolute inset-x-0 bottom-2 px-3">
+                  <span className="inline-flex rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] text-white shadow-sm">
+                    {module.coverLabel}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-black text-neutral-900">{module.title}</h3>
+                  <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-primary-700 shadow-sm">
+                    {module.badge}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-neutral-600">{module.description}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-neutral-500">
+                  <span>{module.completed} siswa selesai</span>
+                  <span className="font-semibold text-primary-700">{module.progress}%</span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-200">
+                  <div className="h-full rounded-full bg-primary-500" style={{ width: `${module.progress}%` }} />
+                </div>
+              </div>
+            </div>
+          ))}
+          {modules.length > 3 && (
+            <div className="mt-2 flex justify-center">
+              <a href="/dashboard/guru/modul" className="text-sm font-semibold text-primary-700">Lihat Semua ({modules.length})</a>
+            </div>
+          )}
         </div>
       )}
     </section>

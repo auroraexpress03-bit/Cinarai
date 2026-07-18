@@ -17,6 +17,7 @@ import {
   loadIdentificationAnswers,
 } from '../services/identificationAnswerService';
 import { loadComicProgress, saveComicProgress } from '@/services/comicProgress';
+import { debug } from '@/lib/debug';
 import type { IdentificationItem, IdentificationStep } from '../types';
 import type { IdentificationAnswerDocument } from '@/types/firestore';
 
@@ -231,15 +232,13 @@ export function IdentificationProvider({
         if (!active) return;
         const stageData = progressDoc?.stageData?.identification;
         if (stageData?.answers && stageData.answers.length > 0) {
-          // eslint-disable-next-line no-console
-          console.log('[comic-progress] Hydrating state...', { stage: 'identification', stageData });
+          debug('[comic-progress] Hydrating state...', { stage: 'identification', stageData });
           applyAnswers(stageData.answers as unknown as IdentificationAnswerDocument[]);
         } else if (answers.length > 0) {
           applyAnswers(answers);
         }
         setHasHydratedProgress(true);
-        // eslint-disable-next-line no-console
-        console.log('[comic-progress] Progress restored.');
+        debug('[comic-progress] Progress restored.');
       } catch (error) {
         console.error('[IdentificationContext] gagal memuat progress', error);
       }

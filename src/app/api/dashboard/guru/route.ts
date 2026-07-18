@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminFirestore, adminInitializationError, verifyIdToken } from '@/lib/firebase/admin';
+import { debug } from '@/lib/debug';
 import type { ActivityDocument, ComicDocument, ComicProgressDocument, ReflectionDocument, UserDocument } from '@/types/firestore';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 
@@ -198,9 +199,9 @@ function buildPayloadFromCollections(payload: {
 
 async function safeGetCollection<T>(label: string, operation: () => Promise<T>): Promise<{ ok: boolean; data: T | null; error?: string }> {
   try {
-    console.log(`[dashboard/guru] starting query for collection: ${label}`);
+    debug(`[dashboard/guru] starting query for collection: ${label}`);
     const data = await operation();
-    console.log(`[dashboard/guru] finished query for collection: ${label}`);
+    debug(`[dashboard/guru] finished query for collection: ${label}`);
     return { ok: true, data };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -214,7 +215,7 @@ async function safeGetCollection<T>(label: string, operation: () => Promise<T>):
 }
 
 export async function GET(request: NextRequest) {
-  console.log('[dashboard/guru] request received');
+  debug('[dashboard/guru] request received');
   try {
     const envIssues = [
       ['FIREBASE_PROJECT_ID', process.env.FIREBASE_PROJECT_ID],
@@ -231,7 +232,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(buildEmptyPayload(message, 'Firebase Admin unavailable'), { status: 200 });
     }
 
-    console.log('[dashboard/guru] adminAuth present?', Boolean(adminAuth));
+    debug('[dashboard/guru] adminAuth present?', Boolean(adminAuth));
     if (!adminAuth) {
       const msg = adminInitializationError
         ? adminInitializationError
@@ -240,7 +241,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(buildEmptyPayload(msg, 'Admin Auth unavailable'), { status: 200 });
     }
 
-    console.log('[dashboard/guru] adminFirestore present?', Boolean(adminFirestore));
+    debug('[dashboard/guru] adminFirestore present?', Boolean(adminFirestore));
     if (!adminFirestore) {
       const msg = adminInitializationError
         ? adminInitializationError
@@ -287,14 +288,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Run queries sequentially with logging so we can capture the exact failing step and stack
-    console.log('[dashboard/guru] starting collection queries');
+    debug('[dashboard/guru] starting collection queries');
     const studentsSnapshot = (await safeGetCollection('users', async () => firestore.collection('users').where('role', '==', 'student').get())).data;
     const progressSnapshot = (await safeGetCollection('progress', async () => firestore.collectionGroup('progress').get())).data;
     const reflectionsSnapshot = (await safeGetCollection('reflection', async () => firestore.collection('reflection').orderBy('createdAt', 'desc').limit(200).get())).data;
     const activitySnapshot = (await safeGetCollection('activity', async () => firestore.collection('activity').orderBy('occurredAt', 'desc').limit(20).get())).data;
     const comicsSnapshot = (await safeGetCollection('comics', async () => firestore.collection('comics').get())).data;
 
-    console.log('[dashboard/guru] collection queries completed, mapping documents');
+    debug('[dashboard/guru] collection queries completed, mapping documents');
 
     const students = studentsSnapshot ? studentsSnapshot.docs.map(serializeUser) : [];
     const comics = comicsSnapshot ? comicsSnapshot.docs.map(serializeComic) : [];
@@ -302,9 +303,9 @@ export async function GET(request: NextRequest) {
     const activities = activitySnapshot ? activitySnapshot.docs.map(serializeActivity) : [];
     const reflections = reflectionsSnapshot ? reflectionsSnapshot.docs.map(serializeReflection) : [];
 
-    console.log('[dashboard/guru] building payload snapshot');
+    debug('[dashboard/guru] building payload snapshot');
     const payload = buildPayloadFromCollections({ students, comics, progressDocuments, activities, reflections });
-    console.log('[dashboard/guru] payload built, sending response');
+    debug('[dashboard/guru] payload built, sending response');
 
     return NextResponse.json(payload, { status: 200 });
   } catch (error) {

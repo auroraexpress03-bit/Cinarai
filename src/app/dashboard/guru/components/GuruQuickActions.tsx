@@ -4,46 +4,31 @@ import Link from 'next/link';
 
 export function GuruQuickActions() {
   return (
-    <section className="rounded-[28px] border border-neutral-100 bg-white p-5 shadow-sm shadow-neutral-200/70 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
+    <section className="rounded-2xl border border-neutral-100 bg-white p-3 shadow-sm shadow-neutral-200/20 max-h-[100px] overflow-hidden transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary-500">Aksi Cepat</p>
-          <h2 className="mt-1 text-xl font-black text-neutral-900">Kelola kelas Anda</h2>
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary-500">Aksi</p>
+          <h2 className="mt-1 text-sm font-black text-neutral-900">Cepat</h2>
         </div>
-        <div className="rounded-full bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700">Realtime</div>
+        <div className="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary-700">Realtime</div>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <Link
-          href="/dashboard/guru/siswa"
-          className="rounded-[20px] border border-neutral-100 bg-primary-50 px-4 py-4 text-left text-sm font-semibold text-primary-700 transition hover:border-primary-200 hover:bg-primary-100"
-        >
-          <p className="text-sm font-semibold">Lihat daftar siswa</p>
-          <p className="mt-1 text-xs text-neutral-600">Pantau siswa dan progress mereka.</p>
+      <div className="mt-2 grid grid-cols-4 gap-2 items-center">
+        <Link href="/dashboard/guru/siswa" className="flex flex-col items-center justify-center rounded-2xl bg-primary-50 p-2 text-xs font-semibold text-primary-700 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]">
+          <div className="h-6 w-6 rounded-md bg-white/30 mb-1" />
+          <span className="text-[11px]">Siswa</span>
         </Link>
-
-        <Link
-          href="/dashboard/guru/statistik"
-          className="rounded-[20px] border border-neutral-100 bg-white px-4 py-4 text-left text-sm font-semibold text-neutral-900 transition hover:border-primary-200 hover:bg-primary-50"
-        >
-          <p className="text-sm font-semibold">Analisis kelas</p>
-          <p className="mt-1 text-xs text-neutral-600">Lihat performa kelas dengan cepat.</p>
+        <Link href="/dashboard/guru/statistik" className="flex flex-col items-center justify-center rounded-2xl bg-white p-2 text-xs font-semibold text-neutral-900 border border-neutral-100 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]">
+          <div className="h-6 w-6 rounded-md bg-neutral-100 mb-1" />
+          <span className="text-[11px]">Analisis</span>
         </Link>
-
-        <Link
-          href="/dashboard/guru/analisis-ai"
-          className="rounded-[20px] border border-neutral-100 bg-white px-4 py-4 text-left text-sm font-semibold text-neutral-900 transition hover:border-primary-200 hover:bg-primary-50"
-        >
-          <p className="text-sm font-semibold">AI Analytics</p>
-          <p className="mt-1 text-xs text-neutral-600">Dapatkan insight pembelajaran AI.</p>
+        <Link href="/dashboard/guru/analisis-ai" className="flex flex-col items-center justify-center rounded-2xl bg-white p-2 text-xs font-semibold text-neutral-900 border border-neutral-100 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]">
+          <div className="h-6 w-6 rounded-md bg-neutral-100 mb-1" />
+          <span className="text-[11px]">AI</span>
         </Link>
-
-        <Link
-          href="/dashboard/guru/laporan"
-          className="rounded-[20px] border border-neutral-100 bg-white px-4 py-4 text-left text-sm font-semibold text-neutral-900 transition hover:border-primary-200 hover:bg-primary-50"
-        >
-          <p className="text-sm font-semibold">Buat laporan</p>
-          <p className="mt-1 text-xs text-neutral-600">Siapkan laporan untuk pertemuan berikutnya.</p>
+        <Link href="/dashboard/guru/laporan" className="flex flex-col items-center justify-center rounded-2xl bg-white p-2 text-xs font-semibold text-neutral-900 border border-neutral-100 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]">
+          <div className="h-6 w-6 rounded-md bg-neutral-100 mb-1" />
+          <span className="text-[11px]">Laporan</span>
         </Link>
       </div>
     </section>

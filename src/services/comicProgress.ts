@@ -2,6 +2,7 @@
 
 import { doc, getDoc, onSnapshot, setDoc, serverTimestamp, type Unsubscribe, collection, type QuerySnapshot, type DocumentData } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
+import { debug } from '@/lib/debug';
 import { getAllComics } from '@/lib/comicRepository';
 import { deleteFirestoreDocument, queryFirestoreCollection } from '@/services/firestore';
 import { clearStoredComicReadingProgressEntry, dispatchComicReadingProgressReset } from '@/lib/comicReadingProgressStorage';
@@ -72,8 +73,7 @@ export interface ComicProgressV2 {
 }
 
 function log(...args: unknown[]) {
-  // eslint-disable-next-line no-console
-  console.log('[comic-progress-v2]', ...args);
+  debug('[comic-progress-v2]', ...args);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -244,14 +244,12 @@ export async function getComicProgress(userId: string, comicId: number): Promise
 
 export async function loadComicProgress(userId: string, comicId: number): Promise<ComicProgressV2 | null> {
   if (!userId) throw new Error('unauthenticated');
-  // eslint-disable-next-line no-console
-  console.log('[comic-progress] Loading progress...', { userId, comicId });
+  debug('[comic-progress] Loading progress...', { userId, comicId });
   const ref = progressDocRef(userId, comicId);
   const snap = await getDoc(ref);
   const data = snap.exists() ? (snap.data() as ComicProgressV2) : null;
   if (data) {
-    // eslint-disable-next-line no-console
-    console.log('[comic-progress] Loaded progress...', { comicId, stageData: data.stageData });
+    debug('[comic-progress] Loaded progress...', { comicId, stageData: data.stageData });
   }
   return data;
 }

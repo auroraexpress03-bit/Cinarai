@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { debug } from '@/lib/debug';
 import { useRouter } from 'next/navigation';
 import { serverTimestamp } from 'firebase/firestore';
 import { loadComicProgress, saveComicProgress } from '@/services/comicProgress';
@@ -428,8 +429,7 @@ ${data.suggestion}`;
           }))
         );
         setHasHydratedProgress(true);
-        // eslint-disable-next-line no-console
-        console.log('[comic-progress] Progress restored.');
+        debug('[comic-progress] Progress restored.');
       } catch (error) {
         console.error('[IntrospectionStage] Gagal memuat konteks Introspection', error);
       }

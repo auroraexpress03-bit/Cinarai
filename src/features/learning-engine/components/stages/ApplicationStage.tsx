@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+import { debug } from '@/lib/debug';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -128,8 +129,7 @@ export default function ApplicationStage() {
           }
         }
         setHasHydratedProgress(true);
-        // eslint-disable-next-line no-console
-        console.log('[comic-progress] Progress restored.');
+        debug('[comic-progress] Progress restored.');
       } catch (error) {
         console.error('[ApplicationStage] gagal memuat progress', error);
       }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { debug } from '@/lib/debug';
 import {
   COMIC_READING_PROGRESS_RESET_EVENT,
   clearAllStoredComicReadingProgress,
@@ -36,8 +37,7 @@ export function useComicReadingProgress(): ComicReadingProgressContextValue {
 }
 
 function logReadingProgress(functionName: string, comicId: number, page: number, totalPages: number, completed: boolean) {
-  // eslint-disable-next-line no-console
-  console.log('[reading-progress]', {
+  debug('[reading-progress]', {
     comicId,
     currentPage: page,
     totalPages,
@@ -45,8 +45,7 @@ function logReadingProgress(functionName: string, comicId: number, page: number,
     timestamp: new Date().toISOString(),
     functionName,
   });
-  // eslint-disable-next-line no-console
-  console.log('[reading-progress-stack]', new Error().stack?.split('\n').slice(1, 4).join(' | '));
+  debug('[reading-progress-stack]', new Error().stack?.split('\n').slice(1, 4).join(' | '));
 }
 
 // Global `__cinaraiDebug` declared in src/types/cinarai-debug.d.ts

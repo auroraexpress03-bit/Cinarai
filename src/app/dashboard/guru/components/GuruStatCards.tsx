@@ -26,19 +26,23 @@ function renderIcon(icon: GuruStatCardProps['icon'], className: string) {
 
 export function GuruStatCards({ stats }: { stats: GuruStatCardProps[] }) {
   return (
-    <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-2 xl:grid-cols-4">
       {stats.length === 0 ? (
-        <div className="col-span-full rounded-[24px] border border-dashed border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-500">
+        <div className="col-span-full rounded-md border border-dashed border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-500">
           Belum ada data ringkasan untuk ditampilkan.
         </div>
       ) : (
         stats.map((stat) => (
-          <div key={stat.title} className="rounded-[24px] border border-neutral-100 bg-white p-4 shadow-sm shadow-neutral-200/70">
-            <div className={`inline-flex rounded-2xl p-3 ${stat.accent}`}>
-              {renderIcon(stat.icon, 'h-5 w-5')}
+          <div key={stat.title} className="rounded-2xl border border-neutral-100 bg-white p-3 shadow-sm shadow-neutral-200/20 h-[90px] transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]">
+            <div className="flex items-center justify-between">
+              <div className={`inline-flex rounded-lg p-2 ${stat.accent}`}>
+                {renderIcon(stat.icon, 'h-4 w-4')}
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-semibold text-neutral-500">{stat.title}</p>
+                <p className="mt-1 text-2xl font-extrabold text-neutral-900">{stat.value}</p>
+              </div>
             </div>
-            <p className="mt-4 text-sm font-semibold text-neutral-500">{stat.title}</p>
-            <p className="mt-1 text-2xl font-black text-neutral-900">{stat.value}</p>
           </div>
         ))
       )}

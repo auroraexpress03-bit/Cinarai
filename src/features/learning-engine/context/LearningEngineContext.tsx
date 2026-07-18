@@ -8,6 +8,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { debug } from '@/lib/debug';
 import { useAuth } from '@/hooks/useAuth';
 import { useSnackbar } from '@/context/SnackbarContext';
 import { createInitialProgressState } from '@/lib/progressEngine';
@@ -29,8 +30,7 @@ import {
 import { extractFirebaseErrorCode } from '@/services/comicProgress';
 
 function logLearningEngine(functionName: string, comicId: number, page: number, totalPages: number, completed: boolean) {
-  // eslint-disable-next-line no-console
-  console.log('[learning-engine]', {
+  debug('[learning-engine]', {
     comicId,
     currentPage: page,
     totalPages,
@@ -38,7 +38,6 @@ function logLearningEngine(functionName: string, comicId: number, page: number, 
     timestamp: new Date().toISOString(),
     functionName,
   });
-  // eslint-disable-next-line no-console
 }
 
 const LearningContext = createContext<LearningContextValue | null>(null);

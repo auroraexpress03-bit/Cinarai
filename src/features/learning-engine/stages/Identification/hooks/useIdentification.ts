@@ -15,6 +15,7 @@ import {
   updateReason,
   saveReason,
 } from '../services/identificationService';
+import { debug } from '@/lib/debug';
 import { getComicModule } from '@/features/comics';
 
 export interface UseIdentificationReturn {
@@ -58,8 +59,7 @@ export function useIdentification({
   }, [comicId, sourcePage]);
 
   const [state, setState] = useState<IdentificationState>(() => {
-    // eslint-disable-next-line no-console
-    console.log('[identification-hook]', {
+    debug('[identification-hook]', {
       comicId,
       currentPage: resolvedSourcePage,
       totalPages: 37,
