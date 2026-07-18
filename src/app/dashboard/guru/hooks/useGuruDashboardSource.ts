@@ -87,11 +87,17 @@ export function useGuruDashboardSource() {
 
   useEffect(() => {
     let active = true;
-    let usersLoaded = false;
-    let comicsLoaded = false;
-    let progressLoaded = false;
-    let activitiesLoaded = false;
-    let reflectionsLoaded = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const listenersReady = {
+      users: false,
+      comics: false,
+      progress: false,
+      activities: false,
+      reflections: false,
+    };
+
+    const requiredListeners: Array<keyof typeof listenersReady> = ['users', 'progress'];
 
     const debugState = {
       totalUsers: 0,
@@ -101,6 +107,13 @@ export function useGuruDashboardSource() {
       activities: 0,
       reflections: 0,
       roles: new Map<string, number>(),
+    };
+
+    const logStatus = (message: string) => {
+      if (process.env.NODE_ENV !== 'development') return;
+      /* eslint-disable no-console */
+      console.info(`[GuruDashboard] ${message}`);
+      /* eslint-enable no-console */
     };
 
     const logDebug = () => {
@@ -123,12 +136,57 @@ export function useGuruDashboardSource() {
       /* eslint-enable no-console */
     };
 
-    const updateLoading = () => {
+    const setLoadingState = (value: boolean) => {
       if (!active) return;
       setState((current) => ({
         ...current,
-        loading: !(usersLoaded && comicsLoaded && progressLoaded && activitiesLoaded && reflectionsLoaded),
+        loading: value,
       }));
+      if (process.env.NODE_ENV === 'development' && !value) {
+        logStatus('loading=false');
+      }
+    };
+
+    const markListenerDone = (listener: keyof typeof listenersReady) => {
+      listenersReady[listener] = true;
+      logStatus(`${listener} listener ready`);
+      logDebug();
+
+      const allRequiredReady = requiredListeners.every((key) => listenersReady[key]);
+      if (allRequiredReady) {
+        setLoadingState(false);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      }
+    };
+
+    const handleListenerError = (listener: keyof typeof listenersReady, errorMessage: string, isRequired = false) => {
+      if (!active) return;
+
+      setState((current) => ({
+        ...current,
+        [`${listener}Loading`]: false,
+        [`${listener}Error`]: errorMessage,
+        [`${listener}Success`]: false,
+        error: isRequired ? errorMessage : current.error,
+      }));
+
+      markListenerDone(listener);
+
+      if (isRequired) {
+        setLoadingState(false);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      }
+    };
+
+    const handleListenerSuccess = (listener: keyof typeof listenersReady) => {
+      if (!active) return;
+      markListenerDone(listener);
     };
 
     if (!user || user.role !== 'teacher') {
@@ -150,34 +208,36 @@ export function useGuruDashboardSource() {
       return;
     }
 
-    const setErrorState = (errorMessage: string) => {
+    timeoutId = setTimeout(() => {
       if (!active) return;
+
+      const pendingListeners = Object.entries(listenersReady)
+        .filter(([, ready]) => !ready)
+        .map(([name]) => name)
+        .join(', ');
+
+      if (pendingListeners.length > 0) {
+        /* eslint-disable no-console */
+        console.warn(`[GuruDashboard] Loading timeout setelah 5 detik. Pending listeners: ${pendingListeners}`);
+        /* eslint-enable no-console */
+      }
+
       setState((current) => ({
         ...current,
         loading: false,
-        error: errorMessage,
         usersLoading: false,
         comicsLoading: false,
         progressLoading: false,
         activitiesLoading: false,
         reflectionsLoading: false,
-        usersError: errorMessage,
-        comicsError: errorMessage,
-        progressError: errorMessage,
-        activitiesError: errorMessage,
-        reflectionsError: errorMessage,
-        usersSuccess: false,
-        comicsSuccess: false,
-        progressSuccess: false,
-        activitiesSuccess: false,
-        reflectionsSuccess: false,
       }));
-    };
+      logStatus('loading=false (timeout)');
+      timeoutId = null;
+    }, 5000);
 
     const usersUnsubscribe = subscribeToUsers(
       (nextStudents) => {
         if (!active) return;
-        usersLoaded = true;
         debugState.students = nextStudents.length;
         setState((current) => ({
           ...current,
@@ -186,12 +246,11 @@ export function useGuruDashboardSource() {
           usersError: null,
           usersSuccess: true,
         }));
-        logDebug();
-        updateLoading();
+        handleListenerSuccess('users');
       },
       (nextError) => {
         if (!active) return;
-        setErrorState(nextError.message);
+        handleListenerError('users', nextError.message, true);
       }
     );
 
@@ -205,7 +264,6 @@ export function useGuruDashboardSource() {
             const role = typeof userDoc.role === 'string' ? userDoc.role : 'undefined';
             roleCounts[role] = (roleCounts[role] ?? 0) + 1;
           });
-          usersLoaded = true;
           debugState.totalUsers = nextUsers.length;
           debugState.roles = new Map(Object.entries(roleCounts));
           setState((current) => ({
@@ -214,11 +272,12 @@ export function useGuruDashboardSource() {
             allUserRoles: roleCounts,
           }));
           logDebug();
-          updateLoading();
         },
         (nextError) => {
           if (!active) return;
-          setErrorState(nextError.message);
+          /* eslint-disable no-console */
+          console.warn('[GuruDashboard] subscribeToAllUsers failed:', nextError.message);
+          /* eslint-enable no-console */
         }
       );
     }
@@ -226,7 +285,6 @@ export function useGuruDashboardSource() {
     const comicsUnsubscribe = subscribeToComics(
       (nextComics) => {
         if (!active) return;
-        comicsLoaded = true;
         debugState.comics = nextComics.length;
         setState((current) => ({
           ...current,
@@ -236,19 +294,17 @@ export function useGuruDashboardSource() {
           comicsSuccess: true,
           comicsCount: nextComics.length,
         }));
-        logDebug();
-        updateLoading();
+        handleListenerSuccess('comics');
       },
       (nextError) => {
         if (!active) return;
-        setErrorState(nextError.message);
+        handleListenerError('comics', nextError.message, false);
       }
     );
 
     const progressUnsubscribe = subscribeToAllProgressDocuments(
       (nextProgressDocuments) => {
         if (!active) return;
-        progressLoaded = true;
         debugState.progress = nextProgressDocuments.length;
         setState((current) => ({
           ...current,
@@ -258,19 +314,17 @@ export function useGuruDashboardSource() {
           progressSuccess: true,
           progressCount: nextProgressDocuments.length,
         }));
-        logDebug();
-        updateLoading();
+        handleListenerSuccess('progress');
       },
       (nextError) => {
         if (!active) return;
-        setErrorState(nextError.message);
+        handleListenerError('progress', nextError.message, true);
       }
     );
 
     const activitiesUnsubscribe = subscribeToRecentActivities(
       (nextActivities) => {
         if (!active) return;
-        activitiesLoaded = true;
         debugState.activities = nextActivities.length;
         setState((current) => ({
           ...current,
@@ -280,19 +334,17 @@ export function useGuruDashboardSource() {
           activitiesSuccess: true,
           activityCount: nextActivities.length,
         }));
-        logDebug();
-        updateLoading();
+        handleListenerSuccess('activities');
       },
       (nextError) => {
         if (!active) return;
-        setErrorState(nextError.message);
+        handleListenerError('activities', nextError.message, false);
       }
     );
 
     const reflectionsUnsubscribe = subscribeToReflections(
       (nextReflections) => {
         if (!active) return;
-        reflectionsLoaded = true;
         debugState.reflections = nextReflections.length;
         setState((current) => ({
           ...current,
@@ -302,17 +354,19 @@ export function useGuruDashboardSource() {
           reflectionsSuccess: true,
           reflectionCount: nextReflections.length,
         }));
-        logDebug();
-        updateLoading();
+        handleListenerSuccess('reflections');
       },
       (nextError) => {
         if (!active) return;
-        setErrorState(nextError.message);
+        handleListenerError('reflections', nextError.message, false);
       }
     );
 
     return () => {
       active = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       usersUnsubscribe();
       allUsersUnsubscribe();
       comicsUnsubscribe();
