@@ -22,8 +22,8 @@ export const packageContent: ComicContentPackageLike = {
       title: 'Persegi',
       description: 'Bentuk persegi pada bagian halaman bangunan.',
       page: 1,
-      qrImage: '/assets/qr/komik-2/13-objek-1.jpeg',
-      objectImage: '/assets/qr/komik-2/13-objek-1.jpeg',
+      qrImage: '/images/navigation/default.svg',
+      objectImage: '/images/navigation/default.svg',
       modelUrl: '',
       embedUrl: '',
       viewerType: 'embed',
@@ -38,8 +38,8 @@ export const packageContent: ComicContentPackageLike = {
       title: 'Segitiga',
       description: 'Bentuk atap rumah yang tajam.',
       page: 2,
-      qrImage: '/assets/qr/komik-2/17-objek-3.jpeg',
-      objectImage: '/assets/qr/komik-2/17-objek-3.jpeg',
+      qrImage: '/images/navigation/default.svg',
+      objectImage: '/images/navigation/default.svg',
       modelUrl: '',
       embedUrl: '',
       viewerType: 'embed',
@@ -51,8 +51,8 @@ export const packageContent: ComicContentPackageLike = {
     },
   ],
   qrCode: [
-    { id: 'komik3-qr-1', imageSrc: '/assets/qr/komik-2/13-objek-1.jpeg', alt: 'QR Persegi', label: 'Persegi', description: 'Scan untuk melihat bentuk persegi.' },
-    { id: 'komik3-qr-2', imageSrc: '/assets/qr/komik-2/17-objek-3.jpeg', alt: 'QR Segitiga', label: 'Segitiga', description: 'Scan untuk melihat bentuk segitiga.' },
+    { id: 'komik3-qr-1', imageSrc: '/images/navigation/default.svg', alt: 'QR Persegi', label: 'Persegi', description: 'Scan untuk melihat bentuk persegi.' },
+    { id: 'komik3-qr-2', imageSrc: '/images/navigation/default.svg', alt: 'QR Segitiga', label: 'Segitiga', description: 'Scan untuk melihat bentuk segitiga.' },
   ],
   model3D: [
     { id: 'komik3-model-1', title: 'Persegi', arUrl: '', page: 1, description: 'Model 3D persegi untuk pengamatan sederhana.' },
@@ -71,7 +71,7 @@ export const packageContent: ComicContentPackageLike = {
       {
         id: 'komik2-ident-6',
         question: 'Amati bangunan runtuh pendopo yang tampak seperti berlian. Bangun datar apakah yang paling sesuai?',
-        image: '/assets/qr/komik-2/18-objek-4.jpeg',
+        image: '/images/navigation/default.svg',
         imageAlt: 'Bangunan runtuh pendopo pada Candi Penataran yang tampak seperti berlian.',
         options: [
           { text: 'Belah Ketupat', correct: true },
@@ -84,7 +84,7 @@ export const packageContent: ComicContentPackageLike = {
       {
         id: 'komik3-ident-2',
         question: 'Bagian atap rumah ini paling cocok disebut bangun datar apa?',
-        image: '/assets/qr/komik-2/17-objek-3.jpeg',
+        image: '/images/navigation/default.svg',
         imageAlt: 'Atap rumah terlihat berbentuk segitiga.',
         options: [
           { text: 'Segitiga', correct: true },
@@ -107,8 +107,8 @@ export const packageContent: ComicContentPackageLike = {
     prompt: 'Pilih bangun datar yang paling cocok dengan benda yang kamu amati.',
     context: 'Benda-benda yang ada di sekitar rumah dan bangunan bersejarah.',
     images: [
-      { src: '/assets/qr/komik-2/13-objek-1.jpeg', alt: 'Bentuk persegi', label: 'Persegi', description: 'Perhatikan sisi dan sudutnya.' },
-      { src: '/assets/qr/komik-2/17-objek-3.jpeg', alt: 'Bentuk segitiga', label: 'Segitiga', description: 'Perhatikan sisi dan sudutnya.' },
+      { src: '/images/navigation/default.svg', alt: 'Bentuk persegi', label: 'Persegi', description: 'Perhatikan sisi dan sudutnya.' },
+      { src: '/images/navigation/default.svg', alt: 'Bentuk segitiga', label: 'Segitiga', description: 'Perhatikan sisi dan sudutnya.' },
     ],
     options: [
       { value: 'Persegi', label: 'Persegi' },
@@ -122,7 +122,7 @@ export const packageContent: ComicContentPackageLike = {
         id: 'komik3-arg-1',
         templePart: 'bagian depan rumah',
         question: 'Mengapa bentuk bagian depan rumah bisa dipahami sebagai persegi?',
-        photoSrc: '/assets/qr/komik-2/13-objek-1.jpeg',
+        photoSrc: '/images/navigation/default.svg',
         photoAlt: 'Bagian depan rumah',
         shapeName: 'Persegi',
         shapeKey: 'persegi',

@@ -18,8 +18,8 @@ export const packageContent: ComicContentPackageLike = {
       title: 'Lingkaran',
       description: 'Bentuk lingkaran yang terlihat pada riak air.',
       page: 1,
-      qrImage: '/assets/qr/komik-2/13-objek-1.jpeg',
-      objectImage: '/assets/qr/komik-2/13-objek-1.jpeg',
+      qrImage: '/images/navigation/default.svg',
+      objectImage: '/images/navigation/default.svg',
       modelUrl: '',
       embedUrl: '',
       viewerType: 'embed',
@@ -30,7 +30,7 @@ export const packageContent: ComicContentPackageLike = {
       feedback: 'Benar, lingkaran mudah dikenali dari bentuknya yang bundar.',
     },
   ],
-  qrCode: [{ id: 'komik5-qr-1', imageSrc: '/assets/qr/komik-2/13-objek-1.jpeg', alt: 'QR Lingkaran', label: 'Lingkaran', description: 'Scan untuk melihat bentuk lingkaran.' }],
+  qrCode: [{ id: 'komik5-qr-1', imageSrc: '/images/navigation/default.svg', alt: 'QR Lingkaran', label: 'Lingkaran', description: 'Scan untuk melihat bentuk lingkaran.' }],
   model3D: [{ id: 'komik5-model-1', title: 'Lingkaran', arUrl: '', page: 1, description: 'Model 3D lingkaran sederhana.' }],
   aiPrompt: {
     navigation: 'Bantu siswa mengamati bentuk yang muncul di alam dengan bahasa sederhana.',
@@ -45,7 +45,7 @@ export const packageContent: ComicContentPackageLike = {
       {
         id: 'komik5-ident-1',
         question: 'Bangun datar mana yang paling terlihat pada riak air?',
-        image: '/assets/qr/komik-2/13-objek-1.jpeg',
+        image: '/images/navigation/default.svg',
         imageAlt: 'Riak air di sungai',
         options: [
           { text: 'Lingkaran', correct: true },
@@ -66,11 +66,11 @@ export const packageContent: ComicContentPackageLike = {
     intro: 'Amati bentuk yang muncul di sekitar alam.',
     prompt: 'Pilih bangun datar yang paling cocok dengan benda yang kamu amati.',
     context: 'Bentuk yang muncul pada alam sekitar.',
-    images: [{ src: '/assets/qr/komik-2/13-objek-1.jpeg', alt: 'Bentuk lingkaran', label: 'Lingkaran', description: 'Perhatikan bentuknya yang bundar.' }],
+    images: [{ src: '/images/navigation/default.svg', alt: 'Bentuk lingkaran', label: 'Lingkaran', description: 'Perhatikan bentuknya yang bundar.' }],
     options: [{ value: 'Lingkaran', label: 'Lingkaran' }, { value: 'Persegi', label: 'Persegi' }],
   },
   argumentation: {
-    questions: [{ id: 'komik5-arg-1', templePart: 'riak air', question: 'Mengapa riak air ini cocok disebut lingkaran?', photoSrc: '/assets/qr/komik-2/13-objek-1.jpeg', photoAlt: 'Riak air', shapeName: 'Lingkaran', shapeKey: 'lingkaran', shapeSrc: '/images/navigation/default.svg', highlightColor: 'border-primary-500' }],
+    questions: [{ id: 'komik5-arg-1', templePart: 'riak air', question: 'Mengapa riak air ini cocok disebut lingkaran?', photoSrc: '/images/navigation/default.svg', photoAlt: 'Riak air', shapeName: 'Lingkaran', shapeKey: 'lingkaran', shapeSrc: '/images/navigation/default.svg', highlightColor: 'border-primary-500' }],
   },
   resolution: {
     missions: [{ id: 1, title: 'Misi 1 · Luas Lingkaran', part: 'Riak Air', shape: 'Lingkaran', prompt: 'Sebuah lingkaran memiliki jari-jari 3 cm. Berapakah luasnya?', options: [{ key: 'A', label: '9π cm²' }, { key: 'B', label: '6π cm²' }, { key: 'C', label: '3π cm²' }], correctKey: 'A', answer: '9π cm²', formula: 'L = π × r² = π × 3² = 9π cm²', explanation: 'Luas lingkaran dihitung dengan rumus L = πr².', aiHint: 'Ingat rumus luas lingkaran.', context: 'Bentuk yang kamu lihat pada riak air.', accent: 'from-primary-600 to-primary-700', illustration: '/images/navigation/default.svg' }],

@@ -9,6 +9,7 @@ import ContextualizationStage from './stages/ContextualizationStage';
 import CoverStage from './stages/CoverStage';
 import IdentificationStage from './stages/IdentificationStage';
 import NavigationStage from './stages/NavigationStage';
+import Comic2NavigationStage from '@/features/comics/comic-2/components/Comic2NavigationStage';
 import ArgumentationStage from './stages/ArgumentationStage';
 import ResolutionStage from './stages/ResolutionStage';
 import ApplicationStage from './stages/ApplicationStage';
@@ -16,13 +17,13 @@ import IntrospectionStage from './stages/IntrospectionStage';
 import FinishStage from './stages/FinishStage';
 
 function StageContent() {
-  const { currentStage, isLoading } = useLearningEngine();
+  const { currentStage, isLoading, comic } = useLearningEngine();
   if (isLoading) return null;
   switch (currentStage) {
     case Stage.Cover:            return <CoverStage />;
     case Stage.Contextualization: return <ContextualizationStage />;
     case Stage.Identification:    return <IdentificationStage />;
-    case Stage.Navigation:        return <NavigationStage />;
+    case Stage.Navigation:        return comic.id === 2 ? <Comic2NavigationStage /> : <NavigationStage />;
     case Stage.Argumentation:     return <ArgumentationStage />;
     case Stage.Resolution:        return <ResolutionStage />;
     case Stage.Application:       return <ApplicationStage />;

@@ -18,8 +18,8 @@ export const packageContent: ComicContentPackageLike = {
       title: 'Persegi',
       description: 'Bentuk persegi yang terlihat pada susunan keramik.',
       page: 1,
-      qrImage: '/assets/qr/komik-2/13-objek-1.jpeg',
-      objectImage: '/assets/qr/komik-2/13-objek-1.jpeg',
+      qrImage: '/images/navigation/default.svg',
+      objectImage: '/images/navigation/default.svg',
       modelUrl: '',
       embedUrl: '',
       viewerType: 'embed',
@@ -30,7 +30,7 @@ export const packageContent: ComicContentPackageLike = {
       feedback: 'Benar, persegi mudah dikenali dari sisi yang sama dan sudut yang lurus.',
     },
   ],
-  qrCode: [{ id: 'komik4-qr-1', imageSrc: '/assets/qr/komik-2/13-objek-1.jpeg', alt: 'QR Persegi', label: 'Persegi', description: 'Scan untuk melihat bentuk persegi.' }],
+  qrCode: [{ id: 'komik4-qr-1', imageSrc: '/images/navigation/default.svg', alt: 'QR Persegi', label: 'Persegi', description: 'Scan untuk melihat bentuk persegi.' }],
   model3D: [{ id: 'komik4-model-1', title: 'Persegi', arUrl: '', page: 1, description: 'Model 3D persegi sederhana.' }],
   aiPrompt: {
     navigation: 'Bantu siswa mengamati pola dan bentuk sederhana dengan bahasa yang dekat dengan pengalaman mereka.',
@@ -45,7 +45,7 @@ export const packageContent: ComicContentPackageLike = {
       {
         id: 'komik4-ident-1',
         question: 'Bangun datar mana yang paling terlihat pada susunan keramik?',
-        image: '/assets/qr/komik-2/13-objek-1.jpeg',
+        image: '/images/navigation/default.svg',
         imageAlt: 'Susunan keramik pasar',
         options: [
           { text: 'Persegi', correct: true },
@@ -66,11 +66,11 @@ export const packageContent: ComicContentPackageLike = {
     intro: 'Amati benda yang sering kamu lihat di sekitar pasar.',
     prompt: 'Pilih bangun datar yang paling cocok dengan benda yang kamu amati.',
     context: 'Benda dan kerajinan di pasar tradisional.',
-    images: [{ src: '/assets/qr/komik-2/13-objek-1.jpeg', alt: 'Bentuk persegi', label: 'Persegi', description: 'Perhatikan sisi dan sudutnya.' }],
+    images: [{ src: '/images/navigation/default.svg', alt: 'Bentuk persegi', label: 'Persegi', description: 'Perhatikan sisi dan sudutnya.' }],
     options: [{ value: 'Persegi', label: 'Persegi' }, { value: 'Segitiga', label: 'Segitiga' }],
   },
   argumentation: {
-    questions: [{ id: 'komik4-arg-1', templePart: 'susunan keramik', question: 'Mengapa susunan keramik ini cocok disebut persegi?', photoSrc: '/assets/qr/komik-2/13-objek-1.jpeg', photoAlt: 'Susunan keramik', shapeName: 'Persegi', shapeKey: 'persegi', shapeSrc: '/images/navigation/default.svg', highlightColor: 'border-primary-500' }],
+    questions: [{ id: 'komik4-arg-1', templePart: 'susunan keramik', question: 'Mengapa susunan keramik ini cocok disebut persegi?', photoSrc: '/images/navigation/default.svg', photoAlt: 'Susunan keramik', shapeName: 'Persegi', shapeKey: 'persegi', shapeSrc: '/images/navigation/default.svg', highlightColor: 'border-primary-500' }],
   },
   resolution: {
     missions: [{ id: 1, title: 'Misi 1 · Luas Persegi', part: 'Susunan Keramik', shape: 'Persegi', prompt: 'Sebuah persegi memiliki panjang sisi 5 cm. Berapakah luasnya?', options: [{ key: 'A', label: '20 cm²' }, { key: 'B', label: '25 cm²' }, { key: 'C', label: '30 cm²' }], correctKey: 'B', answer: '25 cm²', formula: 'L = s × s = 5 × 5 = 25 cm²', explanation: 'Luas persegi dihitung dari sisi dikali sisi.', aiHint: 'Ingat rumus luas persegi.', context: 'Bentuk pada susunan keramik.', accent: 'from-primary-600 to-primary-700', illustration: '/images/navigation/default.svg' }],
