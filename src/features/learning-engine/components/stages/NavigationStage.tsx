@@ -18,9 +18,13 @@ export default function NavigationStage() {
   const { objects, heroModelEntry, heroQrImage } = navigationContent;
 
   const candiEntry = heroModelEntry;
-  const candiEmbed = candiEntry?.embedUrl ?? candiEntry?.arUrl ?? '';
+  const candiEmbed = candiEntry && 'embedUrl' in candiEntry ? candiEntry.embedUrl ?? '' : '';
   const candiQrImage = heroQrImage;
-  const candiFullscreenUrl = candiEntry?.arUrl ?? candiEntry?.embedUrl ?? '';
+  const candiFullscreenUrl = candiEntry && 'arUrl' in candiEntry
+    ? candiEntry.arUrl ?? candiEntry.embedUrl ?? ''
+    : candiEntry && 'embedUrl' in candiEntry
+      ? candiEntry.embedUrl ?? ''
+      : '';
 
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [objectVisited, setObjectVisited] = useState<string[]>([]);

@@ -58,3 +58,13 @@ test('comic 2 model action URL prefers the direct Assemblr link', () => {
 
   assert.equal(modelUrl, 'https://asblr.com/MmAMdg');
 });
+
+test('comic 2 object bundle ids stay aligned across learning object, qr, and model entries', () => {
+  const objectIds = packageContent.learningObjects.map((object) => object.id);
+  const qrIds = packageContent.qrCode.map((entry) => entry.id);
+  const modelIds = packageContent.model3D.map((entry) => entry.id);
+
+  assert.deepEqual(objectIds, qrIds);
+  assert.deepEqual(objectIds, modelIds);
+  assert.ok(objectIds.every((id) => typeof id === 'string' && id.startsWith('komik2-')));
+});
