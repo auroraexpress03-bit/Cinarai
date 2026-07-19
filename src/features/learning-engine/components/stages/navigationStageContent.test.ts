@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { packageContent } from '@/features/comics/comic-2/content/packageContent';
 import qr15 from '@/features/comics/comic-2/assets/qr/15-objek-2.jpeg';
 import navUmpang from '@/features/comics/comic-2/assets/navigation/umpang.png';
-import { resolveNavigationStageContent } from './navigationStageContent';
+import { resolveNavigationStageContent, resolveModelActionUrl } from './navigationStageContent';
 
 test('comic 2 navigation content uses story objects and bangun datar language', () => {
   const titles = packageContent.learningObjects.map((object) => object.title);
@@ -47,4 +47,14 @@ test('comic 2 navigation stage resolves hero content from the comic 2 dataset on
   assert.equal(content.heroQrImage, qr15.src);
   assert.equal(content.heroIllustration, navUmpang.src);
   assert.ok(content.objects.every((object) => object.id.startsWith('komik2-')));
+});
+
+test('comic 2 model action URL prefers the direct Assemblr link', () => {
+  const modelUrl = resolveModelActionUrl({
+    model3DUrl: 'https://asblr.com/MmAMdg',
+    modelUrl: '',
+    embedUrl: '',
+  });
+
+  assert.equal(modelUrl, 'https://asblr.com/MmAMdg');
 });

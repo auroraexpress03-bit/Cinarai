@@ -4,7 +4,10 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QrModal } from "@/features/learning-engine/components/stages/QrModal";
-import { resolveObjectDetailContent } from "@/features/learning-engine/components/stages/navigationStageContent";
+import {
+  resolveModelActionUrl,
+  resolveObjectDetailContent,
+} from "@/features/learning-engine/components/stages/navigationStageContent";
 
 export default function Comic2ObjectDetailClient({ id }: { id: string }) {
   const router = useRouter();
@@ -38,8 +41,10 @@ export default function Comic2ObjectDetailClient({ id }: { id: string }) {
   }
 
   const handleOpenModel = () => {
-    const url = obj.modelUrl || obj.embedUrl || "";
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    const url = resolveModelActionUrl(obj);
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   };
 
   const handleTutupViewer = () => {

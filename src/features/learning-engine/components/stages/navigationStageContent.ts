@@ -2,6 +2,14 @@ import { getComicModule } from '@/features/comics';
 import { getComic1QrAssetForObject } from '@/features/comics/comic-1/content/qrAssetRegistry';
 import { getComic2QrAssetForObject } from '@/features/comics/comic-2/content/qrAssetRegistry';
 
+export function resolveModelActionUrl(model?: {
+  model3DUrl?: string;
+  modelUrl?: string;
+  embedUrl?: string;
+}) {
+  return model?.model3DUrl || model?.modelUrl || model?.embedUrl || '';
+}
+
 export function resolveNavigationStageContent(comicId: number) {
   // Guard khusus comic-2: gunakan paket konten dan asset yang disesuaikan dengan isi cerita Candi Penataran.
   // Comic-1 tetap memakai jalur resolver lama agar perilaku dan UI default tidak berubah.
