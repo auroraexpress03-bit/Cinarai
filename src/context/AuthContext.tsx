@@ -13,9 +13,18 @@ import {
   updateUserProfile,
 } from '@/lib/firebase/auth';
 import { initializeUserProgress } from '@/services/comicProgress';
-import { getFirestoreDocument, upsertUser } from '@/services/firestore';
+import {
+  getFirestoreDocument,
+  queryFirestoreCollection,
+  upsertUser,
+} from '@/services/firestore';
 import { cleanObject } from '@/lib/firestore.helpers';
-import { resolveUserRoleFromProfileAndClaims } from '@/lib/auth/role';
+import debug from '@/lib/debug';
+import {
+  resolveUserRoleFromProfileAndClaims,
+  isAllowedUserRole,
+} from '@/lib/auth/role';
+import { getSignInMethods } from '@/lib/firebase/auth';
 import type { User, AuthContextType, AuthState } from '@/types/auth';
 import type { UserRole } from '@/types/firestore';
 
@@ -131,8 +140,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     async (email: string, password: string, displayName: string, role: UserRole = 'student') => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {
+        if (!isAllowedUserRole(role)) {
+          throw new Error('Role tidak valid. Pilih student, teacher, atau admin.');
+        }
+
+        const existingMethods = await getSignInMethods(email);
+        if (existingMethods.length > 0) {
+          const message = 'Email ini sudah terdaftar. Silakan login atau gunakan fitur Lupa Password.';
+          setState((prev) => ({ ...prev, loading: false, error: message }));
+          throw new Error(message);
+        }
+
+        const existingUserDocs = await queryFirestoreCollection('users', {
+          filters: [{ field: 'email', operator: '==', value: email.trim().toLowerCase() }],
+        });
+        if (existingUserDocs.length > 0) {
+          const message = 'Email ini sudah terdaftar. Silakan login atau gunakan fitur Lupa Password.';
+          debug('[AuthContext] Duplicate user documents found for email before signup', {
+            email,
+            duplicates: existingUserDocs.map((doc) => ({ uid: doc.uid, id: doc.id, updatedAt: doc.updatedAt })),
+          });
+          setState((prev) => ({ ...prev, loading: false, error: message }));
+          throw new Error(message);
+        }
+
         const { user: firebaseUser } = await firebaseSignUp(email, password);
         await updateUserProfile(firebaseUser, displayName);
+
+        const existingUserDocument = await getFirestoreDocument('users', firebaseUser.uid);
+        if (existingUserDocument) {
+          debug('[AuthContext] Existing users/{uid} document found. Updating document instead of creating a new one.', {
+            uid: firebaseUser.uid,
+          });
+        } else {
+          debug('[AuthContext] No existing users/{uid} document found. Creating new user document.', {
+            uid: firebaseUser.uid,
+          });
+        }
 
         const userData = cleanObject({
           uid: firebaseUser.uid,

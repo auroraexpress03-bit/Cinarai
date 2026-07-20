@@ -3,11 +3,12 @@
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
   updateProfile,
-  sendPasswordResetEmail,
   signInWithPopup,
+  fetchSignInMethodsForEmail,
   GoogleAuthProvider,
   type User,
   type UserCredential,
@@ -23,6 +24,15 @@ export const signUp = async (
     return await createUserWithEmailAndPassword(auth, email, password);
   } catch (error) {
     console.error('Sign up error:', error);
+    throw error;
+  }
+};
+
+export const getSignInMethods = async (email: string): Promise<string[]> => {
+  try {
+    return await fetchSignInMethodsForEmail(auth, email);
+  } catch (error) {
+    console.error('Fetch sign-in methods error:', error);
     throw error;
   }
 };
