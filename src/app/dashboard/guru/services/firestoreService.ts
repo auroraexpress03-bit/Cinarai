@@ -22,6 +22,10 @@ export function subscribeStudents(
   return onSnapshot(
     q,
     (snap) => {
+      // eslint-disable-next-line no-console
+      console.log('[dashboard/guru] Snapshot docs:', snap.docs.length);
+      // eslint-disable-next-line no-console
+      console.log('[dashboard/guru] Snapshot docs data:', snap.docs.map((d) => d.data()));
       const raw = snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserDocument));
       const students = raw.filter((u) => u.duplicate !== true);
       // Temporary debug logs to validate data is loaded correctly

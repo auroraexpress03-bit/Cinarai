@@ -78,6 +78,15 @@ export function useGuruDashboard() {
       (students) => {
         if (!active) return;
         const normalized = normalizeStudentDocuments(students);
+        // Temporary debug logs to trace student flow through dashboard
+        // eslint-disable-next-line no-console
+        console.log('[useGuruDashboard] Received students from subscription:', students.length);
+        // eslint-disable-next-line no-console
+        console.log('[useGuruDashboard] Raw students payload:', students);
+        // eslint-disable-next-line no-console
+        console.log('[useGuruDashboard] Normalized students count:', normalized.length);
+        // eslint-disable-next-line no-console
+        console.log('[useGuruDashboard] Normalized students payload:', normalized);
         studentsRef.current = normalized;
         studentsReady = true;
         setState((prev) => ({ ...prev, students: normalized }));
