@@ -17,12 +17,21 @@ export function subscribeStudents(
   const q = query(
     collection(firestore, 'users'),
     where('role', '==', 'student'),
-    where('duplicate', '==', false),
     orderBy('displayName', 'asc')
   );
   return onSnapshot(
     q,
-    (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserDocument))),
+    (snap) => {
+      const raw = snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserDocument));
+      const students = raw.filter((u) => u.duplicate !== true);
+      // Temporary debug logs to validate data is loaded correctly
+      // Will be removed after verification
+      // eslint-disable-next-line no-console
+      console.log('[dashboard/guru] Students loaded:', students.length);
+      // eslint-disable-next-line no-console
+      console.log('[dashboard/guru] Students payload:', students);
+      onData(students);
+    },
     onError
   );
 }
