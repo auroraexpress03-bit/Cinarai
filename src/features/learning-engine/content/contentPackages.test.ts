@@ -91,3 +91,19 @@ test('comic 2 identification questions provide six allowed shape choices with on
     assert.equal(question.options.filter((option) => option.correct).length, 1);
   }
 });
+
+test('comic 2 resolution uses six missions aligned to Candi Penataran objects and shapes', () => {
+  const packageContent = getLearningContentPackage(2);
+  const missions = packageContent.resolution.missions;
+  const expectedShapes = ['Persegi', 'Persegi Panjang', 'Segitiga Sama Kaki', 'Segitiga Sama Sisi', 'Lingkaran', 'Belah Ketupat'];
+
+  assert.equal(missions.length, 6);
+  assert.deepEqual(missions.map((mission) => mission.shape), expectedShapes);
+  assert.ok(missions.every((mission) => mission.illustration.endsWith('.svg')));
+  assert.match(missions[0].context.toLowerCase(), /umpang|candi penataran/);
+  assert.match(missions[1].context.toLowerCase(), /balai agung|candi penataran/);
+  assert.match(missions[2].context.toLowerCase(), /candi angka|candi penataran/);
+  assert.match(missions[3].context.toLowerCase(), /candi induk|candi penataran/);
+  assert.match(missions[4].context.toLowerCase(), /relief|candi penataran/);
+  assert.match(missions[5].context.toLowerCase(), /pendopo|candi penataran/);
+});

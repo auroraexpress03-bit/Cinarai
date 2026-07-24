@@ -13,6 +13,12 @@ import qrCandiInduk from '@/features/comics/comic-2/assets/qr/candiinduk.png';
 import qrPendopo from '@/features/comics/comic-2/assets/qr/pendopo.png';
 import qrReliefCandi from '@/features/comics/comic-2/assets/qr/reliefcandi.png';
 import qrUmpang from '@/features/comics/comic-2/assets/qr/umpang.png';
+import persegiResolutionIllustration from '@/features/comics/comic-2/assets/resolution/persegi.svg';
+import persegiPanjangResolutionIllustration from '@/features/comics/comic-2/assets/resolution/persegipanjang.svg';
+import segitigaSamaKakiResolutionIllustration from '@/features/comics/comic-2/assets/resolution/segitigasamakaki.svg';
+import segitigaSamaSisiResolutionIllustration from '@/features/comics/comic-2/assets/resolution/segitigasamasisi.svg';
+import lingkaranResolutionIllustration from '@/features/comics/comic-2/assets/resolution/lingkaran.svg';
+import belahKetupatResolutionIllustration from '@/features/comics/comic-2/assets/resolution/belahketupat.svg';
 
 export const packageContent: ComicContentPackageLike = {
   metadata: {
@@ -91,7 +97,7 @@ export const packageContent: ComicContentPackageLike = {
       shapeName: 'Persegi Panjang',
       shape: 'Persegi Panjang',
       symmetryConnection: 'Balai Agung membantu kita melihat bahwa bentuk yang seimbang sering muncul pada bangunan candi.',
-      symmetryRelation: 'Balai Agung membantu kita melihat bahwa bentuk yang seimbang sering muncul pada bangunan candi.',,
+      symmetryRelation: 'Balai Agung membantu kita melihat bahwa bentuk yang seimbang sering muncul pada bangunan candi.',
     },
     {
       id: 'komik2-candiangka',
@@ -122,7 +128,7 @@ export const packageContent: ComicContentPackageLike = {
       shapeName: 'Segitiga Sama Kaki',
       shape: 'Segitiga',
       symmetryConnection: 'Garis simetri pada atap membantu kita melihat keseimbangan bentuknya.',
-      symmetryRelation: 'Garis simetri pada atap membantu kita melihat keseimbangan bentuknya.',,
+      symmetryRelation: 'Garis simetri pada atap membantu kita melihat keseimbangan bentuknya.',
     },
     {
       id: 'komik2-candiinduk',
@@ -153,7 +159,7 @@ export const packageContent: ComicContentPackageLike = {
       shapeName: 'Segitiga Sama Sisi',
       shape: 'Persegi Panjang',
       symmetryConnection: 'Pola bagian utama Candi Induk menunjukkan susunan yang sama di kiri dan kanan.',
-      symmetryRelation: 'Pola bagian utama Candi Induk menunjukkan susunan yang sama di kiri dan kanan.',,
+      symmetryRelation: 'Pola bagian utama Candi Induk menunjukkan susunan yang sama di kiri dan kanan.',
     },
     {
       id: 'komik2-pendopo',
@@ -184,7 +190,7 @@ export const packageContent: ComicContentPackageLike = {
       shapeName: 'Belah Ketupat',
       shape: 'Persegi Panjang',
       symmetryConnection: 'Bentuk Pendopo Teras memperlihatkan keseimbangan yang tampak jelas pada bagian candi.',
-      symmetryRelation: 'Bentuk Pendopo Teras memperlihatkan keseimbangan yang tampak jelas pada bagian candi.',,
+      symmetryRelation: 'Bentuk Pendopo Teras memperlihatkan keseimbangan yang tampak jelas pada bagian candi.',
     },
     {
       id: 'komik2-reliefcandi',
@@ -387,10 +393,10 @@ export const packageContent: ComicContentPackageLike = {
     missions: [
       {
         id: 1,
-        title: 'Misi 1 · Luas Persegi',
-        part: 'Relief Persegi',
+        title: 'Misi 1 · Umpang',
+        part: 'Umpang',
         shape: 'Persegi',
-        prompt: 'Sebuah persegi memiliki panjang sisi 8 cm. Berapakah luasnya?',
+        prompt: 'Lantai Umpang berbentuk persegi dengan panjang sisi 8 cm. Berapakah luasnya?',
         options: [
           { key: 'A', label: '32 cm²' },
           { key: 'B', label: '48 cm²' },
@@ -402,16 +408,16 @@ export const packageContent: ComicContentPackageLike = {
         formula: 'L = s × s = 8 × 8 = 64 cm²',
         explanation: 'Luas persegi dihitung dari sisi dikali sisi.',
         aiHint: 'Ingat rumus luas persegi: L = s².',
-        context: 'Pola persegi pada relief Candi Penataran menunjukkan susunan yang sama di kiri dan kanan.',
+        context: 'Lantai Umpang pada Candi Penataran berbentuk persegi sehingga luasnya dapat dihitung dengan rumus persegi.',
         accent: 'from-primary-600 to-primary-700',
-        illustration: '/images/navigation/persegi.svg',
+        illustration: persegiResolutionIllustration.src,
       },
       {
         id: 2,
-        title: 'Misi 2 · Luas Persegi Panjang',
-        part: 'Bidang Panjang',
+        title: 'Misi 2 · Balai Agung',
+        part: 'Balai Agung',
         shape: 'Persegi Panjang',
-        prompt: 'Sebuah persegi panjang berukuran panjang 12 cm dan lebar 6 cm. Berapakah luasnya?',
+        prompt: 'Denah Balai Agung berbentuk persegi panjang dengan panjang 12 cm dan lebar 6 cm. Berapakah luasnya?',
         options: [
           { key: 'A', label: '54 cm²' },
           { key: 'B', label: '60 cm²' },
@@ -423,9 +429,93 @@ export const packageContent: ComicContentPackageLike = {
         formula: 'L = p × l = 12 × 6 = 72 cm²',
         explanation: 'Luas persegi panjang dihitung dari panjang dikali lebar.',
         aiHint: 'Kalikan panjang dan lebar dengan hati-hati.',
-        context: 'Bidang panjang pada Candi Penataran membantu kita melihat bentuk yang lebih lebar dari persegi.',
+        context: 'Denah Balai Agung pada Candi Penataran berbentuk persegi panjang sehingga luasnya dihitung dengan panjang dikali lebar.',
         accent: 'from-secondary-500 to-secondary-600',
-        illustration: '/images/navigation/persegi-panjang.svg',
+        illustration: persegiPanjangResolutionIllustration.src,
+      },
+      {
+        id: 3,
+        title: 'Misi 3 · Candi Angka',
+        part: 'Candi Angka',
+        shape: 'Segitiga Sama Kaki',
+        prompt: 'Atap Candi Angka berbentuk segitiga sama kaki dengan alas 10 cm dan tinggi 6 cm. Berapakah luasnya?',
+        options: [
+          { key: 'A', label: '24 cm²' },
+          { key: 'B', label: '30 cm²' },
+          { key: 'C', label: '36 cm²' },
+          { key: 'D', label: '40 cm²' },
+        ],
+        correctKey: 'B',
+        answer: '30 cm²',
+        formula: 'L = 1/2 × a × t = 1/2 × 10 × 6 = 30 cm²',
+        explanation: 'Luas segitiga sama kaki dihitung dengan setengah alas dikali tinggi.',
+        aiHint: 'Ingat rumus luas segitiga: L = 1/2 × alas × tinggi.',
+        context: 'Atap Candi Angka pada Candi Penataran membentuk segitiga sama kaki yang dapat dihitung luasnya dengan rumus segitiga.',
+        accent: 'from-accent-500 to-accent-600',
+        illustration: segitigaSamaKakiResolutionIllustration.src,
+      },
+      {
+        id: 4,
+        title: 'Misi 4 · Candi Induk',
+        part: 'Candi Induk',
+        shape: 'Segitiga Sama Sisi',
+        prompt: 'Bagian utama Candi Induk membentuk segitiga sama sisi dengan alas 12 cm dan tinggi 8 cm. Berapakah luasnya?',
+        options: [
+          { key: 'A', label: '36 cm²' },
+          { key: 'B', label: '48 cm²' },
+          { key: 'C', label: '56 cm²' },
+          { key: 'D', label: '60 cm²' },
+        ],
+        correctKey: 'B',
+        answer: '48 cm²',
+        formula: 'L = 1/2 × a × t = 1/2 × 12 × 8 = 48 cm²',
+        explanation: 'Luas segitiga sama sisi dihitung dengan setengah alas dikali tinggi.',
+        aiHint: 'Gunakan alas dan tinggi yang sesuai untuk menghitung luas segitiga.',
+        context: 'Bagian utama Candi Induk pada Candi Penataran membentuk segitiga sama sisi sehingga luasnya dihitung dengan rumus segitiga.',
+        accent: 'from-secondary-600 to-secondary-700',
+        illustration: segitigaSamaSisiResolutionIllustration.src,
+      },
+      {
+        id: 5,
+        title: 'Misi 5 · Relief Candi',
+        part: 'Relief Candi',
+        shape: 'Lingkaran',
+        prompt: 'Relief berbentuk lingkaran dengan jari-jari 7 cm. Berapakah luasnya?',
+        options: [
+          { key: 'A', label: '144 cm²' },
+          { key: 'B', label: '154 cm²' },
+          { key: 'C', label: '160 cm²' },
+          { key: 'D', label: '168 cm²' },
+        ],
+        correctKey: 'B',
+        answer: '154 cm²',
+        formula: 'L = π × r² = 22/7 × 7 × 7 = 154 cm²',
+        explanation: 'Luas lingkaran dihitung dengan rumus π × r².',
+        aiHint: 'Ingat bahwa luas lingkaran memakai π dan jari-jari.',
+        context: 'Relief berbentuk lingkaran pada Candi Penataran menunjukkan bangun datar yang memiliki sisi lengkung dan titik pusat.',
+        accent: 'from-primary-500 to-primary-600',
+        illustration: lingkaranResolutionIllustration.src,
+      },
+      {
+        id: 6,
+        title: 'Misi 6 · Pendopo',
+        part: 'Pendopo',
+        shape: 'Belah Ketupat',
+        prompt: 'Motif Pendopo membentuk belah ketupat dengan diagonal 8 cm dan 6 cm. Berapakah luasnya?',
+        options: [
+          { key: 'A', label: '18 cm²' },
+          { key: 'B', label: '20 cm²' },
+          { key: 'C', label: '24 cm²' },
+          { key: 'D', label: '28 cm²' },
+        ],
+        correctKey: 'C',
+        answer: '24 cm²',
+        formula: 'L = 1/2 × d₁ × d₂ = 1/2 × 8 × 6 = 24 cm²',
+        explanation: 'Luas belah ketupat dihitung dengan setengah hasil kali kedua diagonalnya.',
+        aiHint: 'Gunakan rumus luas belah ketupat: setengah kali diagonal pertama dan diagonal kedua.',
+        context: 'Motif Pendopo pada Candi Penataran membentuk belah ketupat sehingga luasnya dihitung dengan rumus diagonal.',
+        accent: 'from-tertiary-500 to-tertiary-600',
+        illustration: belahKetupatResolutionIllustration.src,
       },
     ],
   },
