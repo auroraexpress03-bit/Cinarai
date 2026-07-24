@@ -23,6 +23,7 @@ type CoachResponse = {
 
 type ApplicationOption = { value: string; label: string };
 type ApplicationImage = { src: string; alt: string; label: string; description: string };
+type ApplicationCard = { id: string; title: string; image: string; description: string; options: string[]; correctAnswer: string };
 
 function shuffle<T>(array: ReadonlyArray<T>): T[] {
   const result = [...array];
@@ -53,8 +54,6 @@ function saveLocalApplicationActivity(comicId: number, payload: Record<string, u
 export default function ApplicationStage() {
   const { comic, comicModule, setCanAdvance, completeCurrentStage } = useLearningEngine();
   const { user } = useAuth();
-  const [selectedAnswer, setSelectedAnswer] = useState<string[]>([]);
-  const [studentReason, setStudentReason] = useState('');
   const applicationConfig = comicModule.application as {
     title: string;
     intro: string;
@@ -62,7 +61,11 @@ export default function ApplicationStage() {
     context: string;
     images: ApplicationImage[];
     options: ApplicationOption[];
+    cards?: ApplicationCard[];
   };
+  const [selectedAnswer, setSelectedAnswer] = useState<string[]>([]);
+  const [studentReason, setStudentReason] = useState('');
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(applicationConfig.cards?.[0]?.id ?? null);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   
   const [isThinking, setIsThinking] = useState(false);
@@ -73,6 +76,7 @@ export default function ApplicationStage() {
   const [attemptCount, setAttemptCount] = useState(0);
   const [hasHydratedProgress, setHasHydratedProgress] = useState(false);
   const options = useMemo(() => shuffle(applicationConfig.options.map((option) => option.value)), [applicationConfig.options]);
+  const currentCard = useMemo(() => applicationConfig.cards?.find((card) => card.id === selectedCardId) ?? applicationConfig.cards?.[0] ?? null, [applicationConfig.cards, selectedCardId]);
 
   const minReasonLength = studentReason.trim().length;
   const canSubmit = selectedAnswer.length > 0 && minReasonLength >= 20 && !isThinking;
@@ -183,6 +187,7 @@ export default function ApplicationStage() {
       gambar: applicationConfig.images.map((image) => image.src),
       jawabanSiswa: selectedAnswer,
       jawabanAlasan: studentReason,
+      correctAnswer: currentCard?.correctAnswer ?? null,
       attempt: currentAttempt,
     };
 
@@ -288,9 +293,49 @@ export default function ApplicationStage() {
           Perhatikan gambar objek, pilih bangun datar yang paling cocok, lalu jelaskan alasanmu secara singkat.
         </p>
 
+        {applicationConfig.cards && applicationConfig.cards.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {applicationConfig.cards.map((card) => {
+              const isActive = currentCard?.id === card.id;
+              return (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCardId(card.id);
+                    setSelectedAnswer([]);
+                    setStudentReason('');
+                    setAnswerSubmitted(false);
+                    setCoachMessage(null);
+                    setCoachSummary(null);
+                    setAiError(null);
+                  }}
+                  className={['rounded-full border px-3 py-2 text-sm font-semibold transition', isActive ? 'border-primary-600 bg-primary-50 text-primary-700' : 'border-neutral-200 bg-white text-neutral-700 hover:border-primary-200'].join(' ')}
+                >
+                  {card.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {currentCard && (
+          <div className="mt-4 rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+              <div className="relative h-24 w-full max-w-[140px] overflow-hidden rounded-[16px] border border-neutral-200 bg-white">
+                <Image src={currentCard.image} alt={currentCard.title} fill className="object-cover" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-black text-neutral-900">{currentCard.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-neutral-600">{currentCard.description}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-5 grid gap-3">
           <div className="grid gap-2 sm:grid-cols-2">
-            {options.map((option) => {
+            {(currentCard?.options ?? options).map((option) => {
               const matchedOption = applicationConfig.options.find((item) => item.value === option);
               const label = matchedOption?.label ?? option;
               const checked = selectedAnswer.includes(option);
@@ -317,9 +362,16 @@ export default function ApplicationStage() {
           </div>
 
           <div className="rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
-            <label htmlFor="application-reason" className="mb-2 block text-sm font-black text-neutral-700">
-              ✏️ Jelaskan pilihanmu
-            </label>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <label htmlFor="application-reason" className="block text-sm font-black text-neutral-700">
+                ✏️ Jelaskan pilihanmu
+              </label>
+              {currentCard && (
+                <span className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-semibold text-primary-700">
+                  Jawaban benar: {currentCard.correctAnswer}
+                </span>
+              )}
+            </div>
             <textarea
               id="application-reason"
               value={studentReason}

@@ -76,6 +76,14 @@ export interface ComicContentPackageLike {
     context: string;
     images: Array<{ src: string; alt: string; label: string; description: string }>;
     options: Array<{ value: string; label: string }>;
+    cards?: Array<{
+      id: string;
+      title: string;
+      image: string;
+      description: string;
+      options: string[];
+      correctAnswer: string;
+    }>;
   };
   argumentation: {
     questions: Array<{
@@ -198,6 +206,14 @@ export interface ComicModuleLike {
     context: string;
     images: Array<{ src: string; alt: string; label: string; description: string }>;
     options: Array<{ value: string; label: string }>;
+    cards?: Array<{
+      id: string;
+      title: string;
+      image: string;
+      description: string;
+      options: string[];
+      correctAnswer: string;
+    }>;
   };
   argumentation: {
     questions: Array<{
